@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# ARCHETYPE.a2ml — julia-library archetype for `just repo-init` (ADR-0003).
+#
+# Harvested 2026-07-21 from rsr-julia-library-template-repo (VARIANT.a2ml,
+# ADR-0002 reference instance) and the dormant scaffoldia registry entry
+# registry/julia/package.ncl. The variant repo remains the full
+# hand-maintained reference (Project.toml [compat] closure, Aqua+JET,
+# Documenter, flagship rubric); this archetype covers the `just repo-init` path.
+#
+# Contract rules: archetypes/README.adoc. Single-line values; no `|` in
+# token values (init's sed delimiter). Tokens omitted here stay UNASSIGNED
+# on purpose: PACKAGE_NAME and MUST_INVARIANTS are per-repo judgement, and
+# an archetype must not write fiction.
+
+[metadata]
+archetype = "julia-library"
+name = "julia-library"
+schema_version = "0.1.0"
+harvested-from = "rsr-julia-library-template-repo VARIANT.a2ml + scaffoldia registry julia/package.ncl"
+
+[capability]
+# Preset defined in standards .machine_readable/template-capability-gates.toml
+preset = "julia-library"
+
+[tokens]
+PROJECT_KIND = "library"
+PROJECT_DOMAIN = "julia"
+LANG_STACK = "Julia (1.9+)"
+BUILD_CMD = "julia --project=. -e 'using Pkg; Pkg.instantiate()'"
+TEST_CMD = "julia --project=. -e 'using Pkg; Pkg.test()'"
+DEPS = "Julia General registry via Project.toml [deps] with [compat] closure"
+BUILD_OUTPUT_PATH = "src/"

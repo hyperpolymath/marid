@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: MPL-2.0
+# Clade declaration — part of the gv-clade-index registry
+# See: https://github.com/hyperpolymath/gv-clade-index
+#
+# ===========================================================================
+# THIS IS rsr-template-repo's OWN IDENTITY. IT IS NOT A TEMPLATE FOR YOURS.
+#
+# If you are reading this inside a repo created FROM the template, something
+# went wrong: `just repo-init` should have REPLACED this file with one derived for
+# your repo (from build/templates/CLADE.a2ml.in). Do not copy the values below
+# into yours — recompute them. See the uuid note.
+#
+# It did not always do that, and that was the bug. This file was copied verbatim
+# into every new repo, which therefore declared uuid
+# a5ea1382-a34c-5334-8a46-a2ebe904c810, canonical-name "rsr-template-repo",
+# primary "rm" and secondary ["gv"] — and told every arriving agent it WAS the
+# template. Nothing caught it: each value was individually valid. Confirmed
+# victims: chronicles-of-slavia and scaffoldia (both corrected 2026-07-16),
+# paint-type, cargo-zigbuild, email-octad-experiment, llm-grace,
+# rsr-template-how-to.
+# ===========================================================================
+
+[identity]
+# THE UUID IS DERIVED, NOT ALLOCATED (gv-clade-index:
+# docs/SPEC-clade-verisim-portal.adoc §Identity Model):
+#     uuid = UUIDv5(namespace = URL, name = "github.com/<owner>/<name>")
+# This value is a recomputable fact about THIS repo and nothing else:
+#     uuidgen --sha1 --namespace @url --name "github.com/hyperpolymath/rsr-template-repo"
+#     -> a5ea1382-a34c-5334-8a46-a2ebe904c810
+uuid = "a5ea1382-a34c-5334-8a46-a2ebe904c810"
+primary-forge = "github"
+primary-owner = "hyperpolymath"
+canonical-name = "rsr-template-repo"
+prefixed-name = "rm-rsr-template-repo"
+
+[clade]
+# The 2 letters abbreviate the CLADE's name below — never the repo's name.
+# All 12 codes: gv-clade-index verisim/seed/clades.a2ml.
+primary = "rm"
+primary-name = "Repo Management & Tooling"
+secondary = []
+assigned = "2026-03-16"
+rationale = "Repo Management & Tooling (`rm`): the core value proposition is scaffolding repositories — CI/CD, AI manifests, ABI/FFI seams, governance — that other projects are instantiated from. `gv` was previously claimed as a secondary and is dropped: the template SHIPS governance files, but shipping them is not being a governance project. That authority lives in `standards` and `metadatastician-governance`. The inherited [\"gv\"] propagated into every repo created from this template, where it was even less meant."
+
+[forges]
+github = "hyperpolymath/rsr-template-repo"
+gitlab = "hyperpolymath/rsr-template-repo"
+bitbucket = "hyperpolymath/rsr-template-repo"
+
+[lineage]
+type = "standalone"
+# `parent` is a monorepo parent, NOT a description. It previously read
+# "RSR template — scaffold for new repos", which is a description of this repo.
+# That is the same field confusion that put repo descriptions into `parent`
+# across 153 CLADE.a2ml files estate-wide (gv-clade-index PR #50).
+parent = ""
+born = "2026-03-16"
+previous-names = []
+
+[status]
+# One of: reserved incubating active dormant | merged superseded archived extinct
+# Added 2026-07-17: this file had no [status] block, so it failed CLADE-004 and
+# CLADE-005 — and so did every repo that inherited it.
+phase = "active"
+since = "2026-03-16"
+present = true
+aliases = []
+merged-into = ""
+superseded-by = ""
+successors = []
+ended = ""
+
+[[status.history]]
+phase = "active"
+since = "2026-03-16"
+note = "the estate's canonical repository template; in production use"

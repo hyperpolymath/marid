@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Repository rulesets
+
+[IMPORTANT]
+====
+**GitHub does not read this directory.** Unlike `.github/workflows/`,
+`.github/dependabot.yml` or `.github/settings.yml`, ruleset JSON in a repository
+path is *not* auto-applied by any GitHub feature. These files are
+**documentation of intent plus a ready-to-POST payload** — nothing more.
+
+A ruleset only takes effect once someone applies it via the REST API or imports
+it in the web UI. Until then the protection described here **is not in force**.
+====
+
+== Applying a ruleset
+
+Per ADR-0003 the *Configure* stage is an operator stage: identity, visibility and
+branch/tag protection are set out of band. Automation is future work and must not
+be described as existing.
+
+[source,bash]
+----
+# Apply (create) a ruleset on the current repo:
+gh api --method POST \
+  -H "Accept: application/vnd.github+json" \
+  "/repos/{owner}/{repo}/rulesets" \
+  --input .github/rulesets/tag-protection.json
+
+# List what is actually in force — the only authoritative answer:
+gh api "/repos/{owner}/{repo}/rulesets" --jq '.[] | "\(.id)\t\(.name)\t\(.enforcement)"'
+
+# Update an existing ruleset in place (needs its numeric id from the list above):
+gh api --method PUT \
+  "/repos/{owner}/{repo}/rulesets/<id>" \
+  --input .github/rulesets/tag-protection.json
+----
+
+== Files
+
+`tag-protection.json`:: Makes release tags immutable — blocks tag creation,
+update and deletion, and requires signed tags. `bypass_actors` grants the
+repository *admin* role (`actor_id: 5`) an always-bypass, so a maintainer can
+still cut a release.
+
+== Verifying
+
+Do not infer that a ruleset is active because the JSON is present. Check with the
+`gh api ... /rulesets` list above. A ruleset that exists as a file but was never
+POSTed is the tag-protection equivalent of a check that cannot fail.
