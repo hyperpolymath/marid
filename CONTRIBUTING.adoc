@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Contributing
+
+Contributions are welcome. The complete contribution workflow, including setup,
+issue-reporting guidance, branch naming and review expectations, is maintained in
+link:.github/CONTRIBUTING.md[the contribution guide].
+
+Before contributing, read the
+link:.github/CODE_OF_CONDUCT.md[Code of Conduct] and follow the repository's
+language policy in `CLAUDE.md`. Run the checks relevant to your change before
+opening a pull request.
+
+Report security vulnerabilities privately through
+link:https://github.com/hyperpolymath/rsr-template-repo/security/advisories/new[GitHub Security Advisories],
+as described in link:.github/SECURITY.md[the security policy], not through a
+public issue.

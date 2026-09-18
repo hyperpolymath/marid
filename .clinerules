@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) {{CURRENT_YEAR}} {{AUTHOR}} ({{OWNER}}) <{{AUTHOR_EMAIL}}>
+# Authoritative source: docs/practice/AI-CONVENTIONS.adoc
+
+# STARTUP: Read 0-AI-MANIFEST.a2ml first, then .machine_readable/descriptiles/STATE.a2ml.
+
+# LICENSE
+# All original code: MPL-2.0.
+# Never AGPL-3.0. MPL-2.0 only as platform-required fallback.
+# SPDX header required on every source file.
+# Copyright: {{AUTHOR}} ({{OWNER}}) <{{AUTHOR_EMAIL}}>
+
+# STATE FILES (.machine_readable/ ONLY)
+# Never create in repo root: STATE.a2ml, META.a2ml, ECOSYSTEM.a2ml,
+# AGENTIC.a2ml, NEUROSYM.a2ml, PLAYBOOK.a2ml.
+# The .machine_readable/ directory is the single source of truth.
+
+# BANNED PATTERNS
+# Idris2: believe_me, assert_total, assert_smaller, unsafePerformIO
+# Haskell: unsafeCoerce, unsafePerformIO, undefined, error
+# OCaml: Obj.magic, Obj.repr, Obj.obj
+# Coq: Admitted
+# Lean: sorry
+# Rust: transmute (unless FFI with // SAFETY: comment)
+
+# JS/TS RUNTIMES — ordered preference, reach for the first that can do the job
+# (standards/3-practice/LANGUAGE-POLICY.adoc section 1, ruled 2026-07-29)
+# 1. Bun    default for all new work; runs .ts directly, no build step
+# 2. Deno   existing Deno projects are grandfathered; prefer over pnpm/npm
+# 3. pnpm   only where an upstream toolchain needs a node_modules layout
+# 4. npm    last resort; permitted, never preferred — a noted decision
+# TypeScript IS PERMITTED under Bun. The old "use ReScript instead" rule is
+# RETIRED: ReScript is no longer used in this estate, so that rule named a dead
+# alternative. Do NOT migrate Bun to Deno — that inverts the current ruling.
+
+# BANNED LANGUAGES
+# Go -> Rust
+# Python -> Julia or Rust
+
+# CONTAINERS
+# Runtime: Podman first.
+# File: Containerfile (never Dockerfile).
+# Base: cgr.dev/chainguard/wolfi-base:latest or cgr.dev/chainguard/static:latest.
+
+# ABI/FFI
+# ABI: Idris2 with dependent types (src/interface/abi/).
+# FFI: Zig with C ABI (src/interface/ffi/).
+# Headers: src/interface/generated/.
+
+# BUILD: Use just (Justfile) for all tasks.
+# STYLE: Descriptive names. Document all files. SPDX headers everywhere.
