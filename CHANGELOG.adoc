@@ -46,3 +46,7 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
   `f9e173a` → `222b1d9` (main). PR#17 merged 2026-09-17 and the squash
   orphaned its head commit (NOT-ANCESTOR), failing this call and the
   governance action-pin check. Per the pin note's own instruction.
+* `.github/workflows/pages.yml`: build timeout 20 → 60 min. The cold
+  cabal build (casket-ssg + pandoc) exceeds 20 min and a cancelled job
+  saves no cache, so the gate could never go green; warm runs take
+  minutes once the first cold build completes.
