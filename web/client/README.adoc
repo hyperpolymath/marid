@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= @marid/client (planned)
+
+Framework-independent TypeScript client: cancellation, errors, live
+subscriptions, reconnect/resynchronization (`PROJECT_BRIEF.md` §5).
+
+Compatibility requirements: no `window`/`document` access merely from
+importing the SDK; request-scoped credentials and caches for SSR use;
+reconnection detects missed updates and resynchronizes; older browser
+bundles stay compatible during rolling server deployments.
+
+Status: Gate 0 skeleton. Implemented at Gate 4.

@@ -125,7 +125,7 @@ predecessors did.
 | optional
 | Idris2 package for the ABI seam; only where the abi capability is declared
 
-| `archetypes/`
+| `archetypes`
 | optional
 | template-only variation seam (ADR-0003); `just repo-init` removes it from minted repos
 

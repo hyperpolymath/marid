@@ -83,3 +83,16 @@ tests/
 ?CONTRIBUTING.adoc         # AsciiDoc entry point to the canonical .github/ contribution guide
 ?SECURITY.md               # accepted at root OR .github/; likewise
 ?REQUIRES_INITIALISATION.md  # written by the minting process, removed once `just repo-init` runs
+
+# ─── Marid program paths (PROJECT_BRIEF.md §3) ───────────────────────────────
+# The brief's monorepo layout, carried alongside the RSR spine. These entries
+# are REQUIRED: deleting one without updating the brief is drift.
+PROJECT_BRIEF.md           # canonical product/engineering contract (brief §1–§9)
+AGENTS.md                  # repository instructions for coding agents (brief launch text + RSR notes)
+THIRD_PARTY_NOTICES.md     # third-party material register (brief §1 licensing)
+REUSE.toml                 # repository license mapping (starter; Gate 2 finalises)
+packages/                  # Julia packages: Marid + five integrations (brief §2–§3)
+web/                       # browser client: framework-independent TS + React/Vue/elements (brief §5)
+contracts/                 # contract registry: identifiers, versions, fingerprints, bindings (brief §4)
+fixtures/                  # interop fixtures, incl. Cap'n Proto/Bebop import/export (brief §7)
+test/                      # cross-protocol interop tests (brief §7); RSR estate tests live in tests/

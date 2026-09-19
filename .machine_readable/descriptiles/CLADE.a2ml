@@ -2,67 +2,112 @@
 # Clade declaration — part of the gv-clade-index registry
 # See: https://github.com/hyperpolymath/gv-clade-index
 #
-# ===========================================================================
-# THIS IS rsr-template-repo's OWN IDENTITY. IT IS NOT A TEMPLATE FOR YOURS.
-#
-# If you are reading this inside a repo created FROM the template, something
-# went wrong: `just repo-init` should have REPLACED this file with one derived for
-# your repo (from build/templates/CLADE.a2ml.in). Do not copy the values below
-# into yours — recompute them. See the uuid note.
-#
-# It did not always do that, and that was the bug. This file was copied verbatim
-# into every new repo, which therefore declared uuid
-# a5ea1382-a34c-5334-8a46-a2ebe904c810, canonical-name "rsr-template-repo",
-# primary "rm" and secondary ["gv"] — and told every arriving agent it WAS the
-# template. Nothing caught it: each value was individually valid. Confirmed
-# victims: chronicles-of-slavia and scaffoldia (both corrected 2026-07-16),
-# paint-type, cargo-zigbuild, email-octad-experiment, llm-grace,
-# rsr-template-how-to.
-# ===========================================================================
+# Installed by `just repo-init` from build/templates/CLADE.a2ml.in.
+# The identity below is DERIVED. The clade is NOT — a human must choose it.
 
 [identity]
-# THE UUID IS DERIVED, NOT ALLOCATED (gv-clade-index:
-# docs/SPEC-clade-verisim-portal.adoc §Identity Model):
+# THE UUID IS DERIVED, NOT ALLOCATED, NOT INVENTED. The registry spec
+# (gv-clade-index: docs/SPEC-clade-verisim-portal.adoc §Identity Model):
+#
 #     uuid = UUIDv5(namespace = URL, name = "github.com/<owner>/<name>")
-# This value is a recomputable fact about THIS repo and nothing else:
-#     uuidgen --sha1 --namespace @url --name "github.com/hyperpolymath/rsr-template-repo"
-#     -> a5ea1382-a34c-5334-8a46-a2ebe904c810
-uuid = "a5ea1382-a34c-5334-8a46-a2ebe904c810"
+#
+# "The same repo always produces the same UUID without a lookup table." It is a
+# fact anyone can recompute and check — never copy one from another repo, and
+# never make one up. Recompute this one any time with:
+#
+#     uuidgen --sha1 --namespace @url --name "github.com/hyperpolymath/marid"
+#
+# Verify the method first by reproducing a known worked example:
+#     janus example -> e216170e-ff47-5a5c-bbdd-15e61c8190c8
+#
+# The owner segment is part of the derived name, so it is part of the IDENTITY:
+# the same repo hosted under a different owner has a different uuid. Record the
+# owner that is TRUE TODAY, and re-derive if it ever moves.
+uuid = "4401e361-daea-5220-8003-5e0e8dab248f"
 primary-forge = "github"
 primary-owner = "hyperpolymath"
-canonical-name = "rsr-template-repo"
-prefixed-name = "rm-rsr-template-repo"
+canonical-name = "marid"
+prefixed-name = "dx-marid"
 
 [clade]
-# The 2 letters abbreviate the CLADE's name below — never the repo's name.
-# All 12 codes: gv-clade-index verisim/seed/clades.a2ml.
-primary = "rm"
-primary-name = "Repo Management & Tooling"
-secondary = []
-assigned = "2026-03-16"
-rationale = "Repo Management & Tooling (`rm`): the core value proposition is scaffolding repositories — CI/CD, AI manifests, ABI/FFI seams, governance — that other projects are instantiated from. `gv` was previously claimed as a secondary and is dropped: the template SHIPS governance files, but shipping them is not being a governance project. That authority lives in `standards` and `metadatastician-governance`. The inherited [\"gv\"] propagated into every repo created from this template, where it was even less meant."
+# ---------------------------------------------------------------------------
+# CHOOSE ONE. A CLOSED TAXONOMY OF 12 CATEGORIES — NOT AN ABBREVIATION SCHEME.
+#
+# The two letters abbreviate the NAME OF THE CLADE. They NEVER abbreviate the
+# name of your repo. Pick the category your repo belongs to, then write down
+# that category's code. Do NOT look at your repo's name and hunt for two letters
+# that fit it.
+#
+#   fv  Formal Verification & Proofs   provable correctness, dependent types, theorem proving
+#   nl  Nextgen Languages              compilers, runtimes, language tooling
+#   rm  Repo Management & Tooling      scaffolding, graph analysis, bots, templates
+#   gv  Governance & Standards         licensing, compliance, policy enforcement
+#   db  Databases                      database engines, query languages, storage
+#   ap  Applications                   end-user apps, web, desktop, services
+#   ix  Infrastructure & Cloud         containers, deployment, sysadmin
+#   dx  Developer Ecosystem            dev tools, package managers, editors, bindings
+#   pt  Protocols & Interop            internet standards, protocol implementations
+#   ax  AI & Neurosymbolic             ML, neural proof synthesis, AI governance
+#   gm  Games & Interactive            game engines, interactive experiences
+#   sc  Security                       scanning, vulnerability management, access control
+#
+# This is spelled out because the opposite was done, more than once:
+#
+#   paint-type  chose `pt`, reading it as "PainT-type".
+#               `pt` is Protocols & Interop. An image editor is `ap`.
+#   gossamer    chose `gv`, reading it as "Graphical/Visual".
+#               `gv` is GoVernance & Standards. There is no graphical clade.
+#
+# Both codes were VALID, so every check passed, and both repos sat filed under a
+# category they have nothing to do with.
+#
+# HOW TO CHOOSE (spec): "The primary clade reflects the project's core value
+# proposition, not its implementation details." Ask what the repo is FOR, not
+# what it is built with. A game written in Idris2 is `gm`, not `fv`. A webview
+# shell with formal ABI proofs is what developers build on, not a proof project.
+#
+# Fill in BOTH `primary` and `primary-name`, and make them agree — CLADE-006
+# rejects a mismatched pair. The redundancy is deliberate: a code alone cannot
+# express a wrong belief about what it means, so it cannot be checked for one.
+# The pair can.
+#
+# Until you fill these in, CLADE-003 and CLADE-006 FAIL. That is deliberate: an
+# unchosen clade must never be mistakable for a chosen one. Leaving a valid-
+# looking default here is exactly how every repo built from this template ended
+# up silently claiming "rm".
+# ---------------------------------------------------------------------------
+primary = "dx"
+primary-name = "Developer Ecosystem"
+secondary = ["pt"]            # Protocols & Interop: the five native-protocol integrations are a genuine second value proposition
+assigned = "2026-09-18"
+rationale = "Marid is a framework developers build web applications, APIs, and reactive dashboards with; its core value is developer-facing application infrastructure in Julia, not an end-user app, a language, or a proof project."
 
 [forges]
-github = "hyperpolymath/rsr-template-repo"
-gitlab = "hyperpolymath/rsr-template-repo"
-bitbucket = "hyperpolymath/rsr-template-repo"
+github = "hyperpolymath/marid"
+gitlab = ""       # populated if/when mirrored
+bitbucket = ""    # populated if/when mirrored
 
 [lineage]
-type = "standalone"
-# `parent` is a monorepo parent, NOT a description. It previously read
-# "RSR template — scaffold for new repos", which is a description of this repo.
-# That is the same field confusion that put repo descriptions into `parent`
-# across 153 CLADE.a2ml files estate-wide (gv-clade-index PR #50).
-parent = ""
-born = "2026-03-16"
+# type: standalone | monorepo | monorepo-child | inflated | deflated | hub | satellite
+#   hub       — this repo COORDINATES an ecosystem family (its members carry
+#               type="satellite"). WHICH repos it coordinates is not recorded
+#               here: that lives in ECOSYSTEM.a2ml [pipeline] coordination.
+#   satellite — this repo is COORDINATED BY a hub. Its `parent` STAYS "":
+#               parent is a monorepo parent — never a description, and never
+#               the name of the coordinating hub.
+# "hub"/"satellite" were added after the first hub ecosystem had to mint eight
+# repos with the nearest-wrong value "standalone" (standards#726): lineage is
+# the pointer, ECOSYSTEM.a2ml is the detail. Do not encode membership twice.
+type = "monorepo"              # one monorepo, six independently versioned Julia packages (PROJECT_BRIEF.md §3)
+parent = ""                   # a monorepo PARENT — never a description of this repo
+born = "2026-09-18"
 previous-names = []
+instantiated-from = "rsr-template-repo"
 
 [status]
 # One of: reserved incubating active dormant | merged superseded archived extinct
-# Added 2026-07-17: this file had no [status] block, so it failed CLADE-004 and
-# CLADE-005 — and so did every repo that inherited it.
-phase = "active"
-since = "2026-03-16"
+phase = "incubating"          # a repo created today has not proven anything yet
+since = "2026-09-18"
 present = true
 aliases = []
 merged-into = ""
@@ -71,6 +116,12 @@ successors = []
 ended = ""
 
 [[status.history]]
-phase = "active"
-since = "2026-03-16"
-note = "the estate's canonical repository template; in production use"
+phase = "incubating"
+since = "2026-09-18"
+note = "created from rsr-template-repo; clade not yet chosen; not yet registered"
+
+# ---------------------------------------------------------------------------
+# REGISTRATION IS NOT DERIVATION. Deriving the uuid above does not register this
+# repo. Registration means an entry in gv-clade-index verisim/seed/repos.a2ml,
+# it is outward-facing, and it is the OWNER's act — an agent must not do it.
+# ---------------------------------------------------------------------------

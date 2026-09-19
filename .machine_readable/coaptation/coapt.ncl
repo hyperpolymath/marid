@@ -114,8 +114,8 @@ let contractile_prov = "intend@%{cp.intend} must@%{cp.must} trust@%{cp.trust} ad
 let descriptile_prov = "clade@%{fp.clade} state@%{fp.state} ecosystem@%{fp.ecosystem} agentic@%{fp.agentic} anchor@%{fp.anchor}" in
 
 # repo name comes from the CLADE descriptile, not a hardcoded literal — this
-# script is shared verbatim by every repo instantiated from rsr-template-repo,
-# so a literal "rsr-template-repo" here would misreport every one of them.
+# script is shared verbatim by every repo instantiated from marid,
+# so a literal "marid" here would misreport every one of them.
 let repo_name = (lookup "clade.canonical-name").value in
 
 let s = std.to_string in

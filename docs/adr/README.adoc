@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= docs/adr — Marid architectural decision records
+
+Architectural choices for the Marid program (`AGENTS.md`: record
+architectural choices in `docs/adr/`).
+
+Conventions:
+
+* One decision per file, named `NNNN-short-title.adoc`, numbered in the
+  order decided.
+* Each record states the context, the decision, the alternatives
+  considered, and the consequences — including what becomes expensive to
+  retrofit if the decision is wrong (`PROJECT_BRIEF.md` §4).
+* Records are immutable once accepted; a superseded record stays in place
+  with a pointer to its successor.
+
+Note: `docs/decisions/` holds the RSR template's own decisions (0001–0003,
+the scaffolding's history). Marid program decisions live here.
+
+Status: Gate 0 not yet started; no Marid ADRs exist yet. Early candidates:
+runtime/bridge choices from the feasibility audit, the contract-registry
+format, and the browser-event contract.

@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridArango.jl — ArangoDB client (planned)
+
+Native Julia HTTP client for ArangoDB: documents, edges, bound AQL queries,
+cursors, revision-aware updates, transaction operations
+(`PROJECT_BRIEF.md` §2).
+
+Ready when: tests run against an actual supported ArangoDB release, covering
+cursor cleanup, conflicts, failures, and retry behavior.
+
+Status: Gate 0 skeleton. `Project.toml`, `src/`, and `test/` land at Gate 2.
+The ArangoDB release under test is selected at Gate 0
+(`docs/audits/feasibility.adoc`).

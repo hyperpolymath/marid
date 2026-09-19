@@ -58,7 +58,7 @@ k9_paired_runner      = "../intend/intend.ncl"
 [signed_by]
 user    = "Jonathan D.A. Jewell"
 date    = "2026-04-18"
-context = "intend trident — canonical template in rsr-template-repo. North-star verb: reports progress toward committed next-actions ([[intents]]) and lists horizon aspirations ([[wishes]]). Non-gating (reporting authority). Copy this trident into a new repo and replace the declaration with project-specific content."
+context = "intend trident — canonical template in marid. North-star verb: reports progress toward committed next-actions ([[intents]]) and lists horizon aspirations ([[wishes]]). Non-gating (reporting authority). Copy this trident into a new repo and replace the declaration with project-specific content."
 
 ## Change log
 

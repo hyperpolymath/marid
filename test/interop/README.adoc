@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= test/interop — interoperability suites (planned)
+
+Cross-protocol interoperability suites: standard clients exercising the
+Marid integrations end to end, including failure-path and resource-cleanup
+coverage (`PROJECT_BRIEF.md` §8).
+
+Status: Gate 0 skeleton. Suites are built at Gates 3–4. Skipped or
+unexecuted tests must never be reported as passing.

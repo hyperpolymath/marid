@@ -1,9 +1,9 @@
 {
   "aibdp_version": "0.2",
   "status": "experimental \u2014 declaration-only; observing, never enforcing (see www/policies/ai-use.adoc)",
-  "canonical_uri": "https://{{FORGE}}/{{OWNER}}/{{REPO}}/blob/main/www/.well-known/aibdp.json",
-  "contact": "mailto:{{SECURITY_EMAIL}}",
-  "policy_uri": "https://{{FORGE}}/{{OWNER}}/{{REPO}}/blob/main/www/policies/ai-use.adoc",
+  "canonical_uri": "https://github.com/hyperpolymath/marid/blob/main/www/.well-known/aibdp.json",
+  "contact": "mailto:j.d.a.jewell@open.ac.uk",
+  "policy_uri": "https://github.com/hyperpolymath/marid/blob/main/www/policies/ai-use.adoc",
   "policies": {
     "indexing": {
       "status": "allowed",
@@ -58,11 +58,11 @@
     "preferred_resolution": "Correspondence and correction via the contact above."
   },
   "metadata": {
-    "created": "{{CURRENT_DATE}}",
-    "last_modified": "{{CURRENT_DATE}}",
-    "author": "{{AUTHOR}}",
-    "project": "{{PROJECT_NAME}}",
-    "repository": "https://{{FORGE}}/{{OWNER}}/{{REPO}}",
+    "created": "2026-09-18",
+    "last_modified": "2026-09-18",
+    "author": "Jonathan D.A. Jewell",
+    "project": "Marid",
+    "repository": "https://github.com/hyperpolymath/marid",
     "related_standards": [
       "draft-jewell-aibdp-00 (experimental, not a Datatracker submission)",
       "draft-jewell-http-430-consent-required-00 (experimental, not a Datatracker submission)",

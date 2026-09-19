@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= contracts — contract registry
+
+Marid's contract registry: stable identifiers, versions, fingerprints, and
+implementation bindings for the application's contracts
+(`PROJECT_BRIEF.md` §4).
+
+Native schemas stay native: OpenAPI/JSON Schema for HTTP APIs, GraphQL SDL,
+`.proto`, `.capnp`, `.bop`. This registry records and cross-references them;
+it must not invent a replacement universal IDL.
+
+Status: Gate 0 skeleton. Registry format and the contract-evolution rules
+are established at Gate 2, after the Gate 1 spikes validate the runtime
+choices.

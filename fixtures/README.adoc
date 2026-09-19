@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= fixtures — interop fixtures
+
+Shared fixtures for interoperability testing, including the Cap'n Proto and
+Bebop import/export fixtures (or endpoints) with explicitly documented
+semantics required by `PROJECT_BRIEF.md` §7.
+
+Status: Gate 0 skeleton. Fixtures are created alongside the Gate 1 spikes
+(disposable) and stabilised for the Gate 4 cross-protocol tests.

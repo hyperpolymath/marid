@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridCapnProto.jl — Cap'n Proto messages (planned)
+
+Cap'n Proto message encoding/decoding and schema-toolchain integration
+(`PROJECT_BRIEF.md` §2).
+
+Ready when: bidirectional interoperability with an independent
+implementation is demonstrated. Message support is not Cap'n Proto RPC
+support; a Cap'n Proto message sent over WebSocket must not be advertised
+as some other standard RPC protocol.
+
+Status: Gate 0 skeleton. `Project.toml`, `src/`, and `test/` land at Gate 2.
+Compiler/runtime feasibility is audited at Gate 0.

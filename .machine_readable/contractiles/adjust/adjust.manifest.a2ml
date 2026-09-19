@@ -39,7 +39,7 @@ k9_paired_runner    = "../adjust/adjust.ncl"
 [signed_by]
 user    = "Jonathan D.A. Jewell"
 date    = "2026-04-18"
-context = "adjust trident — canonical template in rsr-template-repo. (Yard, advisory) authority pattern. Specialises in cumulative-drift catchment — tolerance bands + trend tracking + auto-fix-where-declared. Advisory (continue-with-warnings). Copy this trident into a new repo and define its drift tolerances and corrective actions."
+context = "adjust trident — canonical template in marid. (Yard, advisory) authority pattern. Specialises in cumulative-drift catchment — tolerance bands + trend tracking + auto-fix-where-declared. Advisory (continue-with-warnings). Copy this trident into a new repo and define its drift tolerances and corrective actions."
 
 [[history]]
 date = "2026-04-18"

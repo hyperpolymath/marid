@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# VARIANT.a2ml — provenance contract (ADR-0002 shape; ADR-0003 use).
+# Records what this repo was minted from so the drift gate
+# (scripts/check-variant-drift.sh <parent-checkout>) and future
+# re-templating tooling have a defined input.
+#
+# NOTE: placeholder rendering means many files differ from the
+# parent by design; folding rendered answers into [normalise] is
+# future work (ADR-0003), so the gate is informational for minted
+# repos until then.
+
+[metadata]
+project = "marid"
+schema_version = "0.1.0"
+last-updated = "2026-09-18"
+
+[variant]
+parent = "hyperpolymath/rsr-template-repo"
+parent-pin = "db1eaf10e21b3af61a3867aadfb344e103f6773e"  # template tip at mint
+role = "minted-repo"
+stack = "julia-library"
+direction = "generated-from-core"
+
+[normalise]
+rules = "action-pins self-name"
+
+[paths.added]
+# Marid program paths added at mint (PROJECT_BRIEF.md §3), beyond placeholder rendering.
+paths = [
+  "PROJECT_BRIEF.md",
+  "AGENTS.md",
+  "THIRD_PARTY_NOTICES.md",
+  "REUSE.toml",
+  "packages/",
+  "web/",
+  "contracts/",
+  "fixtures/",
+  "test/",
+  "docs/marid-architecture.adoc",
+  "docs/marid-compatibility.adoc",
+  "docs/marid-roadmap.adoc",
+  "docs/agent-launch.adoc",
+  "docs/audits/",
+  "docs/adr/",
+]
+
+[paths.removed]
+# Template-only material removed at mint by just repo-init / operator.
+paths = [
+  "archetypes/",
+  "build/templates/",
+  "build/docs-seed/",
+  ".machine_readable/ai/PLACEHOLDERS.adoc",
+]
+
+[paths.diverged]
+# Files a minted repo owns from birth.
+paths = [
+  ".machine_readable/descriptiles/CLADE.a2ml",
+  ".machine_readable/descriptiles/VARIANT.a2ml",
+  ".machine_readable/rsr-profile.a2ml",
+]

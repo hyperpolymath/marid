@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= docs/audits — evidence and version-specific findings
+
+Feasibility evidence, licensing analysis, and version-specific findings
+(`PROJECT_BRIEF.md` §9, Gate 0; `AGENTS.md`).
+
+Gate 0 produces, at minimum:
+
+* `feasibility.adoc` — the evidence-backed integration matrix (existing
+  implementations, missing capabilities, licenses, recommendations,
+  blockers), with sources and dates checked.
+* `licensing.adoc` — license mapping for dependencies, runtimes, IDL files,
+  generated code, and generator templates.
+
+Estate rule: findings are recorded here as `.adoc`, not the brief's `.md`
+spellings. Every claim carries its source and the date checked; unverified
+ecosystem capabilities must be reported, never invented.
+
+Status: Gate 0 not yet started; no audit documents exist yet.

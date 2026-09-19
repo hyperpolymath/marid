@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: MPL-2.0
-# Dustfile — Cleanup and hygiene contract for rsr-template-repo
+# Dustfile — Cleanup and hygiene contract for marid
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 #
 # Paired runner: dust.ncl
 # Verb:          dust
 # Semantics:     What should be cleaned up. Housekeeping, not blockers.
 #
-# This repository: rsr-template-repo is the canonical template.
+# This repository: marid is the canonical template.
 # Cleanup items here ensure the template itself remains pristine.
 
 @abstract:
-Cleanup and hygiene items for rsr-template-repo. These are maintenance tasks
+Cleanup and hygiene items for marid. These are maintenance tasks
 that ensure the template repository remains clean and ready for distribution
 to new repositories.
 @end
@@ -64,10 +64,10 @@ to new repositories.
 ## Template Hygiene
 
 ### no-stale-template-references
-- description: No references to rsr-template-repo in generic template files
-- run: test -z "$(grep -r 'rsr-template-repo' machine-readable-design/ 2>/dev/null)"
+- description: No references to marid in generic template files
+- run: test -z "$(grep -r 'marid' machine-readable-design/ 2>/dev/null)"
 - severity: warning
-- notes: Generic templates should use {{PROJECT_NAME}} or similar placeholders
+- notes: Generic templates should use Marid or similar placeholders
 
 ### version-sync-checked
 - description: Version in canonical-directory-structure matches .machine_readable/contractiles

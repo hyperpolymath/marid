@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= @marid/elements (planned)
+
+Small portable Web Components demonstrator built on Custom Elements,
+properties, DOM events, and explicit styling hooks — not a new
+comprehensive widget library (`PROJECT_BRIEF.md` §5).
+
+Status: Gate 0 skeleton. Implemented at Gate 4; the reference application
+uses one small shared component such as a progress indicator.

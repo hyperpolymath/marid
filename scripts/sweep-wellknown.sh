@@ -63,7 +63,7 @@ usage() {
     cat <<'EOF'
 Usage: scripts/sweep-wellknown.sh [options] [repo ...]
 
-Classify, migrate and test repositories in batches (rsr-template-repo#119).
+Classify, migrate and test repositories in batches (marid#119).
 
 Selecting repositories:
   --repos-file FILE   one repository name per line ('#' comments allowed)
@@ -356,7 +356,7 @@ sweep_repo() { # repo class -> appends to RESULT_CSV
         if [ -n "$(cd "$dir" && git status --porcelain)" ]; then
             # A commit failure is recorded, never fatal: one repository with an
             # unusual hook or an unwritable ref must not abandon the batch.
-            if (cd "$dir" && git add -A && git commit -qm "chore(www): migrate root .well-known/ to www/.well-known/ (rsr-template-repo#119)"); then
+            if (cd "$dir" && git add -A && git commit -qm "chore(www): migrate root .well-known/ to www/.well-known/ (marid#119)"); then
                 if [ "$PUSH" -eq 1 ]; then
                     (cd "$dir" && git push -q origin "HEAD:$BRANCH") \
                         || detail="${detail:+$detail; }push failed"

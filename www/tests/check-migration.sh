@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # check-migration.sh — prove scripts/migrate-wellknown-to-www.sh honours the
-# behaviours stage 5 (#119) depends on (rsr-template-repo#53 acceptance:
+# behaviours stage 5 (#119) depends on (marid#53 acceptance:
 # "Migration handles identical, missing and divergent root/www copies without
 # data loss"). Each scenario runs in a throwaway git repository.
 #

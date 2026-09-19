@@ -49,7 +49,7 @@ k9_paired_runner    = "../must/must.ncl"
 [signed_by]
 user    = "Jonathan D.A. Jewell"
 date    = "2026-04-18"
-context = "must trident — canonical template in rsr-template-repo. Blocking-authority verb (paired with trust). Specialises in subtle invariant-erosion catchment vs trust's outrageous-attack catchment. Hard gate: any failing invariant blocks merge. Copy this trident into a new repo and replace the declaration with project-specific invariants."
+context = "must trident — canonical template in marid. Blocking-authority verb (paired with trust). Specialises in subtle invariant-erosion catchment vs trust's outrageous-attack catchment. Hard gate: any failing invariant blocks merge. Copy this trident into a new repo and replace the declaration with project-specific invariants."
 
 ## Change log
 

@@ -38,7 +38,7 @@ k9_paired_runner    = "../dust/dust.ncl"
 [signed_by]
 user    = "Jonathan D.A. Jewell"
 date    = "2026-04-18"
-context = "dust trident — canonical template in rsr-template-repo. Specialises in audit-trail preservation + rollback-path verification. Yard tier with destructive-action gating (dry-run default; --apply + per-item approval required for mutations). Copy this trident into a new repo and describe how it actually rolls back or retires behaviour."
+context = "dust trident — canonical template in marid. Specialises in audit-trail preservation + rollback-path verification. Yard tier with destructive-action gating (dry-run default; --apply + per-item approval required for mutations). Copy this trident into a new repo and describe how it actually rolls back or retires behaviour."
 
 [[history]]
 date = "2026-04-18"
