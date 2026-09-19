@@ -7,11 +7,12 @@ Code samples and companion `compose.yaml` are MPL-2.0.
 == Status and trust boundary
 
 *Experimental bounded unary HTTP*, not production acceptance. Ordered local work
-now provides a real IR-driven Julia HTTP/JSON service and a separately delivered
-gateway correction. Neither repository has been committed, pushed or deployed.
-The gateway baseline is `19b343c1e9b7c61668c60887369783d12a486f41`; strict mode
-requires the paired `test/interop/gateway-strict.patch`. Unmodified upstream does
-not support empty globals. Do not mistake local patch support for upstream support.
+now provides a real IR-driven Julia HTTP/JSON service and a gateway correction that
+*is* upstream: it merged as `hyperpolymath/http-capability-gateway#112`, commit
+`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`, which is the CI pin and the baseline
+this guide assumes. A gateway or image built before that commit still rejects empty
+`global_verbs` — that is a version statement, not a missing patch. Nothing here is
+a deployment, TLS, persistence or load acceptance claim.
 
 ....
 client -> evaluated TLS ingress -> gateway:4000 -> marid:8080
@@ -30,7 +31,7 @@ bindings are emitted; protocol adapters are not invented by policy generation.
 
 [source,bash]
 ----
-# From Marid root, using the paired patched gateway only:
+# From Marid root, against a gateway at or after the #112 correction:
 scripts/marid generate capability-spec examples/http_json/service.jl \
   --deny-by-default > docs/deployment/policy.yaml.tmp && \
   mv docs/deployment/policy.yaml.tmp docs/deployment/policy.yaml
@@ -79,10 +80,11 @@ CLI warns and never silently opts callers into either security model.
 == Reproduce the local socket acceptance
 
 Use Julia 1.10.10, Bun 1.4.2, Elixir 1.19.4 and OTP 27 with development headers.
-After checking out the pinned gateway baseline, apply the paired patch with
-`git apply --check` then `git apply`. Install Hex/Rebar and `mix deps.get` in that
-checkout. The patch includes necessary baseline compile/startup repairs, not just
-a changed reference model.
+Check out the gateway at the pinned commit `c67c743c6c9f54c0482c1dd8d8dc151ff919551d`
+(the merged `#112` correction); no patch is applied on top of it. Install Hex/Rebar
+and run `mix deps.get` in that checkout. To confirm the pin actually carries the
+correction, `grep 'must be a list (empty denies unmatched routes)'
+lib/http_capability_gateway/policy_validator.ex` — the CI job asserts the same.
 
 [source,bash]
 ----

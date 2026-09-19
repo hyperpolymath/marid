@@ -3,7 +3,7 @@
 # One-shot integration test. Requires bootstrapped Julia example and gateway Mix deps.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
-gateway=$(cd "${1:?Usage: run_http_gateway.sh /path/to/patched/gateway}" && pwd)
+gateway=$(cd "${1:?Usage: run_http_gateway.sh /path/to/gateway (at the pinned commit)}" && pwd)
 work=${EVIDENCE_DIR:-$(mktemp -d)}
 mkdir -p "$work"
 work=$(cd "$work" && pwd)

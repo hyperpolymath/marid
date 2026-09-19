@@ -167,6 +167,19 @@ character, placeholder, anti-pattern and adoc render gates pass, and both golden
 reproduce byte-identically from the emitter. Zero `.a2ml` files remain, so `35aff92`'s purge is not
 undone by the repair.
 
+The gateway side moved too. `test/interop/gateway-strict.patch` could not be applied
+by any git: `error: corrupt patch at ../test/interop/gateway-strict.patch:270`, and four of
+its hunks (`webhook_hardener.ex`, `proxy.ex`, `proxy_wire_test.exs`, `strict_policy_test.exs`)
+declared line counts that did not match their bodies. The hosted failure was reported at the
+"Apply paired gateway changes" step, so every step after it had never actually run. Those
+changes are now upstream — the gateway merged them as `#112` (`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`),
+whose per-file diff matches the patch's intent (the only residual difference, a local
+`parse_cidr/3` rewrite for `:inet.parse_cidr_address/1` in an inactive plugin, is the gateway
+repository's own concern and is left to it). The patch is therefore deleted rather than
+repaired, CI pins the merged commit, and a grep assertion fails the job if that pin is ever
+moved below the correction. Whether the gateway's targeted `mix test` files pass at that pin
+is *not* verified here (no BEAM toolchain in this environment); the CI job is the first real run.
+
 Not verified here, and claimed as not verified: Julia 1.11 (only 1.10.10 was available), the Elixir
 `policy-pipeline` step (no `mix`/`elixir` in the environment), and anything that needs the hosted
 runners - `build`, Sonar/SonarQube, `Canon lockstep`, `call-estate-audit` were already red on the
