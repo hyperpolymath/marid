@@ -4,8 +4,9 @@
 
 Verification of the Gate 0 base against `docs/MARID-FRAMEWORK.adoc`:
 where each principle, package, and hygiene rule stands, with evidence.
-Anchor: the reconciliation commit landing this file
-(`<reconciliation-commit-SHA>`); re-verify rather than trust forward.
+Anchor: the green reconciliation checkpoint
+(`6d2ca9161de587da925b5fb986ec059d75d8c3b`); re-verify rather than
+trust forward.
 
 == The twelve principles
 
@@ -137,7 +138,7 @@ gate covers a fallback decision
 ----
 git clone https://github.com/hyperpolymath/marid
 cd marid
-git checkout <reconciliation-commit-SHA>
+git checkout 6d2ca9161de587da925b5fb986ec059d75d8c3b
 just validate
 # expect: All validations passed!
 ----

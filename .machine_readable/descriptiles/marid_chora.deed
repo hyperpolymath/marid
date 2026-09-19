@@ -1,0 +1,115 @@
+;; SPDX-License-Identifier: MPL-2.0
+(repo-deed
+  :schema-version  "1.0.0"
+  :canonical-name  "marid"
+  :beholding-chora #u5"estate/chora"
+
+  :repo-uuid       #u5"github.com/hyperpolymath/marid"
+
+  (identity :primary-forge github
+            :owner          "hyperpolymath"
+            :prefixed-name  "dx-marid")
+
+  (clade    :primary       dx
+            :primary-name  "Developer Ecosystem"
+            :secondary     (pt)
+            :assigned      "2026-09-18"
+            :rationale     "Marid is a framework developers build web applications, APIs, and reactive dashboards with; its core value is developer-facing application infrastructure in Julia, not an end-user app, a language, or a proof project.")
+
+  (forges   :github    "hyperpolymath/marid"
+            :gitlab    ""
+            :bitbucket "")
+
+  (lineage  :type              monorepo
+            :parent            ""
+            :born              "2026-09-18"
+            :previous-names    ()
+            :instantiated-from "rsr-template-repo")
+
+  (status   :phase         incubating
+            :since         "2026-09-18"
+            :present       #t
+            :aliases       ()
+            :merged-into   ""
+            :superseded-by ""
+            :successors    ()
+            :ended         ""
+            (history
+              (entry :phase incubating
+                     :since "2026-09-18"
+                     :note  "created from rsr-template-repo; clade not yet chosen; not yet registered")
+            ))
+
+  (meta
+        :version       "0.1.0"
+        :last-updated  "2026-04-11"
+        :type          library
+        :languages     ()
+        :license       MPL-2.0
+        :author        "Jonathan D.A. Jewell (hyperpolymath)"
+        :build-tool        just
+        :container-runtime podman
+        :ci-platform       github-actions
+        :package-manager   guix
+        :scoping-first   #t
+        :execution-order  "axis-1 > axis-2 > axis-3"
+        :axis-1           "must > intend > like"
+        :axis-2  "corrective > adaptive > perfective"
+        :axis-3  "systems > compliance > effects"
+        (scoping
+          :sources            "README, roadmap, status docs, maintenance checklist, CI/security docs"
+          :marker-scan        "TODO/FIXME/XXX/HACK/STUB/PARTIAL"
+          :idris-unsound-scan "believe_me/assert_total")
+        :corrective-first  #t
+        :adaptive-second   #t
+        :adaptive-focus    "scope-change reconciliation, stale-reference removal, obsolete-work culling"
+        :perfective-third  #t
+        :perfective-source "axis-1 honest state after corrective/adaptive updates"
+        (axis-3
+          :audit-focus        "systems in place, documentation explains actual state, safety/security accounted for, observed effects reviewed"
+          :compliance-focus   "seams/compromises/exception register, bounded exceptions, anti-drift checks"
+          :drift-risk-example "single exception broadening into policy violation (e.g. ->TypeScript spread)"
+          :effects-evidence   "benchmark execution/results and maintainer status dialogue/review"))
+
+  (ecosystem
+             :project           "marid"
+             :ecosystem         "hyperpolymath"
+             :position-type     "monorepo"
+             :purpose           "Julia-first framework for web applications, APIs, and reactive scientific dashboards: thirteen charter packages (launch set, core, storage, later) and a framework-independent AffineScript browser client under Bun, proved by one reference application."
+             :not               ("a database engine (ArangoDB is the database; ArangoDB.jl is a client)" "a replacement universal IDL (MaridIR emits native artifacts but is never a wire format; contracts/ records them)" "a frontend framework (React/Vue are supported through standard APIs, never replaced)" "a Genie clone built in one task (package-first program with gated acceptance tests)")
+             :pipeline-position "application-framework"
+             :chain             "standards → rsr-template-repo → marid → (Marid.jl applications)"
+             :pipeline-notes    "marid turns the Marid brief (PROJECT_BRIEF.md) and framework charter (docs/MARID-FRAMEWORK.adoc) into thirteen charter packages plus an AffineScript browser client under Bun. Minted from rsr-template-repo via just repo-init (julia-library archetype); Marid program paths recorded in VARIANT.a2ml [paths.added]."
+             :coordination      standards
+             (related :name "standards" :relationship standard-source :notes "Defines the RSR standard, contractile canon, and policies this repo's scaffolding operationalises.")
+             (related :name "rsr-template-repo" :relationship minted-from :notes "Parent template (parent-pin in VARIANT.a2ml). Drift gate: scripts/check-variant-drift.sh.")
+             (related :name "gv-clade-index" :relationship registry :notes "Clade registry; registration is the owner's act (CLADE.a2ml), not yet done."))
+
+  (agentic
+            :version "0.1.0" :last-updated "2026-04-11"
+            (permissions  :source         #t
+                          :tests          #t
+                          :docs           #t
+                          :config         #t
+                          :create-files   #t)
+            (integrity    :fail-closed                     #t
+                          :require-evidence-per-step       #t
+                          :allow-silent-skip               #f
+                          :require-rerun-after-fix         #t
+                          :release-claim-requires-hard-pass #t)
+            (methodology :instructions-dir ".machine_readable/bot_directives/" :default-mode hybrid))
+
+  (neurosym
+             :version "0.1.0" :last-updated "2026-04-11"
+             (hypatia :scan-enabled  #t
+                      :scan-depth    standard
+                      :report-format "logtalk"))
+
+  (playbook
+            :version "0.1.0" :last-updated "2026-04-11"
+            (skeleton :version              "1.0"
+                      :last-updated         "2026-04-30"
+                      :authority-allowlist  ".machine_readable/root-allow.txt"
+                      :enforcement-workflow ".github/workflows/estate-rules.yml")
+            (deployment) (incident-response) (release-process) (docs-format) (maintenance-operations))
+)
