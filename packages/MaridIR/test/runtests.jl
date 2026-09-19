@@ -139,3 +139,5 @@ using MaridIR
         @test_throws ErrorException emit_capability_spec(svc_cap; stealth_status=600)
     end
 end
+
+include("capability.jl")

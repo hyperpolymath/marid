@@ -36,3 +36,12 @@ Runtime and development dependencies are declared per package
 (`packages/*/Project.toml`, `web/*/package.json`, once created at Gate 2)
 and are not copied into this repository. Their licenses are reviewed at
 Gate 0 (see `docs/audits/licensing.adoc`) and re-checked at Gate 5.
+
+## HTTP/JSON vertical slice (2026-09-19)
+
+- HTTP.jl: MIT; maintained HTTP/1.1 listener and client, not an HTTP/2 claim.
+- JSON3.jl: MIT; JSON wire serialization/parsing (no Julia eval/deserialization).
+- Exact resolved versions and transitive dependencies are recorded in
+  `examples/http_json/Manifest.toml` and the Codec/Transport manifests. Upstream
+  packages retain their license files in package distributions; no third-party
+  source was copied into Marid.

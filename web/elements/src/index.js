@@ -7,9 +7,7 @@
  * Authored to standard Custom Elements v1 specs with explicit CSS styling hooks.
  */
 
-const template = `
-<style>
-  :host {
+const progressStyle = `  :host {
     display: inline-block;
     width: 100%;
     box-sizing: border-box;
@@ -44,14 +42,6 @@ const template = `
     margin-bottom: 4px;
     color: var(--marid-progress-text, #334155);
   }
-</style>
-<div class="label-container">
-  <span class="status">Idle</span>
-  <span class="percentage">0%</span>
-</div>
-<div class="track">
-  <div class="bar"></div>
-</div>
 `;
 
 class ElementFallback {
@@ -72,11 +62,28 @@ export class MaridProgressElement extends BaseElement {
     return ["value", "max", "status", "indeterminate"];
   }
 
+  /** Creates a progress element and builds its shadow DOM when available. */
   constructor() {
     super();
     if (typeof this.attachShadow === "function") {
       this.attachShadow({ mode: "open" });
-      this.shadowRoot.innerHTML = template;
+      const doc = this.ownerDocument;
+      const style = doc.createElement("style");
+      style.textContent = progressStyle;
+      const labels = doc.createElement("div");
+      labels.className = "label-container";
+      for (const [className, text] of [["status", "Idle"], ["percentage", "0%"]]) {
+        const span = doc.createElement("span");
+        span.className = className;
+        span.textContent = text;
+        labels.append(span);
+      }
+      const track = doc.createElement("div");
+      track.className = "track";
+      const bar = doc.createElement("div");
+      bar.className = "bar";
+      track.append(bar);
+      this.shadowRoot.append(style, labels, track);
       this._bar = this.shadowRoot.querySelector(".bar");
       this._status = this.shadowRoot.querySelector(".status");
       this._percentage = this.shadowRoot.querySelector(".percentage");

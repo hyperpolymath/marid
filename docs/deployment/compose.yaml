@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: MPL-2.0
+# Configuration-only recipe; requires independently tested images and paired gateway patch.
+services:
+  http-capability-gateway:
+    image: "${HTTP_CAPABILITY_GATEWAY_IMAGE:?Set a reviewed patched gateway image digest}"
+    ports:
+      - "127.0.0.1:8088:4000"
+    environment:
+      POLICY_PATH: /etc/marid/policy.yaml
+      BACKEND_URL: http://marid:8080
+      PORT: "4000"
+      TRUST_LEVEL_SOURCE: header
+      # Image config must set strip_trust_header: true and trusted_proxies: [].
+      # These are Elixir settings, not environment variables consumed by upstream.
+      # Audit persistence needs an independently configured/evaluated VeriSimDB endpoint.
+    volumes:
+      - type: bind
+        source: ./policy.yaml
+        target: /etc/marid/policy.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      - marid
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:4000/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    networks: [edge, backend]
+
+  marid:
+    image: "${MARID_APP_IMAGE:?Set a tested application image digest}"
+    # Image entrypoint must serve actual HTTP on 0.0.0.0:8080.
+    # No host ports: all external application traffic must cross governance.
+    expose: ["8080"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    networks: [backend]
+
+networks:
+  edge: {}
+  backend:
+    internal: true

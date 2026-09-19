@@ -31,3 +31,43 @@ function dispatch_call(app::MaridApp, ctx::CallContext, method::String, path::St
     pipeline = apply_middleware(app.middlewares, m.handler)
     return pipeline(ctx, (input=input, params=m.params))
 end
+
+
+export bind_service!, serve_json
+
+# Implemented only when the optional Codec and Transport packages are loaded.
+function serve_json end
+
+"""
+    bind_service!(app, service, handlers)
+
+Atomically install HTTP-bound unary methods from one validated IR descriptor.
+Methods without a `route_path` are ignored. `handlers` is keyed by IR method name
+and uses the existing `(context, call)` stream contract.
+
+Return `app` after replacing its route table. Invalid descriptors, non-unary HTTP
+bindings, missing or non-function handlers, and conflicting route parameters raise
+an exception before the app's route table is replaced.
+"""
+function _validate_canonical_route_path(path::String)
+    startswith(path, "/") || throw(ArgumentError("Route must start with /: $path"))
+    (occursin("//", path) || (path != "/" && endswith(path, "/"))) &&
+        throw(ArgumentError("Use canonical routes (no repeated/trailing slash): $path"))
+    return path
+end
+
+function bind_service!(app::MaridApp, service::ServiceDescriptor, handlers::AbstractDict)
+    validate_service(service)
+    table = app.routes
+    for method in service.methods
+        isempty(method.route_path) && continue
+        _validate_canonical_route_path(method.route_path)
+        method.streaming == Unary || throw(ArgumentError("HTTP JSON slice supports unary methods only"))
+        haskey(handlers, method.name) || throw(ArgumentError("Missing handler: $(method.name)"))
+        handler = handlers[method.name]
+        handler isa Function || throw(ArgumentError("Handler must be a function: $(method.name)"))
+        table = add_route(table, method.http_method, method.route_path, handler)
+    end
+    app.routes = table
+    return app
+end
