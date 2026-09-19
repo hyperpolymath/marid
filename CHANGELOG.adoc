@@ -29,6 +29,15 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
   `docs/marid-roadmap.adoc` (Gate 0 stubs), `docs/audits/`,
   `docs/adr/`, and `docs/agent-launch.adoc` (Gate 0 kickoff and
   bounded-task prompts).
+* `.machine_readable/descriptiles/marid_chora.deed` — the six
+  descriptiles (CLADE, META, ECOSYSTEM, AGENTIC, NEUROSYM, PLAYBOOK)
+  translated to a `repo-deed` with the standards#837 campaign
+  translator against the normative ABNF (`deed.anbf` v1.0.0),
+  validated by pristine `deed_lint.py`. Dual-surface: the `.a2ml`
+  sources stay until retire-the-checker day. Owner-ordered local
+  extension: `minted-from` + `registry` relationship symbols (pending
+  standards tableing; the campaign seen-set was built from the
+  template instance, which has no mint parent).
 
 ==== Changed
 
