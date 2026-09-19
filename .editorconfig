@@ -121,7 +121,7 @@ end_of_line = crlf
 # adopted for new work. These sections are inert where the files are absent and
 # keep surviving files from drifting. Removal is a per-repo judgement.
 
-[*.a2ml]
+[*.deed]
 indent_size = 2
 
 [*.go]

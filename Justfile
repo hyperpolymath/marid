@@ -52,7 +52,7 @@ info:
     @echo "Version: {{version}}"
     @echo "RSR Tier: {{tier}}"
     @echo "Recipes: $(just --summary | wc -w)"
-    @[ -f ".machine_readable/descriptiles/STATE.a2ml" ] && grep -oP 'phase\s*=\s*"\K[^"]+' .machine_readable/descriptiles/STATE.a2ml | head -1 | xargs -I{} echo "Phase: {}" || true
+    @[ -f ".machine_readable/descriptiles/marid_chora.deed" ] && grep -oP ':phase\s+\K[a-z0-9_-]+' .machine_readable/descriptiles/marid_chora.deed | head -1 | xargs -I{} echo "Phase: {}" || true
 
 # Run Invariant Path overlay tools for this repository
 invariant-path *ARGS:
@@ -136,62 +136,27 @@ clean-all: clean
 
 # Run all tests
 test *args:
-    #!/usr/bin/env bash
-    # A check that cannot fail is not a check. This recipe MUST be replaced at
-    # mint with the project's real test command; until then it fails loudly
-    # rather than printing "Tests passed!" over an empty run.
-    #
-    # Replace this whole body with one of:
-    #   cargo test --workspace {{args}}
-    #   mix test {{args}}
-    #   zig build test {{args}}
-    #   deno test {{args}}
-    echo "FAIL: \`just test\` has not been wired to a real test command yet." >&2
-    echo "      Edit the 'test' recipe in the Justfile before relying on this gate." >&2
-    exit 1
+    ./scripts/marid check
 
 # Run tests with verbose output
 test-verbose:
-    @echo "Running tests (verbose)..."
-    # TODO: Replace with verbose test command
+    ./scripts/marid check
 
 # Smoke test
 test-smoke:
-    @echo "Smoke test..."
-    # TODO: Add basic sanity checks
+    ./scripts/marid check
 
 # Run end-to-end tests (full pipeline: build → run → verify)
 e2e:
-    @echo "Running E2E tests..."
-    # TODO: Replace with your E2E test command. Examples:
-    #   bash tests/e2e.sh                    # Shell-based E2E
-    #   npx playwright test                  # Browser E2E
-    #   mix test test/integration/e2e_test.exs  # Elixir E2E
-    #   cargo test --test end_to_end         # Rust E2E
-    @echo "E2E tests passed!"
+    bash tests/e2e.sh
 
 # Run aspect tests (cross-cutting concern validation)
 aspect:
-    @echo "Running aspect tests..."
-    # TODO: Replace with your aspect test command. Examples:
-    #   bash tests/aspect_tests.sh           # Shell-based aspect tests
-    #   cargo test --test aspects             # Rust aspect tests
-    # Aspect tests validate architectural invariants:
-    #   - Thread safety (mutex in FFI modules)
-    #   - ABI/FFI contract (declarations match exports)
-    #   - SPDX compliance (all files have license headers)
-    #   - No dangerous patterns (believe_me, assert_total, etc.)
-    @echo "Aspect tests passed!"
+    bash tests/aspect_tests.sh
 
 # Run benchmarks (performance regression detection)
 bench:
-    @echo "Running benchmarks..."
-    # TODO: Replace with your benchmark command. Examples:
-    #   cargo bench                           # Rust criterion
-    #   zig build bench                       # Zig benchmarks
-    #   mix run bench/benchmarks.exs          # Elixir benchee
-    #   deno bench                            # Deno bench
-    @echo "Benchmarks complete!"
+    bash benches/marid_bench.sh
 
 # Run readiness tests (Component Readiness Grade: D/C/B)
 readiness:
@@ -311,10 +276,10 @@ deps-audit:
     @echo "Audit complete"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ARRIVAL PACK — agent-facing CLAUDE.md, compiled from a2ml
+# ARRIVAL PACK — agent-facing CLAUDE.md
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Compile CLAUDE.md (the agent arrival pack) from this repo's a2ml
+# Compile CLAUDE.md (the agent arrival pack)
 claude-md:
     @bash .machine_readable/arrival-pack/generate.sh
 
@@ -338,7 +303,7 @@ validate-repo-map:
     rm -f "$before"
     echo "repository map: up to date"
 
-# Fail if CLAUDE.md's generated region drifted from a2ml or was hand-edited
+# Fail if CLAUDE.md's generated region drifted or was hand-edited
 validate-claude-md:
     @bash .machine_readable/arrival-pack/verify.sh
 
@@ -461,16 +426,16 @@ import? "build/just/validate.just"
 # STATE MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Update STATE.a2ml timestamp
+# Update manifest timestamp
 state-touch:
-    @if [ -f ".machine_readable/descriptiles/STATE.a2ml" ]; then \
-        sed -i 's/last-updated = "[^"]*"/last-updated = "'"$(date +%Y-%m-%d)"'"/' .machine_readable/descriptiles/STATE.a2ml && \
-        echo "STATE.a2ml timestamp updated"; \
+    @if [ -f "0-AI-MANIFEST.deed" ]; then \
+        sed -i 's/last-updated = "[^"]*"/last-updated = "'"$(date +%Y-%m-%d)"'"/' 0-AI-MANIFEST.deed && \
+        echo "0-AI-MANIFEST.deed timestamp updated"; \
     fi
 
-# Show current phase from STATE.a2ml
+# Show current phase from marid_chora.deed
 state-phase:
-    @sed -n 's/^[[:space:]]*phase[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' .machine_readable/descriptiles/STATE.a2ml 2>/dev/null | head -1 || echo "unknown"
+    @grep -oP ':phase\s+\K[a-z0-9_-]+' .machine_readable/descriptiles/marid_chora.deed 2>/dev/null | head -1 || echo "unknown"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GUIX

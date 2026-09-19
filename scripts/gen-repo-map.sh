@@ -67,7 +67,7 @@ done < "$ALLOW"
 declared_only() {
     local d="$1" n
     n=$(git ls-files "$d" | awk -F/ '{print $NF}' \
-        | grep -vxE 'README\.adoc|0\.[0-9]+-AI-MANIFEST\.a2ml|\.gitkeep' | wc -l)
+        | grep -vxE 'README\.adoc|0\.[0-9]+-AI-MANIFEST\.deed|\.gitkeep' | wc -l)
     [ "$n" -eq 0 ]
 }
 

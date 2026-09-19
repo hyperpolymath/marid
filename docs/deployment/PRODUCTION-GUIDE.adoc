@@ -117,6 +117,21 @@ api.example.com {
 }
 ----
 
+=== Front-Facing Governance Sidecar (http-capability-gateway)
+
+For deployments requiring perimeter verb governance, declarative DSL v1 exposure policies,
+and deceptive 404 stealthing on ungranted methods, place `http-capability-gateway` directly
+in front of the Marid service.
+
+Policies are generated automatically from `MaridIR.ServiceDescriptor` with zero contract drift:
+[source,bash]
+----
+marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl config/policy.yaml
+----
+
+For complete container deployment manifests utilizing **Podman** pods and compose stacks,
+see link:docker-compose.adoc[Marid Container Deployment: Podman & Compose Architecture].
+
 == 3. Health Probes & Lifecycle Semantics
 
 Production orchestration systems (Kubernetes, Nomad, Podman) rely on standardized health endpoints:

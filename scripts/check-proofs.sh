@@ -38,7 +38,7 @@
 #     source-root : directory the prover is invoked from, chosen so the module's
 #                   declared name matches its path (getting this wrong is hole #2).
 #     gated       : MUST compile.  A failure fails this script and CI.
-#     quarantine  : known-broken, tracked in STATE.a2ml.  Must CONTINUE to fail;
+#     quarantine  : known-broken.  Must CONTINUE to fail;
 #                   if one starts compiling the script fails and tells you to
 #                   promote it, so the list cannot rot into a permanent excuse.
 #
@@ -136,7 +136,7 @@ while IFS='|' read -r root rel status note; do
       echo "PASS"
     else
       echo "PASS -- UNEXPECTED (quarantined module now compiles)"
-      echo "        Promote '$rel' to 'gated' in $MANIFEST_FILE and update STATE.a2ml."
+      echo "        Promote '$rel' to 'gated' in $MANIFEST_FILE."
       unexpected_pass=$((unexpected_pass + 1))
     fi
   else

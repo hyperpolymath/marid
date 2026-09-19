@@ -64,18 +64,18 @@ jobs:
             exit 1
           fi
           echo "README: OK"
-      - name: Check .machine_readable directory and STATE.a2ml
+      - name: Check .machine_readable directory and marid_chora.deed
         run: |
           if [ ! -d ".machine_readable" ]; then
             echo "::error::.machine_readable/ directory is required"
             exit 1
           fi
 
-          if [ ! -f ".machine_readable/descriptiles/STATE.a2ml" ]; then
-            echo "::error::.machine_readable/descriptiles/STATE.a2ml is required"
+          if [ ! -f ".machine_readable/descriptiles/marid_chora.deed" ]; then
+            echo "::error::.machine_readable/descriptiles/marid_chora.deed is required"
             exit 1
           fi
-          echo ".machine_readable/descriptiles/STATE.a2ml: OK"
+          echo ".machine_readable/descriptiles/marid_chora.deed: OK"
       - name: Check CHANGELOG exists
         run: |
           if [ ! -f "CHANGELOG.md" ] && [ ! -f "CHANGELOG.adoc" ] && [ ! -f "CHANGES.md" ]; then
