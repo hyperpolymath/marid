@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridIR.jl — service descriptor IR (planned)
+
+The one service descriptor: `ServiceDescriptor`, `MethodDescriptor`,
+`TypeRef`, streaming kinds, and annotations. Pure data plus validation,
+with no dependencies (`docs/MARID-FRAMEWORK.adoc`, launch set).
+
+Every schema artifact — OpenAPI, JSON Schema, GraphQL SDL, `.proto`,
+AsyncAPI, client stubs, docs — is emitted from this IR. Nothing is
+hand-maintained in parallel.
+
+Status: Gate 0 skeleton. Implemented at Phase 1; the IR freezes after
+the first emitter proves it (brief §9).

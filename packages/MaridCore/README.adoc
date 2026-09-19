@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridCore.jl — router and server assembly (planned)
+
+The request data plane: trie router with tuple keys, middleware
+(`f(call, next)`), `CallContext`, and server assembly. The router is a
+pure function over the immutable local route snapshot — it never
+blocks and never touches the network
+(`docs/MARID-FRAMEWORK.adoc`, core set).
+
+Status: Gate 0 skeleton. Implemented at Phase 2; the REST MVP serves
+from the IR and the benchmark baseline is recorded (brief §9).

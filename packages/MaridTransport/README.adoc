@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridTransport.jl — transport seam (planned)
+
+The Transport seam: HTTP/1.1 via HTTP.jl, SSE, WebSocket upgrade, and
+chunked/trailers support (`docs/MARID-FRAMEWORK.adoc`, core set).
+
+HTTP/2 — and therefore native gRPC — lands at Phase 8 via a libnghttp2
+binding, or not at all (gRPC-Web only). No sooner.
+
+Status: Gate 0 skeleton. Implemented at Phase 2 (brief §9).

@@ -6,9 +6,11 @@ Marid's contract registry: stable identifiers, versions, fingerprints, and
 implementation bindings for the application's contracts
 (`PROJECT_BRIEF.md` §4).
 
-Native schemas stay native: OpenAPI/JSON Schema for HTTP APIs, GraphQL SDL,
-`.proto`, `.capnp`, `.bop`. This registry records and cross-references them;
-it must not invent a replacement universal IDL.
+IR-first: MaridIR is this registry's executable form. Every native
+artifact — OpenAPI/JSON Schema for HTTP APIs, GraphQL SDL, `.proto`,
+`.capnp`, `.bop`, AsyncAPI — is emitted from the IR, and native schemas
+stay native at every boundary. The IR is never a wire format, and this
+registry must not invent a replacement universal IDL.
 
 Status: Gate 0 skeleton. Registry format and the contract-evolution rules
 are established at Gate 2, after the Gate 1 spikes validate the runtime

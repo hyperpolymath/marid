@@ -26,9 +26,10 @@ content. Until then, the brief's §9 is authoritative.
 * *Gate 2 — Foundation.* Package skeletons and independent environments,
   license mapping, CI and test tooling, shared context and lifecycle
   contracts, ADRs, browser-event contract.
-* *Gate 3 — Independent packages.* Implement the five packages against
-  their acceptance criteria; parallel work once contracts and runtime
-  choices are approved.
+* *Gate 3 — Independent packages.* Implement the charter packages
+  (Phases 1–3 first, then 4–8 per the roadmap gates) against their
+  acceptance criteria; parallel work once contracts and runtime choices
+  are approved.
 * *Gate 4 — Assembly and browser integrations.* Thin Marid bindings,
   framework-independent client, React/Vue wrappers, reference application,
   real-browser and cross-protocol tests.
@@ -36,6 +37,15 @@ content. Until then, the brief's §9 is authoritative.
   licensing, documentation, reproducibility, package registration and
   release order. Public registration, publishing, deployment, and paid
   services require explicit approval.
+
+== Gate → phase mapping
+
+The gates are acceptance checkpoints; the charter phases
+(`docs/MARID-FRAMEWORK.adoc` roadmap) are build order. Gate 0 covers
+Phase 0 plus feasibility for all phases; Gate 1 de-risks Phases 1–3
+entry; Gate 2 sets up Phases 1–2; Gate 3 implements Phases 1–3, then
+4–8 per the roadmap gates; Gate 4 assembles plus the Phase 5 frontend;
+Gate 5 reviews the whole program. Full table: `PROJECT_BRIEF.md` §9.
 
 == Current position
 

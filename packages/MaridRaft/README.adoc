@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridRaft.jl — own Raft, maybe (planned)
+
+Own Raft (elections, log, compaction, membership) — last, small, and
+tested, or not at all. It lands only if the etcd backend proves
+insufficient (`docs/MARID-FRAMEWORK.adoc`, later set).
+
+Status: Gate 0 skeleton. Phase 7, gated on a Jepsen-style testing
+budget (brief §9). It may never be needed.

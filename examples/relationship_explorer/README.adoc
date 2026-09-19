@@ -8,11 +8,11 @@ explorer and the program's integration test (`PROJECT_BRIEF.md` §7).
 It must support creating and retrieving entities, connecting entities with
 edges, exploring a bounded neighborhood, and running a small Julia analysis
 with progress updates — exposed as the same application services through
-HTTP/JSON, GraphQL, and gRPC, with Cap'n Proto and Bebop import/export
-fixtures of explicitly documented semantics.
+HTTP/JSON and GraphQL, plus gRPC once Phase 8 lands, with Cap'n Proto and
+Bebop import/export fixtures of explicitly documented semantics.
 
-Frontends: plain JavaScript, React, and Vue, plus one small shared Web
-Component such as a progress indicator.
+Frontends: AffineScript (JaffaScript face), React, and Vue, plus one small
+shared Web Component such as a progress indicator.
 
 This application exercises the integrations; it must not reimplement
 business logic per protocol.

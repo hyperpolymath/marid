@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridCodec.jl — codec seam (planned)
+
+The Codec seam: content negotiation (`Accept`, `q=` weights, `Vary`),
+JSON via JSON3, with MsgPack and CBOR arriving as extensions
+(`docs/MARID-FRAMEWORK.adoc`, launch set).
+
+Cap'n Proto message encoding/decoding and Bebop v3 schema/runtime
+integration live here as extensions — serialization only, never
+standalone RPC packages.
+
+Status: Gate 0 skeleton. Implemented at Phase 1 (brief §9).

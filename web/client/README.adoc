@@ -2,8 +2,9 @@
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = @marid/client (planned)
 
-Framework-independent TypeScript client: cancellation, errors, live
-subscriptions, reconnect/resynchronization (`PROJECT_BRIEF.md` §5).
+Framework-independent AffineScript client (JaffaScript face, compiled
+to typed WebAssembly): cancellation, errors, live subscriptions,
+reconnect/resynchronization (`PROJECT_BRIEF.md` §5).
 
 Compatibility requirements: no `window`/`document` access merely from
 importing the SDK; request-scoped credentials and caches for SSR use;

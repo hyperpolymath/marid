@@ -4,7 +4,9 @@
 
 Small portable Web Components demonstrator built on Custom Elements,
 properties, DOM events, and explicit styling hooks — not a new
-comprehensive widget library (`PROJECT_BRIEF.md` §5).
+comprehensive widget library (`PROJECT_BRIEF.md` §5). Components are
+authored in AffineScript and interoperate through the Custom Elements
+APIs.
 
 Status: Gate 0 skeleton. Implemented at Gate 4; the reference application
 uses one small shared component such as a progress indicator.

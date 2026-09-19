@@ -14,9 +14,13 @@ validate-rsr:
     cd "{{justfile_directory()}}"
     echo "=== RSR Compliance Check ==="
     MISSING=""
-    for f in .editorconfig .gitignore Justfile README.adoc LICENSE 0-AI-MANIFEST.a2ml; do
+    for f in .editorconfig .gitignore Justfile README.adoc LICENSE; do
         [ -f "$f" ] || MISSING="$MISSING $f"
     done
+    # Estate mid-migration .a2ml → .deed (standards#837): accept either manifest name.
+    if [ ! -f "0-AI-MANIFEST.a2ml" ] && [ ! -f "0-AI-MANIFEST.deed" ]; then
+        MISSING="$MISSING 0-AI-MANIFEST.a2ml-or-.deed"
+    fi
     for f in .machine_readable/descriptiles/STATE.a2ml .machine_readable/descriptiles/META.a2ml .machine_readable/descriptiles/ECOSYSTEM.a2ml .machine_readable/descriptiles/anchors/ANCHOR.a2ml .machine_readable/policies/MAINTENANCE-AXES.a2ml .machine_readable/policies/MAINTENANCE-CHECKLIST.a2ml .machine_readable/policies/SOFTWARE-DEVELOPMENT-APPROACH.a2ml; do
         [ -f "$f" ] || MISSING="$MISSING $f"
     done

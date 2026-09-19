@@ -1,0 +1,251 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Marid framework
+
+The Phase 0 charter: mission, principles, package graph, architecture,
+protocol matrix, frontend and storage stories, licensing, non-goals, and
+the gated roadmap. Transcribed 2026-09-19 from the owner's framework
+text; Marid-local adaptations are confined to the last section so the
+charter itself stays faithful.
+
+== Mission
+
+Marid.jl is an MPL-2.0 (code) / CC-BY-SA-4.0 (docs) Julia web framework,
+inspired by Genie.jl but a clean-room reimplementation with no shared
+code or API cloning. Its differentiators are: one service descriptor
+(IR), many protocol bindings, a pure local routing data plane with an
+optional consensus-backed control plane, and pluggable storage with
+ArangoDB as the flagship backend.
+
+== The twelve principles
+
+. *Control plane / data plane split.* Route lookup is a pure function
+  over an immutable, locally cached snapshot. It never blocks, never
+  touches the network. Consensus, config, and schema live only in the
+  control plane.
+. *IR-first.* Every schema artifact — OpenAPI, JSON Schema, GraphQL SDL,
+  `.proto`, AsyncAPI, client stubs, docs — is emitted from MaridIR.
+  Nothing is hand-maintained in parallel.
+. *Seams before features.* Streaming-symmetric handlers, Transport,
+  Codec, unified errors, CallContext exist before any protocol adapter
+  is written.
+. *No home-grown DBMS.* Storage is pluggable. SQLite/DuckDB/in-memory
+  for dev and test; ArangoDB for production; ArangoDB.jl is its own
+  package.
+. *Small packages, not a monolith.* Each concern ships independently and
+  is independently useful.
+. *Standards over integrations.* Emit OpenAPI/JSON Schema/GraphQL/
+  AsyncAPI/trace context; document the sidecar pattern for SSR; never
+  chase framework-specific APIs.
+. *HTML-first path is first-class.* HTMX/Turbo/Datastar-style
+  server-rendered fragments are a supported target, not an afterthought.
+. *Security from existing libraries.* No hand-rolled crypto, sessions,
+  or password hashing.
+. *Explicit non-goals.* Written down and enforced (see <<non-goals>>).
+. *Documentation is a deliverable,* licensed CC-BY-SA-4.0, built in CI
+  with Documenter.jl.
+. *Contribution hygiene.* DCO sign-off (not CLA), SPDX headers
+  everywhere, dependency review gate.
+. *Boring correctness over novel research in anything
+  consensus-related.* Raft and CRDTs arrive late, small, and tested, or
+  not at all.
+
+== Package graph
+
+Launch set — build first; these make Marid possible:
+
+[cols="1,3,1,1",options="header"]
+|===
+| Package | Purpose | Deps | Size
+
+| MaridIR.jl | ServiceDescriptor, MethodDescriptor, TypeRef, Streaming,
+annotations. Pure data + validation. | none | tiny
+| MaridCodec.jl | Codec seam, content negotiation (Accept, q=, Vary),
+JSON via JSON3, ext-based MsgPack/CBOR | JSON3 | small
+| MaridOpenAPI.jl | IR → OpenAPI 3.1 + JSON Schema 2020-12 emitters | MaridIR | small
+| MaridRPC.jl | JSON-RPC 2.0 + MCP adapter over the IR, SSE transport hook | MaridIR, MaridCodec | small
+| MaridGraphQL.jl | IR → GraphQL SDL + introspection first; resolver runtime later | MaridIR | medium
+|===
+
+Core — after the launch set:
+
+[cols="1,3",options="header"]
+|===
+| Package | Purpose
+
+| MaridTransport.jl | Transport seam; HTTP/1.1 impl (HTTP.jl), SSE,
+WebSocket upgrade, chunked/trailers
+| MaridCore.jl | Router (trie, tuple key), middleware (f(call, next)),
+CallContext, server assembly
+|===
+
+Storage:
+
+[cols="1,3",options="header"]
+|===
+| Package | Purpose
+
+| ArangoDB.jl | HTTP-based Arango client: auth, pooling, cursors, AQL,
+transactions, retries, changefeeds
+| MaridStorage.jl | Storage seam + SQLite/DuckDB/in-memory impls; Arango impl as extension
+|===
+
+Later:
+
+[cols="1,3,1",options="header"]
+|===
+| Package | Purpose | Gate
+
+| MaridControl.jl | Snapshot/atomic-swap, log abstraction, etcd/Consul
+backend, changefeed invalidation | after Core works
+| MaridLive.jl | HTMX/Turbo/Datastar helpers over SSE/WS | after Transport
+| MaridCRDT.jl | LWW-Register, OR-Set, G/PN-Counter, presence | after Control
+| MaridRaft.jl | Own Raft (elections, log, compaction, membership) | last; may never be needed if etcd suffices
+|===
+
+== Architecture in one diagram
+
+....
+Request ──▶ Transport (HTTP/1.1 · WS · SSE)
+              │
+              ▼
+         MaridCore router ─── reads ──▶ RouteTable (immutable snapshot, local)
+              │                                ▲
+              ▼                                │ atomic swap
+       Middleware (CallContext, trace, auth,  │
+        deadline, tenant, rate limit)         │
+              │                          ControlPlane (log + snapshot)
+              ▼                                ▲          ▲
+        Handler: CallContext, Stream{I} → Stream{O}      │
+              │                              etcd/Consul │ Arango changefeeds
+              ▼                                          │
+        Codec pipeline (JSON · MsgPack · CBOR · …) ──────┘
+              │
+              ▼
+        Storage seam (SQLite · DuckDB · in-memory · Arango)
+....
+
+Invariants: the router never blocks; nodes serve traffic with the
+control plane down; Arango is never on the route-lookup path.
+
+== Protocol matrix
+
+[cols="1,1,2,2",options="header"]
+|===
+| Protocol | Timing | Blocker | Notes
+
+| REST/JSON (IR + OpenAPI) | Phase 1 launch set | none | Flagship first-class
+| JSON-RPC / MCP | Phase 1 launch set | none | High-value 2025 ecosystem adapter
+| GraphQL (SDL, then runtime) | Phase 1 launch set | none | Subscriptions via SSE → WS
+| SSE + WebSocket | Core | transport seam | Enables Live/HTML path
+| gRPC | after HTTP/2 transport lands | no production HTTP/2 server in Julia | Bind libnghttp2 or accept gRPC-Web only
+| Cap'n Proto | serialization only | zero-copy needs ByteBuf design | RPC (capabilities) is a documented non-goal
+| Bebop | low-medium | no Julia tooling; wire format simple | Schema enters via IR
+| MsgPack/CBOR | free with Codec seam | none |
+|===
+
+== Frontend story
+
+API consumers (React/Vue/Svelte/etc.): OpenAPI 3.1 + JSON Schema →
+openapi-typescript/orval/Kiota; GraphQL SDL → Apollo/urql/Relay;
+AsyncAPI for streams. Codegen is free from the IR.
+
+Static/SPA hosting: serve dist/, SPA fallback, MIME + precompressed
+variants, immutable caching. Documented Vite/Next/Nuxt dev-proxy
+recipes.
+
+No-JS path: MaridLive — HTMX request/response headers, Turbo Streams,
+Datastar attributes over SSE/WS.
+
+SSR / RSC: sidecar pattern only, documented as recipes (Next.js/Nuxt →
+Marid API). Never reimplemented in Julia.
+
+Standards to emit/serve, ranked: OpenAPI 3.1, JSON Schema, GraphQL
+SDL+introspection, AsyncAPI 3.x, W3C Trace Context, CloudEvents; CORS,
+CSP, CSRF, content negotiation, ETag/Range, caching headers.
+
+== Storage
+
+Storage interface: get, put, delete, query, transaction, cursor, watch,
+Capabilities. Backends: SQLite (dev/test), DuckDB (analytical/dev),
+in-memory (tests), ArangoDB (production flagship; graph model maps
+naturally onto route subtrees and app resources). No Julia-native DBMS
+exists or will be attempted — Julia's contribution is the IR and
+control plane, not the storage engine.
+
+== Licensing
+
+Code: MPL-2.0, file-level copyleft, SPDX header on every source file.
+Docs: CC-BY-SA-4.0 in docs/, with its own LICENSE and SPDX headers on
+content. Code samples in docs: MPL-2.0, stated explicitly.
+Contributions: DCO sign-off, not CLA. CI enforces unsigned commits fail.
+Clean-room discipline: Genie.jl is MIT; study behavior, copy nothing. No
+"Genie" in names, logos, or package descriptions beyond factual
+attribution ("inspired by"). Exact headers:
+
+[source,julia]
+----
+# SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+----
+
+[source,html]
+----
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+----
+
+[#non-goals]
+== Non-goals (enforced in README and PR review)
+
+Stipple-style reactive UI · Genie Builder-style visual editor · Genie
+API compatibility · Cap'n Proto RPC (capabilities, promise pipelining) ·
+SOAP/WSDL · HTTP/2 Push · SSR/Streaming SSR/RSC implemented in Julia ·
+hand-rolled crypto · own Raft before everything else is stable · a
+Julia-native DBMS.
+
+== Roadmap (gated)
+
+[cols="1,3,3",options="header"]
+|===
+| Phase | Deliverable | Gate to proceed
+
+| 0 | Repo, charter, licenses, CI, AGENTS.md | CI green
+| 1 | Launch set: MaridIR + OpenAPI + Codec + RPC + GraphQL | IR frozen after first emitter proves it; golden tests pass
+| 2 | MaridTransport (HTTP/1.1, SSE, WS) + MaridCore MVP | REST MVP serves from IR; benchmark baseline recorded
+| 3 | ArangoDB.jl + MaridStorage (SQLite/ DuckDB/ memory first) | integration tests against real Arango container
+| 4 | MaridControl v1 with etcd backend; snapshot swap; changefeed invalidation | node serves with control plane down; swap is race-tested
+| 5 | Sessions, CSRF, views, forms, auth (OIDC); MaridLive | security checklist reviewed by human
+| 6 | MaridCRDT (LWW, OR-Set, counters, presence) | property tests + partition simulator
+| 7 | MaridRaft — only if etcd backend proves insufficient | Jepsen-style testing budget approved
+| 8 | gRPC (HTTP/2 via libnghttp2 binding), CLI, generators, deployment docs | HTTP/2 conformance suite passes
+|===
+
+== Marid-local adaptations
+
+Three places where the estate overrules or sharpens the charter text.
+Each is a noted decision, not silent drift.
+
+*TypeScript ejection (frontend story).* The charter's codegen examples
+name TypeScript generators (`openapi-typescript`, Apollo/urql/Relay
+codegen). Estate ruling 2026-08-25 (`LANGUAGE-POLICY.adoc` §1.2):
+TypeScript is not the language for new application code — AffineScript
+is. In Marid, IR codegen targets AffineScript (JaffaScript face,
+`.affine` sources compiled to typed WebAssembly via
+`@hyperpolymath/affinescript` under Bun); generated clients reach the
+React/Vue/Svelte ecosystems through narrow plain-JavaScript interop
+facades. TypeScript survives only inside the estate's narrow
+transitional carve-out: where AffineScript cannot reach.
+
+*IR versus registry (brief §4).* The brief forbids "a replacement
+universal IDL"; the charter mandates IR-first. Reconciled: MaridIR is
+the contract registry's executable form, and native schemas stay native
+at every boundary — the IR emits artifacts but is never a wire format.
+`contracts/` records identifiers, versions, fingerprints, and bindings.
+
+*Gates versus phases (brief §9).* The brief's six Gates 0–5 remain the
+program's acceptance gates; the charter's Phases 0–8 are the build
+order. The mapping is in `PROJECT_BRIEF.md` §9 and verified in
+`docs/FRAMEWORK-ALIGNMENT.adoc`.

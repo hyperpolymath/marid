@@ -1,0 +1,143 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Framework alignment
+
+Verification of the Gate 0 base against `docs/MARID-FRAMEWORK.adoc`:
+where each principle, package, and hygiene rule stands, with evidence.
+Anchor: the reconciliation commit landing this file
+(`<reconciliation-commit-SHA>`); re-verify rather than trust forward.
+
+== The twelve principles
+
+[cols="1,1,2",options="header"]
+|===
+| Principle | Gate 0 status | Evidence
+
+| Control / data split | designed, not built | Charter diagram + `MaridCore` /
+`MaridControl` stubs; no code paths exist to violate it
+| IR-first | designed, not built | `MaridIR` stub; `contracts/` records the
+IR-vs-registry reconciliation
+| Seams before features | designed, not built | `MaridTransport` / `MaridCodec`
+stubs precede all adapter phases
+| No home-grown DBMS | held | `ArangoDB` is a client stub; `MaridStorage`
+seam names SQLite/DuckDB/memory first; no engine code exists
+| Small packages | held | 13 package stubs, each independently scoped; no
+shared-utility packages created
+| Standards over integrations | held | Charter emission list; no
+framework-specific API work started
+| HTML-first first-class | designed, not built | `MaridLive` stub at Phase 5;
+`web/elements` stub at Gate 4
+| Security from libraries | held | No crypto/session code exists; nothing
+hand-rolled to audit
+| Explicit non-goals | held | Charter non-goals list; brief §2 boundaries
+kept; enforced at PR review once code lands
+| Docs as deliverable | partial | CC-BY-SA-4.0 docs tree present with SPDX
+headers; Documenter.jl builds arrive with the first Julia code (gap, not
+a failure — nothing to build yet)
+| Contribution hygiene | partial | SPDX everywhere (verified); DCO
+sign-off and dependency-review gates not yet wired (open gaps, §Gaps)
+| Boring consensus | held | Raft/CRDT stubs carry late/small/tested gates;
+nothing consensus-related is scheduled before Phase 4
+|===
+
+== Package graph
+
+Every charter package exists as a `Status: Gate 0 skeleton` stub naming
+its phase. Skeletons, not implementations — correct at Gate 0.
+
+[cols="1,1,1",options="header"]
+|===
+| Package | Phase | Stub
+
+| MaridIR | 1 | `packages/MaridIR/README.adoc`
+| MaridCodec | 1 | `packages/MaridCodec/README.adoc`
+| MaridOpenAPI | 1 | `packages/MaridOpenAPI/README.adoc`
+| MaridRPC | 1 | `packages/MaridRPC/README.adoc`
+| MaridGraphQL | 1 | `packages/MaridGraphQL/README.adoc`
+| MaridTransport | 2 | `packages/MaridTransport/README.adoc`
+| MaridCore | 2 | `packages/MaridCore/README.adoc`
+| ArangoDB | 3 | `packages/ArangoDB/README.adoc`
+| MaridStorage | 3 | `packages/MaridStorage/README.adoc`
+| MaridControl | 4 | `packages/MaridControl/README.adoc`
+| MaridLive | 5 | `packages/MaridLive/README.adoc`
+| MaridCRDT | 6 | `packages/MaridCRDT/README.adoc`
+| MaridRaft | 7 | `packages/MaridRaft/README.adoc`
+|===
+
+== Supersession map (brief's original six → charter thirteen)
+
+[cols="1,1",options="header"]
+|===
+| Original stub | Charter disposition
+
+| `Marid` | Split into `MaridCore` (data plane) + `MaridTransport` (seam);
+control plane becomes `MaridControl`
+| `MaridArango` | Split into `ArangoDB` (client) + `MaridStorage` (seam)
+| `MaridGRPC` | Removed as a package; gRPC is Phase 8 transport work
+(libnghttp2 or gRPC-Web only)
+| `MaridGraphQL` | Kept; rescoped to SDL + introspection first, runtime later
+| `MaridCapnProto` | Removed as a package; message support becomes a
+`MaridCodec` extension (RPC stays a non-goal)
+| `MaridBebop` | Removed as a package; v3 support becomes a `MaridCodec`
+extension with schema entering via the IR
+|===
+
+== Licensing and hygiene checks
+
+[cols="1,1,1",options="header"]
+|===
+| Rule | Status | Evidence
+
+| Code MPL-2.0, docs CC-BY-SA-4.0 | held | `LICENSES/` texts; per-file SPDX
+headers (92 `.adoc` files carry identifiers at last count)
+| Doc samples MPL-2.0 | vacuous | No code samples in docs yet
+| Clean-room (Genie) | held | No Genie code/API copied; "inspired by"
+attribution only, in the charter
+| DCO sign-off enforced in CI | *gap* | No DCO gate wired; see §Gaps
+| Dependency review gate | *gap* | No dependency-review workflow; see §Gaps
+|===
+
+== Frontend and toolchain checks
+
+[cols="1,1,1",options="header"]
+|===
+| Rule | Status | Evidence
+
+| Runtime is Bun | held | `mise.toml` pins Bun; Node/npm/yarn/pnpm/Deno
+ejected; CI's pin-check already runs under `bun`
+| Language is AffineScript | held | `web/` stubs specify the JaffaScript
+face (`.affine` → typed WASM) via `@hyperpolymath/affinescript`;
+TypeScript ejected from `ANCHOR.a2ml` (now forbidden) and all Marid prose
+| No OCaml toolchain needed | held | The CLI package downloads a pinned,
+SHA-256-verified native binary; Marid never builds AffineScript itself
+| AffineScript maturity risk | *noted* | Upstream is v0.2, experimental, "not
+yet for production"; ecosystem cold-start is its stated main risk.
+Marid's Gate 2 pin must re-audit; the brief's runtime-choice approval
+gate covers a fallback decision
+|===
+
+[#gaps]
+== Gaps (open, owned, not silent)
+
+. *DCO sign-off gate.* Charter principle 11 requires CI to fail unsigned
+  commits. No gate is wired. Proposed: a commit-message sign-off check
+  on pull requests. Needs owner approval before landing (new gate).
+. *Dependency review gate.* Same principle; no `dependency-review`
+  workflow exists. Proposed with the first manifest (`Project.toml` /
+  `package.json`) that introduces dependencies — wiring it now would
+  guard nothing.
+. *Documenter.jl doc builds.* Arrive with the first Julia code; nothing
+  to build at Gate 0.
+. *Pages cold build.* Orthogonal estate/tooling item: the 60-minute
+  fix is landed; the outcome postdates the last affirmation.
+
+== Reproduce
+
+[source,bash]
+----
+git clone https://github.com/hyperpolymath/marid
+cd marid
+git checkout <reconciliation-commit-SHA>
+just validate
+# expect: All validations passed!
+----

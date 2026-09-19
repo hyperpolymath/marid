@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridControl.jl — control plane (planned)
+
+Snapshot and atomic swap, the log abstraction, an etcd/Consul backend,
+and changefeed invalidation (`docs/MARID-FRAMEWORK.adoc`, later set).
+Consensus, config, and schema live here — never on the request path.
+Nodes serve traffic with the control plane down.
+
+Status: Gate 0 skeleton. Implemented at Phase 4, after Core works
+(brief §9).

@@ -23,12 +23,13 @@
 # JS RUNTIMES — ordered preference, reach for the first that can do the job
 # (standards/3-practice/LANGUAGE-POLICY.adoc section 1, ruled 2026-07-29)
 # 1. Bun    default for all new work; runs .ts directly, no build step
-# 2. Deno   existing Deno projects are grandfathered; prefer over pnpm/npm
+# 2. Deno   being REMOVED per owner ruling 2026-08-26; migrate to Bun
 # 3. pnpm   only where an upstream toolchain needs a node_modules layout
 # 4. npm    last resort; permitted, never preferred — a noted decision
-# TypeScript IS PERMITTED under Bun. The old "use ReScript instead" rule is
-# RETIRED: ReScript is no longer used in this estate, so that rule named a dead
-# alternative. Do NOT migrate Bun to Deno — that inverts the current ruling.
+# TypeScript is EJECTED for new application code — AffineScript
+# (JaffaScript face) is the language. TypeScript survives only where
+# AffineScript cannot reach (narrow transitional carve-out). Do NOT
+# migrate Bun to Deno — that inverts the current ruling.
 
 # BANNED LANGUAGES
 # Go -> use Rust

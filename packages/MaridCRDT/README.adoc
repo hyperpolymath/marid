@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridCRDT.jl — conflict-free replicated types (planned)
+
+LWW-Register, OR-Set, G/PN-Counter, and presence — data-type-specific
+replication, never a promise that arbitrary objects replicate safely
+(`docs/MARID-FRAMEWORK.adoc`, later set).
+
+Status: Gate 0 skeleton. Implemented at Phase 6, after Control
+(brief §9).

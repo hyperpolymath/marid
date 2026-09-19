@@ -9,11 +9,11 @@ ecosystem = "hyperpolymath"
 
 [position]
 type = "monorepo"
-purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards: six Julia packages (Marid core + five protocol integrations) and a framework-independent browser client, proved by one reference application."
+purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards: thirteen charter packages (launch set, core, storage, later) and a framework-independent AffineScript browser client under Bun, proved by one reference application."
 # IS-NOT — anti-identity (the boundary-erosion guard; each line is a real past confusion)
 what-this-is-not = [
-  "a database engine (ArangoDB is the database; MaridArango.jl is a client)",
-  "a replacement universal IDL (native schemas stay native; contracts/ only records them)",
+  "a database engine (ArangoDB is the database; ArangoDB.jl is a client)",
+  "a replacement universal IDL (MaridIR emits native artifacts but is never a wire format; contracts/ records them)",
   "a frontend framework (React/Vue are supported through standard APIs, never replaced)",
   "a Genie clone built in one task (package-first program with gated acceptance tests)",
 ]
@@ -21,7 +21,7 @@ what-this-is-not = [
 [pipeline]
 position = "application-framework"
 chain = "standards → rsr-template-repo → marid → (Marid.jl applications)"
-notes = "marid turns the Marid brief (PROJECT_BRIEF.md) into six Julia packages plus a browser client. Minted from rsr-template-repo via just repo-init (julia-library archetype); Marid program paths recorded in VARIANT.a2ml [paths.added]."
+notes = "marid turns the Marid brief (PROJECT_BRIEF.md) and framework charter (docs/MARID-FRAMEWORK.adoc) into thirteen charter packages plus an AffineScript browser client under Bun. Minted from rsr-template-repo via just repo-init (julia-library archetype); Marid program paths recorded in VARIANT.a2ml [paths.added]."
 coordination = "standards"
 
 [related-projects]

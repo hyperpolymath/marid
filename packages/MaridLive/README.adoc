@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridLive.jl — HTML-first live helpers (planned)
+
+HTMX, Turbo, and Datastar helpers over SSE and WebSocket: the
+supported no-JS path, not an afterthought
+(`docs/MARID-FRAMEWORK.adoc`, later set).
+
+Status: Gate 0 skeleton. Implemented at Phase 5, after Transport
+(brief §9).

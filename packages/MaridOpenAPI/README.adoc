@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridOpenAPI.jl — OpenAPI and JSON Schema emitters (planned)
+
+IR → OpenAPI 3.1 plus JSON Schema 2020-12 emitters, over MaridIR
+(`docs/MARID-FRAMEWORK.adoc`, launch set).
+
+Status: Gate 0 skeleton. Implemented at Phase 1 (brief §9).

@@ -60,7 +60,7 @@ just validate            # structure + metadata checks
 #   docs/agent-launch.adoc # the Gate 0 kickoff assignment
 ----
 
-Julia and Node toolchain versions are pinned at Gate 2 alongside the CI
+Julia and Bun toolchain versions are pinned at Gate 2 alongside the CI
 matrix (`PROJECT_BRIEF.md` §8–§9); until then there is nothing to
 instantiate — the repository root intentionally has no `Project.toml`.
 

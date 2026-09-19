@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridRPC.jl — JSON-RPC and MCP adapter (planned)
+
+JSON-RPC 2.0 plus MCP adapter over the IR, with an SSE transport hook;
+over MaridIR and MaridCodec (`docs/MARID-FRAMEWORK.adoc`, launch set).
+
+Status: Gate 0 skeleton. Implemented at Phase 1 (brief §9).
