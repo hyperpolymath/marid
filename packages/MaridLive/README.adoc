@@ -1,10 +1,53 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridLive.jl — HTML-first live helpers (planned)
+= MaridLive.jl — HTML-First Live Helpers (HTMX, Turbo, Datastar)
+:toc:
+:sectnums:
 
-HTMX, Turbo, and Datastar helpers over SSE and WebSocket: the
-supported no-JS path, not an afterthought
-(`docs/MARID-FRAMEWORK.adoc`, later set).
+HTML-first reactive helpers for HTMX, Hotwire Turbo Streams, and Datastar over SSE and WebSocket.
+The supported **no-JS / low-JS path** in Marid (`docs/MARID-FRAMEWORK.adoc`, later set).
 
-Status: Gate 0 skeleton. Implemented at Phase 5, after Transport
-(brief §9).
+Status: **Implemented & Verified (Phase 5)**. Zero dependencies.
+
+== Public API
+
+* **HTMX**:
+  * `hx_swap_oob(html, target_id; swap_mode)`
+  * `hx_trigger_header(event_name; data)`
+  * `hx_push_url_header(url)`
+  * `format_htmx_sse(event_name, html)`
+* **Turbo Streams**:
+  * `turbo_stream(action, target, html)`
+  * `turbo_append(target, html)`, `turbo_replace(target, html)`, `turbo_update(target, html)`, `turbo_remove(target)`
+* **Datastar**:
+  * `datastar_merge_fragments(html; selector, merge_mode)`
+  * `datastar_merge_signals(signals_dict; only_if_missing)`
+  * `datastar_remove_fragments(selector)`
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| HTMX Out-of-Band Swaps | Supported | Verified in `test/runtests.jl` with custom swap modes.
+| HTMX SSE Event Wire Framing | Supported | Emits multi-line prefixed `data:` blocks matching W3C SSE and HTMX specs.
+| Hotwire Turbo Streams | Supported | Appends, replaces, updates, and removes tested.
+| Datastar Signals & Morphing | Supported | Emits `datastar-merge-fragments` and `datastar-merge-signals` SSE blocks.
+|===
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridLive
+
+# 1. Format HTMX live update over SSE
+sse_chunk = format_htmx_sse("taxonAdded", "<li id=\"taxon-10\">Homo neanderthalensis</li>")
+
+# 2. Emit Hotwire Turbo append
+turbo_msg = turbo_append("taxa-list", "<li>Homo sapiens</li>")
+
+# 3. Emit Datastar signal update
+datastar_evt = datastar_merge_signals(Dict("analyzing" => false, "score" => 1.25))
+----
