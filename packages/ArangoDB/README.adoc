@@ -7,7 +7,11 @@
 Standalone native Julia HTTP client for ArangoDB 3.12 (multi-model document, edge,
 and graph storage). Zero dependencies on `MaridCore` (`docs/MARID-FRAMEWORK.adoc`, storage set).
 
-Status: **Implemented & Verified (Gate 3)**.
+Status: **In-memory prototype; NOT a verified database client.**
+
+All operations below currently use a local dictionary, not the configured HTTP
+endpoint. Transactions are stubs. Gate 3 requires a real client and pinned-container
+tests; see link:../../docs/audits/evidence-ledger.adoc[the evidence ledger].
 
 == Public API
 
@@ -28,11 +32,11 @@ Status: **Implemented & Verified (Gate 3)**.
 |===
 | Feature | Status | Verification Evidence
 
-| Document CRUD | Supported | `test/runtests.jl` verifies creation, reading, updates, and deletion.
-| Revision Concurrency | Supported | Revision mismatch triggers `ArangoError(412, 1200)`.
-| Edge Collections | Supported | `_from` and `_to` graph linkages verified.
-| AQL Cursors & Pagination | Supported | Bounded batch retrieval, continuation, and cursor cleanup.
-| Stream Transactions | Supported | Begin, commit, and abort flows tested.
+| Document CRUD | Simulated only | `test/runtests.jl` verifies creation, reading, updates, and deletion.
+| Revision Concurrency | Simulated only | Revision mismatch triggers `ArangoError(412, 1200)`.
+| Edge Collections | Simulated only | `_from` and `_to` graph linkages verified.
+| AQL Cursors & Pagination | Simulated only | Bounded batch retrieval, continuation, and cursor cleanup.
+| Stream Transactions | Simulated only | Begin, commit, and abort flows tested.
 |===
 
 == Unsupported Features
@@ -45,7 +49,7 @@ Status: **Implemented & Verified (Gate 3)**.
 ----
 using ArangoDB
 
-client = ArangoClient("http://127.0.0.1:8529", "biomodel_test", username="root", password="dev")
+client = ArangoClient("http://127.0.0.1:8529", "biomodel_test", username=ENV["ARANGO_USER"], password=ENV["ARANGO_PASSWORD"])
 
 # 1. Create document
 doc = Dict{String, Any}("binomial" => "Homo sapiens", "order" => "Primates")

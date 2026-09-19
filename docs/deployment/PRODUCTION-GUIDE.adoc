@@ -137,3 +137,11 @@ Production orchestration systems (Kubernetes, Nomad, Podman) rely on standardize
 * **Connection Pooling**: Keep persistent HTTP connections open using persistent client sockets (`keep-alive`).
 * **Batch Cursors**: Tune `batch_size` (e.g. 1000 items) for large AQL queries to prevent memory spikes in Julia worker tasks.
 * **Revision Matching**: Always include `check_rev=true` in concurrent update requests to leverage optimistic concurrency control and avoid lost updates.
+
+== HTTP verb governance sidecar (bounded unary APIs)
+
+See link:docker-compose.adoc[Marid with an HTTP capability governance sidecar]
+for native IR-generated Verb Governance Specs and the Compose topology.
+That recipe records verified behavior separately from planned production features:
+Marid's HTTP listener, full streaming proxy support, and container E2E acceptance
+are not established by the existing framing helpers or deployment examples.

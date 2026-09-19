@@ -1,0 +1,1183 @@
+diff --git a/.machine_readable/6a2/STATE.a2ml b/.machine_readable/6a2/STATE.a2ml
+index af30d5d..42a7082 100644
+--- a/.machine_readable/6a2/STATE.a2ml
++++ b/.machine_readable/6a2/STATE.a2ml
+@@ -7,15 +7,24 @@
+ (state
+   (version . "0.1.0-dev")
+   (phase . "Pre-release verification")
+-  (updated . "2026-04-16")
++  (updated . "2026-09-19")
+   (status . "active")
+ 
++  (local-ordered-checkpoint
++    (status . "Uncommitted strict-policy and unary-proxy corrections; not upstream or deployed")
++    (baseline . "19b343c1e9b7c61668c60887369783d12a486f41")
++    (targeted . "6 properties and 66 tests pass, plus real gateway to Julia JSON integration")
++    (full-suite . "seed 1: 12 properties, 263 tests, 15 failures; all 15 reproduce on baseline plus two necessary plugin compilation repairs")
++    (blockers . "Full suite red; Cowboy/Cowlib/Mint advisories; inactive plugin API warnings; container/TLS/reload/performance acceptance unrun")
++    (scope . "Matched path owns allowed verbs; empty globals deny unknown paths; regex ambiguity denies; raw bounded unary proxy; startup logging and ETS initialization repaired"))
++
+   (project
+     (name . "http-capability-gateway")
+     ;; 19 Elixir modules implemented, 7 unit test files, 2 Zig FFI parsers,
+     ;; 2 Idris2 ABI modules. Core gateway, policy pipeline, rate limiter,
+     ;; circuit breaker, and proxy are functional. CRG grade C achieved.
+-    ;; Blockers: zero security tests, zero E2E tests, zero benchmarks.
++    ;; Historical percentage/grade are not release acceptance. Current blockers
++    ;; and executed test evidence are recorded in local-ordered-checkpoint above.
+     (completion . 55)
+     (crg-grade . "C")
+     (crg-date . "2026-04-04"))
+diff --git a/lib/http_capability_gateway/application.ex b/lib/http_capability_gateway/application.ex
+index 2ad3418..6688276 100644
+--- a/lib/http_capability_gateway/application.ex
++++ b/lib/http_capability_gateway/application.ex
+@@ -35,6 +35,10 @@ def start(_type, _args) do
+         # Store policy table in application environment
+         Application.put_env(:http_capability_gateway, :policy_table, policy_table)
+ 
++        # Own hot-path tables for the application lifetime, before opening sockets.
++        HttpCapabilityGateway.K9Contract.init()
++        HttpCapabilityGateway.RateLimiter.init([])
++
+         # Start HTTP server and other children
+         port = Application.get_env(:http_capability_gateway, :port, 4000)
+ 
+@@ -115,7 +119,8 @@ def start(_type, _args) do
+   #     refuses to start. We never silently downgrade an mTLS deployment to
+   #     the forgeable header path.
+   defp http_listeners(port) do
+-    http = {Plug.Cowboy, scheme: :http, plug: HttpCapabilityGateway.Gateway, options: [port: port]}
++    http =
++      {Plug.Cowboy, scheme: :http, plug: HttpCapabilityGateway.Gateway, options: [port: port]}
+ 
+     trust_source = Application.get_env(:http_capability_gateway, :trust_level_source, "header")
+ 
+@@ -213,7 +218,11 @@ defp load_and_compile_policy do
+     cond do
+       is_binary(catalog_root) ->
+         Logger.info("Catalog mode: building policy from BoJ cartridges", root: catalog_root)
+-        compile_from_loader(fn -> PolicyLoader.load_from_boj_catalog(catalog_root) end, catalog_root)
++
++        compile_from_loader(
++          fn -> PolicyLoader.load_from_boj_catalog(catalog_root) end,
++          catalog_root
++        )
+ 
+       is_binary(policy_path) ->
+         Logger.info("Static mode: loading policy from file", path: policy_path)
+@@ -309,6 +318,7 @@ defp configure_stealth(policy) do
+             "untrusted" => status_code
+           }
+         }
++
+         Application.put_env(:http_capability_gateway, :stealth_profiles, stealth_profiles)
+         Logger.info("Stealth mode enabled", status_code: status_code)
+ 
+diff --git a/lib/http_capability_gateway/logging.ex b/lib/http_capability_gateway/logging.ex
+index 8f20b90..dbafa8b 100644
+--- a/lib/http_capability_gateway/logging.ex
++++ b/lib/http_capability_gateway/logging.ex
+@@ -47,17 +47,18 @@ defmodule HttpCapabilityGateway.Logging do
+     - `metadata` - Optional additional metadata map
+   """
+   def log_request_received(request_id, conn, metadata \\ %{}) do
+-    log_data = %{
+-      event: "gateway.request.received",
+-      request_id: request_id,
+-      method: conn.method,
+-      path: conn.request_path,
+-      query_string: conn.query_string,
+-      remote_ip: format_ip(conn.remote_ip),
+-      user_agent: get_header(conn, "user-agent"),
+-      trust_level: get_header(conn, "x-trust-level") || "untrusted"
+-    }
+-    |> Map.merge(metadata)
++    log_data =
++      %{
++        event: "gateway.request.received",
++        request_id: request_id,
++        method: conn.method,
++        path: conn.request_path,
++        query_string: conn.query_string,
++        remote_ip: format_ip(conn.remote_ip),
++        user_agent: get_header(conn, "user-agent"),
++        trust_level: get_header(conn, "x-trust-level") || "untrusted"
++      }
++      |> Map.merge(metadata)
+ 
+     Logger.info("Request received", log_data)
+ 
+@@ -297,11 +298,17 @@ def log_error(request_id, error_type, error, metadata \\ %{}) do
+     - `metadata` - Optional metadata (service name, rules count, etc.)
+   """
+   def log_policy_load(policy_path, result, metadata \\ %{}) do
++    result_tag =
++      case result do
++        :ok -> :ok
++        {:error, _} -> :error
++      end
++
+     log_data =
+       %{
+         event: "gateway.policy.load",
+         policy_path: policy_path,
+-        result: elem(result, 0)
++        result: result_tag
+       }
+       |> Map.merge(metadata)
+ 
+@@ -316,7 +323,7 @@ def log_policy_load(policy_path, result, metadata \\ %{}) do
+     :telemetry.execute(
+       [:http_capability_gateway, :policy, :load],
+       %{count: 1},
+-      %{result: elem(result, 0)}
++      %{result: result_tag}
+     )
+   end
+ 
+diff --git a/lib/http_capability_gateway/plugins/webhook_hardener.ex b/lib/http_capability_gateway/plugins/webhook_hardener.ex
+index 8deaf70..e10e935 100644
+--- a/lib/http_capability_gateway/plugins/webhook_hardener.ex
++++ b/lib/http_capability_gateway/plugins/webhook_hardener.ex
+@@ -3,19 +3,34 @@
+ 
+ defmodule HttpCapabilityGateway.Plugins.WebhookHardener do
+   @moduledoc false
++  import Bitwise
+   @behaviour HttpCapabilityGateway.Plugin
+ 
+-  @private_cidrs ["127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16"]
++  @private_cidrs [
++    "127.0.0.0/8",
++    "::1/128",
++    "10.0.0.0/8",
++    "172.16.0.0/12",
++    "192.168.0.0/16",
++    "169.254.0.0/16"
++  ]
+ 
+   @impl true
+   def inspect_request(conn, opts) do
+     target = extract_target(conn)
+-    
++
+     cond do
+-      !check_required_headers(conn, opts[:required_headers] || []) -> {:deny, conn, :missing_header}
+-      target && byte_size(target) > (opts[:max_target_length] || 2048) -> {:deny, conn, :target_too_long}
+-      target && ip_blocked?(target, opts[:blocked_cidrs] || @private_cidrs) -> {:deny, conn, :target_ip_blocked}
+-      true -> {:allow, conn}
++      !check_required_headers(conn, opts[:required_headers] || []) ->
++        {:deny, conn, :missing_header}
++
++      target && byte_size(target) > (opts[:max_target_length] || 2048) ->
++        {:deny, conn, :target_too_long}
++
++      target && ip_blocked?(target, opts[:blocked_cidrs] || @private_cidrs) ->
++        {:deny, conn, :target_ip_blocked}
++
++      true ->
++        {:allow, conn}
+     end
+   end
+ 
+@@ -31,7 +46,7 @@ defp get_json_target(conn) do
+   end
+ 
+   defp check_required_headers(conn, required) do
+-    Enum.all?(required, &Plug.Conn.get_req_header(conn, &1) != [])
++    Enum.all?(required, &(Plug.Conn.get_req_header(conn, &1) != []))
+   end
+ 
+   defp ip_blocked?(target, blocked) do
+@@ -43,11 +58,14 @@ defp ip_blocked?(target, blocked) do
+ 
+   defp resolve_and_check(host, blocked) do
+     case try_parse_ip(host) do
+-      {:ok, ip} -> in_blocked_range?(ip, blocked)
+-      _ -> case :inet.gethostbyname(host) do
+-        {:ok, {_, _, _, _, ip}} -> in_blocked_range?(ip, blocked)
+-        _ -> false
+-      end
++      {:ok, ip} ->
++        in_blocked_range?(ip, blocked)
++
++      _ ->
++        case :inet.gethostbyname(host) do
++          {:ok, {_, _, _, _, ip}} -> in_blocked_range?(ip, blocked)
++          _ -> false
++        end
+     end
+   end
+ 
+@@ -65,12 +83,20 @@ defp in_blocked_range?(ip, blocked) do
+   defp in_cidr?(ip, cidr) do
+     with {:ok, net, mask} <- :inet.parse_cidr_address(cidr),
+          {:ok, net_int} <- to_int(net),
+-         {:ok, ip_int} <- to_int(ip),
+-         do: (ip_int &&& mask) == (net_int &&& mask),
+-         else: _ -> false
++         {:ok, ip_int} <- to_int(ip) do
++      (ip_int &&& mask) == (net_int &&& mask)
++    else
++      _ -> false
++    end
+   end
+ 
+-  defp to_int({a, b, c, d}), do: {:ok, (a <<< 24) ||| (b <<< 16) ||| (c <<< 8) ||| d}
+-  defp to_int({a, b, c, d, e, f, g, h}), do: {:ok, (a <<< 120) ||| (b <<< 112) ||| (c <<< 104) ||| (d <<< 96) ||| (e <<< 88) ||| (f <<< 80) ||| (g <<< 72) ||| h}
++  defp to_int({a, b, c, d}), do: {:ok, a <<< 24 ||| b <<< 16 ||| c <<< 8 ||| d}
++
++  defp to_int({a, b, c, d, e, f, g, h}),
++    do:
++      {:ok,
++       a <<< 120 ||| b <<< 112 ||| c <<< 104 ||| d <<< 96 ||| e <<< 88 ||| f <<< 80 ||| g <<< 72 |||
++         h}
++
+   defp to_int(_), do: :error
+ end
+diff --git a/lib/http_capability_gateway/plugins/xml_rpc_shield.ex b/lib/http_capability_gateway/plugins/xml_rpc_shield.ex
+index 25a0728..7a53d82 100644
+--- a/lib/http_capability_gateway/plugins/xml_rpc_shield.ex
++++ b/lib/http_capability_gateway/plugins/xml_rpc_shield.ex
+@@ -5,12 +5,12 @@ defmodule HttpCapabilityGateway.Plugins.XmlRpcShield do
+   @moduledoc false
+   @behaviour HttpCapabilityGateway.Plugin
+ 
+-  @method_pattern ~r/<methodName>([^<]+)</methodName>/u
++  @method_pattern ~r{<methodName>([^<]+)</methodName>}u
+ 
+   @impl true
+   def inspect_request(conn, _opts) do
+     body = Plug.Conn.get_private(conn, :body)
+-    
++
+     case extract_method(body) do
+       nil -> :pass
+       "pingback.ping" -> {:allow, conn}
+diff --git a/lib/http_capability_gateway/policy_compiler.ex b/lib/http_capability_gateway/policy_compiler.ex
+index 2c9a679..cada876 100644
+--- a/lib/http_capability_gateway/policy_compiler.ex
++++ b/lib/http_capability_gateway/policy_compiler.ex
+@@ -38,16 +38,25 @@ defmodule CompiledRule do
+     Represents a single compiled enforcement rule.
+     """
+     defstruct [
+-      :path_pattern,    # String pattern (for display/debugging)
+-      :path_regex,      # Compiled Regex for matching
+-      :verb,            # Atom: :GET, :POST, :PUT, :DELETE, :PATCH, :HEAD, :OPTIONS
+-      :exposure,        # "public", "authenticated", or "internal"
+-      :stealth_profile, # String profile name or nil
+-      :narrative,       # Optional explanation string
+-      :backend,         # Target backend URL
+-      :name,            # Unique rule name
+-      :capability       # Optional capability label (e.g., "admin:read"); nil if not set
+-      ]
++      # String pattern (for display/debugging)
++      :path_pattern,
++      # Compiled Regex for matching
++      :path_regex,
++      # Atom: :GET, :POST, :PUT, :DELETE, :PATCH, :HEAD, :OPTIONS
++      :verb,
++      # "public", "authenticated", or "internal"
++      :exposure,
++      # String profile name or nil
++      :stealth_profile,
++      # Optional explanation string
++      :narrative,
++      # Target backend URL
++      :backend,
++      # Unique rule name
++      :name,
++      # Optional capability label (e.g., "admin:read"); nil if not set
++      :capability
++    ]
+ 
+     @type t :: %__MODULE__{
+             path_pattern: String.t(),
+@@ -160,6 +169,9 @@ def compile(policy, opts \\ []) when is_map(policy) do
+ 
+     main_table = :ets.new(temp_main_name, [:set, :public, :named_table, read_concurrency: true])
+     regex_table = :ets.new(temp_regex_name, [:set, :public, :named_table, read_concurrency: true])
++    # Bind this main-table revision to ITS companion. A lookup must never read
++    # the latest global regex pointer while holding an older main-table handle.
++    :ets.insert(main_table, {{:metadata, :regex_table}, temp_regex_name})
+ 
+     errors =
+       []
+@@ -168,7 +180,7 @@ def compile(policy, opts \\ []) when is_map(policy) do
+ 
+     case errors do
+       [] ->
+-        main_count = :ets.info(main_table, :size)
++        main_count = :ets.info(main_table, :size) - 1
+         regex_count = :ets.info(regex_table, :size)
+         total_count = main_count + regex_count
+ 
+@@ -242,83 +254,59 @@ def compile(policy, opts \\ []) when is_map(policy) do
+   @spec lookup(table :: ets_table(), path :: String.t(), verb :: atom()) ::
+           {:ok, CompiledRule.t()} | {:error, :no_match}
+   def lookup(table, path, verb) when is_atom(verb) do
+-    # Tiered lookup strategy for fast enforcement:
+-    #
+-    # Tier 1: Exact literal path match via ETS key (O(1))
+-    #   If the route pattern is a literal string (no regex metacharacters),
+-    #   it was stored with key {:exact, path, verb} in the main table.
+-    #   This catches 90%+ of lookups in typical policy files.
+-    #
+-    # Tier 2: Route-specific regex patterns (O(r) where r = regex routes)
+-    #   For patterns containing regex metacharacters (e.g., "[0-9]+"),
+-    #   iterate ONLY through the dedicated regex table. This avoids scanning
+-    #   exact routes and global rules — the regex table contains only regex
+-    #   patterns, making Tier 2 scans proportional to the number of regex
+-    #   routes (typically 5-10% of all routes).
+-    #
+-    # Tier 3: Global rules (O(1))
+-    #   If no route matches, check global verb rules via {:global, verb}
+-    #   in the main table.
+-    #
+-    # Inspired by cadre-router's oneOfGrouped first-segment dispatch
+-    # and aerie's trie-based verb governance.
++    # Exact route > a single matching regex route > global ONLY if no path matches.
++    # A matched path owns its complete verb allowlist. Missing verbs are denied,
++    # never rescued by a global permission or a less-specific route.
++    cond do
++      verb not in @valid_http_verbs ->
++        {:error, :no_match}
+ 
+-    # Tier 1: Exact literal path → O(1) from main table
+-    case :ets.lookup(table, {:exact, path, verb}) do
+-      [{_key, rule}] ->
+-        {:ok, rule}
++      exact_path?(table, path) ->
++        lookup_rule(table, {:exact, path, verb})
+ 
+-      [] ->
+-        # Tier 2: Regex route patterns → O(r) from dedicated regex table.
+-        # The regex table name is derived from the main table name by the
+-        # convention established in compile/2 (stored in :policy_regex_table).
+-        regex_table = Application.get_env(:http_capability_gateway, :policy_regex_table)
++      true ->
++        regex_table =
++          case :ets.lookup(table, {:metadata, :regex_table}) do
++            [{_, companion}] -> companion
++            [] -> nil
++          end
+ 
+         case lookup_regex_routes(regex_table, path, verb) do
+-          {:ok, _rule} = result ->
+-            result
+-
+-          {:error, :no_match} ->
+-            # Tier 3: Global rules → O(1) from main table
+-            case :ets.lookup(table, {:global, verb}) do
+-              [{_key, rule}] -> {:ok, rule}
+-              [] -> {:error, :no_match}
+-            end
++          :no_path -> lookup_rule(table, {:global, verb})
++          result -> result
+         end
+     end
++  rescue
++    # Retired/stale ETS handles must deny, not crash or use another revision.
++    ArgumentError -> {:error, :no_match}
+   end
+ 
+-  # Iterate through the DEDICATED regex route table.
+-  #
+-  # Because regex routes are stored in their own ETS table, there is no
+-  # need to filter out {:global, _} or {:exact, _, _} entries — every
+-  # entry in this table is a regex route pattern. This makes Tier 2
+-  # scans faster and simpler.
+-  #
+-  # If the regex table is nil (e.g., during tests without full compilation),
+-  # we return :no_match immediately.
+-  defp lookup_regex_routes(nil, _path, _verb), do: {:error, :no_match}
+-
+-  defp lookup_regex_routes(regex_table, path, verb) do
+-    # Read all regex route rules — this table contains ONLY regex patterns.
+-    regex_rules = :ets.tab2list(regex_table)
++  defp exact_path?(table, path) do
++    Enum.any?(@valid_http_verbs, &:ets.member(table, {:exact, path, &1}))
++  end
+ 
+-    # Find first route pattern that matches the path
+-    matching_pattern =
+-      Enum.find_value(regex_rules, fn {{pattern, _v}, rule} ->
+-        if Regex.match?(rule.path_regex, path), do: pattern, else: nil
+-      end)
++  defp lookup_rule(table, key) do
++    case :ets.lookup(table, key) do
++      [{_, rule}] -> {:ok, rule}
++      [] -> {:error, :no_match}
++    end
++  end
+ 
+-    case matching_pattern do
+-      nil ->
+-        {:error, :no_match}
++  defp lookup_regex_routes(nil, _path, _verb), do: :no_path
+ 
+-      pattern ->
+-        # Route matched — check if verb is allowed for this route
+-        case Enum.find(regex_rules, fn {{p, v}, _} -> p == pattern and v == verb end) do
+-          {_key, rule} -> {:ok, rule}
+-          nil -> {:error, :no_match}
+-        end
++  defp lookup_regex_routes(regex_table, path, verb) do
++    matching =
++      :ets.tab2list(regex_table)
++      |> Enum.filter(fn {_, rule} -> Regex.match?(rule.path_regex, path) end)
++
++    patterns = matching |> Enum.map(fn {{pattern, _}, _} -> pattern end) |> Enum.uniq()
++
++    case patterns do
++      [] -> :no_path
++      [pattern] -> lookup_rule(regex_table, {pattern, verb})
++      # ETS has no meaningful order. Ambiguous overlaps fail closed rather than
++      # randomly choosing a public rule over an authenticated/internal rule.
++      _ -> {:error, :no_match}
+     end
+   end
+ 
+@@ -339,7 +327,8 @@ defp compile_global_verbs(errors, policy, table) do
+           path_pattern: ".*",
+           path_regex: ~r/.*/,
+           verb: verb_atom,
+-          exposure: "public",  # Default for global verbs
++          # Default for global verbs
++          exposure: "public",
+           stealth_profile: get_stealth_enabled(policy),
+           narrative: nil,
+           backend: Map.get(policy["governance"], "global_backend"),
+@@ -422,7 +411,8 @@ defp compile_route_overrides(errors, policy, main_table, regex_table) do
+   # Return "default" if stealth is enabled, nil otherwise
+   defp get_stealth_enabled(policy) do
+     case get_in(policy, ["stealth", "enabled"]) do
+-      true -> "default"  # Use "default" as profile name for enabled stealth
++      # Use "default" as profile name for enabled stealth
++      true -> "default"
+       _ -> nil
+     end
+   end
+@@ -457,7 +447,8 @@ defp get_stealth_enabled(policy) do
+   @spec stats(table :: ets_table()) :: map()
+   def stats(table) do
+     # Read rules from the main table (exact routes + global rules).
+-    main_rules = :ets.tab2list(table)
++    main_rules =
++      :ets.tab2list(table) |> Enum.reject(fn {key, _} -> key == {:metadata, :regex_table} end)
+ 
+     {global_count, exact_count} =
+       Enum.reduce(main_rules, {0, 0}, fn
+@@ -467,7 +458,11 @@ def stats(table) do
+       end)
+ 
+     # Read rules from the dedicated regex table (if it exists).
+-    regex_table = Application.get_env(:http_capability_gateway, :policy_regex_table)
++    regex_table =
++      case :ets.lookup(table, {:metadata, :regex_table}) do
++        [{_, companion}] -> companion
++        [] -> nil
++      end
+ 
+     regex_rules =
+       if regex_table && :ets.whereis(regex_table) != :undefined do
+diff --git a/lib/http_capability_gateway/policy_validator.ex b/lib/http_capability_gateway/policy_validator.ex
+index 67cd70b..ba4d949 100644
+--- a/lib/http_capability_gateway/policy_validator.ex
++++ b/lib/http_capability_gateway/policy_validator.ex
+@@ -28,6 +28,7 @@ def validate(policy) when is_map(policy) do
+   end
+ 
+   defp validate_dsl_version(%{"dsl_version" => "1"}), do: nil
++
+   defp validate_dsl_version(%{"dsl_version" => other}) when is_binary(other),
+     do: "dsl_version: must be \"1\""
+ 
+@@ -45,19 +46,15 @@ defp validate_governance(%{"governance" => governance}) when is_map(governance)
+   defp validate_governance(_), do: "governance: must be a map"
+ 
+   defp validate_global_verbs(%{"global_verbs" => verbs}) when is_list(verbs) do
+-    cond do
+-      verbs == [] ->
+-        "governance.global_verbs: must not be empty"
+-
+-      invalid = Enum.find(verbs, &(&1 not in @valid_http_verbs)) ->
+-        "Invalid HTTP verb: #{invalid}"
+-
+-      true ->
+-        nil
++    if Enum.all?(verbs, &(&1 in @valid_http_verbs)) do
++      nil
++    else
++      "governance.global_verbs: contains an invalid HTTP verb"
+     end
+   end
+ 
+-  defp validate_global_verbs(_), do: "governance.global_verbs: must be a non-empty list"
++  defp validate_global_verbs(_),
++    do: "governance.global_verbs: must be a list (empty denies unmatched routes)"
+ 
+   defp validate_routes(nil), do: nil
+ 
+@@ -76,7 +73,8 @@ defp validate_routes(_), do: "governance.routes: must be a list"
+   defp validate_route(route, idx) when is_map(route) do
+     with nil <- validate_route_path(route, idx),
+          nil <- validate_route_verbs(route, idx),
+-         nil <- validate_route_capability(route, idx) do
++         nil <- validate_route_capability(route, idx),
++         nil <- validate_route_exposure(route, idx) do
+       nil
+     else
+       error -> error
+@@ -108,6 +106,14 @@ defp validate_route_capability(route, idx) do
+     end
+   end
+ 
++  defp validate_route_exposure(route, idx) do
++    case Map.fetch(route, "exposure") do
++      :error -> nil
++      {:ok, value} when value in ["public", "authenticated", "internal"] -> nil
++      _ -> "governance.routes[#{idx}].exposure: must be public, authenticated, or internal"
++    end
++  end
++
+   defp validate_route_path(route, idx) do
+     case Map.get(route, "path") do
+       nil ->
+@@ -127,9 +133,10 @@ defp validate_route_path(route, idx) do
+   defp validate_route_verbs(route, idx) do
+     case Map.get(route, "verbs") do
+       verbs when is_list(verbs) and verbs != [] ->
+-        case Enum.find(verbs, &(&1 not in @valid_http_verbs)) do
+-          nil -> nil
+-          invalid -> "governance.routes[#{idx}].verbs: invalid HTTP verb #{invalid}"
++        if Enum.all?(verbs, &(&1 in @valid_http_verbs)) do
++          nil
++        else
++          "governance.routes[#{idx}].verbs: invalid HTTP verb"
+         end
+ 
+       verbs when is_list(verbs) ->
+@@ -175,5 +182,6 @@ defp validate_stealth_config(%{"status_code" => _status}) do
+     "stealth.enabled: must be a boolean when stealth is defined"
+   end
+ 
+-  defp validate_stealth_config(_), do: "stealth: must be a map with 'enabled' and 'status_code' keys"
++  defp validate_stealth_config(_),
++    do: "stealth: must be a map with 'enabled' and 'status_code' keys"
+ end
+diff --git a/lib/http_capability_gateway/proxy.ex b/lib/http_capability_gateway/proxy.ex
+index b953667..838cca2 100644
+--- a/lib/http_capability_gateway/proxy.ex
++++ b/lib/http_capability_gateway/proxy.ex
+@@ -5,14 +5,14 @@ defmodule HttpCapabilityGateway.Proxy do
+   HTTP Proxy for forwarding allowed requests to backend services.
+ 
+   Forwards requests that pass policy enforcement to configured backend URLs.
+-  Handles request transformation, response streaming, and error handling.
++  Handles bounded request buffering, raw response buffering, and error handling.
+ 
+   ## Features
+ 
+   - Method preservation (GET, POST, PUT, DELETE, etc.)
+   - Header forwarding (with filtering)
+-  - Request body streaming
+-  - Response body streaming
++  - Bounded request body buffering
++  - Raw response body buffering (not streaming or a heap quota)
+   - Timeout handling
+   - Connection pooling (via Req)
+ 
+@@ -74,28 +74,38 @@ def forward(conn, rule) do
+       rule_exposure: rule.exposure
+     )
+ 
+-    # Read request body if present
+-    {:ok, body, conn} = Plug.Conn.read_body(conn)
+-
+-    # Build headers for backend request
+-    headers = build_backend_headers(conn)
++    limit = Application.get_env(:http_capability_gateway, :max_request_body_bytes, 1_048_576)
++
++    case Plug.Conn.read_body(conn,
++           length: limit,
++           read_length: min(limit, 64_000),
++           read_timeout: 5_000
++         ) do
++      {:ok, body, conn} when byte_size(body) <= limit ->
++        headers = build_backend_headers(conn)
++
++        case make_backend_request(conn.method, target_url, headers, body) do
++          {:ok, response} ->
++            send_backend_response(conn, response)
++
++          {:error, reason} ->
++            Logger.error("Backend request failed", error: inspect(reason))
++
++            conn
++            |> Plug.Conn.put_resp_content_type("application/json")
++            |> Plug.Conn.send_resp(
++              502,
++              Jason.encode!(%{error: "Bad Gateway", message: "Backend service unavailable"})
++            )
++        end
+ 
+-    # Make backend request using Req
+-    case make_backend_request(conn.method, target_url, headers, body) do
+-      {:ok, response} ->
+-        # Forward backend response to client
+-        send_backend_response(conn, response)
+-
+-      {:error, reason} ->
+-        # Backend request failed
+-        Logger.error("Backend request failed", error: inspect(reason))
++      {:error, _} ->
++        Plug.Conn.send_resp(conn, 400, "Invalid request body")
+ 
++      {_, _body, conn} ->
+         conn
+-        |> Plug.Conn.put_resp_content_type("application/json")
+-        |> Plug.Conn.send_resp(502, Jason.encode!(%{
+-          error: "Bad Gateway",
+-          message: "Backend service unavailable"
+-        }))
++        |> Plug.Conn.put_resp_header("connection", "close")
++        |> Plug.Conn.send_resp(413, "Payload Too Large")
+     end
+   end
+ 
+@@ -214,8 +224,14 @@ defp make_backend_request(method, url, headers, body) do
+       url: url,
+       headers: headers,
+       body: body,
+-      receive_timeout: 30_000,  # 30 second timeout
+-      retry: false  # Don't retry - let caller handle failures
++      # 30 second timeout
++      receive_timeout: 30_000,
++      # Never repeat writes.
++      retry: false,
++      # Never follow a backend redirect across the configured boundary.
++      redirect: false,
++      # Preserve wire bytes; no JSON decoding or implicit decompression.
++      raw: true
+     ]
+ 
+     case Req.request(options) do
+@@ -235,15 +251,17 @@ defp send_backend_response(conn, backend_response) do
+     # Set response status
+     conn = Plug.Conn.put_status(conn, backend_response.status)
+ 
+-    # Forward response headers (filter hop-by-hop)
+-    conn =
+-      Enum.reduce(backend_response.headers, conn, fn {name, value}, acc ->
+-        if String.downcase(name) not in @hop_by_hop_headers do
+-          Plug.Conn.put_resp_header(acc, String.downcase(name), value)
+-        else
+-          acc
+-        end
+-      end)
++    # Req 0.5 stores header values as lists, while Plug expects individual
++    # binary values. Preserve repeated Set-Cookie headers; never decode JSON.
++    headers =
++      for {name, values} <- backend_response.headers,
++          String.downcase(name) not in @hop_by_hop_headers,
++          value <- List.wrap(values),
++          do: {String.downcase(name), value}
++
++    names = MapSet.new(Enum.map(headers, &elem(&1, 0)))
++    retained = Enum.reject(conn.resp_headers, fn {name, _} -> MapSet.member?(names, name) end)
++    conn = %{conn | resp_headers: retained ++ headers}
+ 
+     # Send response body
+     Plug.Conn.send_resp(conn, conn.status, backend_response.body)
+diff --git a/test/e2e_property_test.exs b/test/e2e_property_test.exs
+index 0e3a705..1088ff9 100644
+--- a/test/e2e_property_test.exs
++++ b/test/e2e_property_test.exs
+@@ -110,7 +110,7 @@ defp declared_verbs_for(policy, path) do
+ 
+     case route_match do
+       nil -> globals
+-      %{"verbs" => verbs} -> verbs ++ globals
++      %{"verbs" => verbs} -> verbs
+     end
+   end
+ 
+diff --git a/test/gateway_test.exs b/test/gateway_test.exs
+index 7cdc215..a564b65 100644
+--- a/test/gateway_test.exs
++++ b/test/gateway_test.exs
+@@ -19,9 +19,17 @@ defmodule HttpCapabilityGateway.GatewayTest do
+       "governance" => %{
+         "global_verbs" => ["GET", "POST"],
+         "routes" => [
+-          %{"path" => "/api/users", "verbs" => ["GET", "POST"], "backend" => "http://localhost:8080"},
++          %{
++            "path" => "/api/users",
++            "verbs" => ["GET", "POST"],
++            "backend" => "http://localhost:8080"
++          },
+           %{"path" => "/api/admin", "verbs" => ["GET"], "backend" => "http://localhost:8080"},
+-          %{"path" => "/api/users/[0-9]+", "verbs" => ["GET", "PUT", "DELETE"], "backend" => "http://localhost:8080"}
++          %{
++            "path" => "/api/users/[0-9]+",
++            "verbs" => ["GET", "PUT", "DELETE"],
++            "backend" => "http://localhost:8080"
++          }
+         ]
+       },
+       "stealth" => %{
+@@ -32,6 +40,7 @@ defmodule HttpCapabilityGateway.GatewayTest do
+ 
+     {:ok, table} = PolicyCompiler.compile(policy, delete_old: false)
+     Application.put_env(:http_capability_gateway, :policy_table, table)
++
+     Application.put_env(:http_capability_gateway, :stealth_profiles, %{
+       "default" => %{
+         "unauthenticated" => 404,
+@@ -39,6 +48,7 @@ defmodule HttpCapabilityGateway.GatewayTest do
+         "untrusted" => 404
+       }
+     })
++
+     {:ok, table: table}
+   end
+ 
+@@ -69,11 +79,8 @@ test "allows route-specific verbs" do
+     end
+ 
+     test "denies verbs not allowed for route" do
+-      # /api/admin only allows GET. POST is global, so it should be allowed!
+-      # Wait, our logic says fallback to global if route doesn't match verb.
+-      # So we test that.
+       conn = conn(:post, "/api/admin") |> Gateway.call([])
+-      assert_allowed(conn)
++      assert_denied(conn, 404)
+     end
+ 
+     test "handles regex route matching" do
+@@ -121,20 +128,23 @@ test "returns custom status code if configured" do
+       assert conn.status == 404
+     end
+   end
+-describe "stealth disabled" do
+-  setup %{table: _table} do
+-    policy = %{
+-      "dsl_version" => "1",
+-      "governance" => %{
+-        "global_verbs" => ["GET"],
+-        "stealth" => %{"enabled" => false, "status_code" => 403}
++
++  describe "stealth disabled" do
++    setup %{table: _table} do
++      policy = %{
++        "dsl_version" => "1",
++        "governance" => %{
++          "global_verbs" => ["GET"],
++          "stealth" => %{"enabled" => false, "status_code" => 403}
++        }
+       }
+-    }
+-    {:ok, table} = PolicyCompiler.compile(policy, delete_old: false)
+-    Application.put_env(:http_capability_gateway, :policy_table, table)
+-    Application.put_env(:http_capability_gateway, :stealth_profiles, %{})
+-    :ok
+-  end
++
++      {:ok, table} = PolicyCompiler.compile(policy, delete_old: false)
++      Application.put_env(:http_capability_gateway, :policy_table, table)
++      Application.put_env(:http_capability_gateway, :stealth_profiles, %{})
++      :ok
++    end
++
+     test "returns 403 when stealth disabled" do
+       conn = conn(:post, "/any") |> Gateway.call([])
+       assert_denied(conn, 403)
+@@ -143,9 +153,11 @@ test "returns 403 when stealth disabled" do
+ 
+   describe "trust level evaluation" do
+     test "extracts trust level from header" do
+-      conn = conn(:get, "/api/admin")
+-             |> put_req_header("x-trust-level", "authenticated")
+-             |> Gateway.call([])
++      conn =
++        conn(:get, "/api/admin")
++        |> put_req_header("x-trust-level", "authenticated")
++        |> Gateway.call([])
++
+       assert conn.assigns[:trust_level] == :authenticated
+     end
+ 
+@@ -162,9 +174,11 @@ test "generates request ID if missing" do
+     end
+ 
+     test "preserves existing request ID" do
+-      conn = conn(:get, "/api/users")
+-             |> put_req_header("x-request-id", "test-id")
+-             |> Gateway.call([])
++      conn =
++        conn(:get, "/api/users")
++        |> put_req_header("x-request-id", "test-id")
++        |> Gateway.call([])
++
+       assert conn.assigns[:request_id] == "test-id"
+     end
+   end
+@@ -196,8 +210,11 @@ test "verb matching is case-sensitive" do
+       # Plug.Test.conn uses lowercase internally if passed as string, 
+       # but Gateway expects uppercase.
+       conn = conn(:get, "/api/admin")
+-      conn = %{conn | method: "get"}
+-             |> Gateway.call([])
++
++      conn =
++        %{conn | method: "get"}
++        |> Gateway.call([])
++
+       # Should fail because "get" != "GET"
+       assert_denied(conn, 405)
+     end
+diff --git a/test/policy_compiler_test.exs b/test/policy_compiler_test.exs
+index ddaba7d..2ffb477 100644
+--- a/test/policy_compiler_test.exs
++++ b/test/policy_compiler_test.exs
+@@ -11,7 +11,11 @@ test "compiles valid policy to dynamic ETS table" do
+         "governance" => %{
+           "global_verbs" => ["GET", "POST"],
+           "routes" => [
+-            %{"path" => "/api/users", "verbs" => ["GET", "POST", "DELETE"], "backend" => "http://localhost:8080"}
++            %{
++              "path" => "/api/users",
++              "verbs" => ["GET", "POST", "DELETE"],
++              "backend" => "http://localhost:8080"
++            }
+           ]
+         }
+       }
+@@ -31,6 +35,7 @@ test "compiles global verbs correctly" do
+       assert {:ok, table} = PolicyCompiler.compile(policy, delete_old: false)
+ 
+       rules = :ets.tab2list(table)
++
+       global_verbs =
+         rules
+         |> Enum.filter(fn {{key, _v}, _rule} -> key == :global end)
+@@ -49,7 +54,11 @@ test "compiles global verbs correctly" do
+           "global_verbs" => ["GET", "POST"],
+           "routes" => [
+             %{"path" => "/api/admin", "verbs" => ["GET"], "backend" => "http://localhost:8080"},
+-            %{"path" => "/api/users/[0-9]+", "verbs" => ["GET", "PUT", "DELETE"], "backend" => "http://localhost:8080"}
++            %{
++              "path" => "/api/users/[0-9]+",
++              "verbs" => ["GET", "PUT", "DELETE"],
++              "backend" => "http://localhost:8080"
++            }
+           ]
+         }
+       }
+@@ -75,10 +84,8 @@ test "matches regex patterns", %{table: table} do
+       assert rule.path_pattern == "/api/users/[0-9]+"
+     end
+ 
+-    test "falls back to global verb if route doesn't match verb", %{table: table} do
+-      # /api/admin only specifies GET, but POST is global
+-      assert {:ok, rule} = PolicyCompiler.lookup(table, "/api/admin", :POST)
+-      assert rule.name == "global_POST"
++    test "denies a missing route verb even when it is globally allowed", %{table: table} do
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/api/admin", :POST)
+     end
+ 
+     test "returns error for non-global verb on unspecified route", %{table: table} do
+diff --git a/test/policy_property_test.exs b/test/policy_property_test.exs
+index 937f660..8283d46 100644
+--- a/test/policy_property_test.exs
++++ b/test/policy_property_test.exs
+@@ -10,6 +10,7 @@ defmodule HttpCapabilityGateway.PolicyPropertyTest do
+ 
+   defp is_allowed?(table, path, verb) do
+     verb_atom = if is_binary(verb), do: String.to_existing_atom(verb), else: verb
++
+     case PolicyCompiler.lookup(table, path, verb_atom) do
+       {:ok, _rule} -> true
+       {:error, :no_match} -> false
+@@ -93,7 +94,7 @@ defp is_allowed?(table, path, verb) do
+             "global_verbs" => Enum.uniq(global_verbs),
+             "routes" => [
+               %{
+-                "path" => full_path, 
++                "path" => full_path,
+                 "verbs" => Enum.uniq(route_verbs),
+                 "backend" => "http://localhost:8080"
+               }
+@@ -108,13 +109,11 @@ defp is_allowed?(table, path, verb) do
+           assert is_allowed?(table, full_path, verb)
+         end
+ 
+-        # Verbs NOT in route config should be checked against globals
+-        # (Wait, the current implementation falls back to global if route doesn't match VERB)
+-        # So we test that logic.
++        # Matched route verb lists override globals, including denials.
+         other_verbs = @valid_http_verbs -- route_verbs
+ 
+         for verb <- other_verbs do
+-          expected = verb in global_verbs
++          expected = false
+           assert is_allowed?(table, full_path, verb) == expected
+         end
+       end
+diff --git a/test/policy_validator_test.exs b/test/policy_validator_test.exs
+index f3fb1d2..d03e02d 100644
+--- a/test/policy_validator_test.exs
++++ b/test/policy_validator_test.exs
+@@ -73,7 +73,7 @@ test "rejects policy without global_verbs" do
+       assert reason =~ "global_verbs"
+     end
+ 
+-    test "rejects policy with empty global_verbs" do
++    test "accepts explicitly empty globals as deny-default" do
+       invalid_policy = %{
+         "dsl_version" => "1",
+         "governance" => %{
+@@ -81,8 +81,7 @@ test "rejects policy with empty global_verbs" do
+         }
+       }
+ 
+-      assert {:error, reason} = PolicyValidator.validate(invalid_policy)
+-      assert reason =~ "global_verbs" or reason =~ "empty"
++      assert :ok = PolicyValidator.validate(invalid_policy)
+     end
+ 
+     test "rejects invalid HTTP verbs" do
+diff --git a/test/proxy_wire_test.exs b/test/proxy_wire_test.exs
+new file mode 100644
+index 0000000..7a0530d
+--- /dev/null
++++ b/test/proxy_wire_test.exs
+@@ -0,0 +1,115 @@
++# SPDX-License-Identifier: MPL-2.0
++defmodule HttpCapabilityGateway.ProxyWireBackend do
++  import Plug.Conn
++  def init(opts), do: opts
++
++  def call(conn, opts) do
++    {:ok, body, conn} = read_body(conn)
++
++    send(
++      opts[:owner],
++      {:wire_request, conn.request_path, conn.query_string, conn.req_headers, body}
++    )
++
++    case conn.request_path do
++      "/redirect" ->
++        conn |> put_resp_header("location", "/redirected") |> send_resp(302, "move")
++
++      "/unavailable" ->
++        send_resp(conn, 503, "not retried")
++
++      _ ->
++        conn = put_resp_content_type(conn, "application/json")
++
++        conn = %{
++          conn
++          | resp_headers: [{"set-cookie", "a=1"}, {"set-cookie", "b=2"} | conn.resp_headers]
++        }
++
++        send_resp(conn, 200, body)
++    end
++  end
++end
++
++defmodule HttpCapabilityGateway.ProxyWireTest do
++  use ExUnit.Case, async: false
++  import Plug.Conn
++  import Plug.Test
++  alias HttpCapabilityGateway.Proxy
++
++  setup do
++    ref = make_ref()
++
++    {:ok, _} =
++      Plug.Cowboy.http(HttpCapabilityGateway.ProxyWireBackend, [owner: self()], port: 0, ref: ref)
++
++    previous =
++      for key <- [:backend_url, :max_request_body_bytes],
++          do: {key, Application.get_env(:http_capability_gateway, key)}
++
++    Application.put_env(
++      :http_capability_gateway,
++      :backend_url,
++      "http://127.0.0.1:#{:ranch.get_port(ref)}"
++    )
++
++    Application.put_env(:http_capability_gateway, :max_request_body_bytes, 1024)
++
++    on_exit(fn ->
++      Plug.Cowboy.shutdown(ref)
++
++      for {key, value} <- previous do
++        if is_nil(value),
++          do: Application.delete_env(:http_capability_gateway, key),
++          else: Application.put_env(:http_capability_gateway, key, value)
++      end
++    end)
++
++    :ok
++  end
++
++  test "real upstream preserves query, JSON bytes, repeated cookies and resolved headers" do
++    body = Jason.encode!("λ and \"quotes\"")
++
++    response =
++      conn(:post, "/echo?x=a%2Fb&n=2", body)
++      |> put_req_header("content-type", "application/json")
++      |> put_req_header("x-trust-level", "internal")
++      |> put_req_header("x-request-id", "forged")
++      |> assign(:trust_level, :untrusted)
++      |> assign(:request_id, "resolved-test-id")
++      |> Proxy.forward(%{exposure: "public"})
++
++    assert response.status == 200
++    assert response.resp_body == body
++    assert Enum.sort(get_resp_header(response, "set-cookie")) == ["a=1", "b=2"]
++    assert_receive {:wire_request, "/echo", "x=a%2Fb&n=2", headers, ^body}
++    assert {"x-trust-level", "untrusted"} in headers
++    assert {"x-request-id", "resolved-test-id"} in headers
++    refute {"x-trust-level", "internal"} in headers
++  end
++
++  test "redirect is returned rather than followed outside the policy decision" do
++    response = conn(:get, "/redirect") |> Proxy.forward(%{exposure: "public"})
++    assert response.status == 302
++    assert get_resp_header(response, "location") == ["/redirected"]
++    assert_receive {:wire_request, "/redirect", _, _, _}
++    refute_receive {:wire_request, _, _, _, _}
++  end
++
++  test "upstream 503 is preserved without retrying the operation" do
++    response = conn(:post, "/unavailable", "operation") |> Proxy.forward(%{exposure: "public"})
++    assert response.status == 503
++    assert response.resp_body == "not retried"
++    assert_receive {:wire_request, "/unavailable", _, _, "operation"}
++    refute_receive {:wire_request, _, _, _, _}
++  end
++
++  test "body beyond configured bound never reaches upstream" do
++    response =
++      conn(:post, "/echo", String.duplicate("x", 1025)) |> Proxy.forward(%{exposure: "public"})
++
++    assert response.status == 413
++    refute_receive {:wire_request, _, _, _, _}
++  end
++end
+diff --git a/test/strict_policy_test.exs b/test/strict_policy_test.exs
+new file mode 100644
+index 0000000..11085d3
+--- /dev/null
++++ b/test/strict_policy_test.exs
+@@ -0,0 +1,103 @@
++# SPDX-License-Identifier: MPL-2.0
++defmodule HttpCapabilityGateway.StrictPolicyTest do
++  use ExUnit.Case, async: false
++  alias HttpCapabilityGateway.{PolicyCompiler, PolicyValidator}
++
++  defp compile(routes, globals \\ ["GET", "POST"]) do
++    policy = %{
++      "dsl_version" => "1",
++      "governance" => %{"global_verbs" => globals, "routes" => routes}
++    }
++
++    assert :ok = PolicyValidator.validate(policy)
++    assert {:ok, table} = PolicyCompiler.compile(policy, delete_old: false)
++    table
++  end
++
++  test "exact and regex route omissions override every global verb" do
++    for path <- ["/private", "\\A/private\\z"] do
++      table = compile([%{"path" => path, "verbs" => ["DELETE"], "exposure" => "internal"}])
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/private", :GET)
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/private", :POST)
++      assert {:ok, rule} = PolicyCompiler.lookup(table, "/private", :DELETE)
++      assert rule.exposure == "internal"
++      assert {:ok, _} = PolicyCompiler.lookup(table, "/elsewhere", :GET)
++    end
++  end
++
++  test "empty globals and all-empty governance deny unknown paths" do
++    table = compile([%{"path" => "\\A/known\\z", "verbs" => ["GET"]}], [])
++    assert {:ok, _} = PolicyCompiler.lookup(table, "/known", :GET)
++
++    for verb <- [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD, :OPTIONS, :TRACE] do
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/unknown", verb)
++    end
++
++    all_denied = compile([], [])
++    assert {:error, :no_match} = PolicyCompiler.lookup(all_denied, "/anything", :GET)
++    assert %{total_rules: 0} = PolicyCompiler.stats(all_denied)
++  end
++
++  test "exact path owns denial; ambiguous regex paths fail closed regardless of order" do
++    routes = [
++      %{"path" => "\\A/items/.*\\z", "verbs" => ["GET"]},
++      %{"path" => "\\A/items/[^/]+\\z", "verbs" => ["POST"], "exposure" => "internal"},
++      %{"path" => "/items/admin", "verbs" => ["DELETE"]}
++    ]
++
++    for ordered <- [routes, Enum.reverse(routes)] do
++      table = compile(ordered)
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/items/one", :GET)
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/items/one", :POST)
++      assert {:error, :no_match} = PolicyCompiler.lookup(table, "/items/admin", :GET)
++      assert {:ok, _} = PolicyCompiler.lookup(table, "/items/admin", :DELETE)
++    end
++  end
++
++  test "an old main handle cannot accidentally use a newer regex policy" do
++    old = compile([%{"path" => "\\A/private\\z", "verbs" => ["DELETE"]}])
++    _new = compile([%{"path" => "\\A/elsewhere\\z", "verbs" => ["GET"]}])
++    assert {:error, :no_match} = PolicyCompiler.lookup(old, "/private", :GET)
++    assert {:ok, _} = PolicyCompiler.lookup(old, "/private", :DELETE)
++    :ets.delete(old)
++    assert {:error, :no_match} = PolicyCompiler.lookup(old, "/private", :GET)
++  end
++
++  test "malformed exposure and non-string verbs are rejected rather than becoming public" do
++    for exposure <- ["interanl", "PUBLIC", nil, false, 1, %{}] do
++      policy = %{
++        "dsl_version" => "1",
++        "governance" => %{
++          "global_verbs" => [],
++          "routes" => [
++            %{"path" => "/private", "verbs" => ["GET"], "exposure" => exposure}
++          ]
++        }
++      }
++
++      assert {:error, _} = PolicyValidator.validate(policy)
++    end
++
++    for verb <- [nil, false, true, %{}, 1] do
++      assert {:error, _} =
++               PolicyValidator.validate(%{
++                 "dsl_version" => "1",
++                 "governance" => %{"global_verbs" => [verb]}
++               })
++
++      assert {:error, _} =
++               PolicyValidator.validate(%{
++                 "dsl_version" => "1",
++                 "governance" => %{
++                   "global_verbs" => [],
++                   "routes" => [%{"path" => "/", "verbs" => [verb]}]
++                 }
++               })
++    end
++  end
++
++  test "policy load logging accepts the documented success atom and error tuple" do
++    assert :ok = HttpCapabilityGateway.Logging.log_policy_load("test.yaml", :ok)
++    assert :ok = HttpCapabilityGateway.Logging.log_policy_load("test.yaml", {:error, :invalid})
++  end
++end

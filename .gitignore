@@ -144,3 +144,7 @@ verification/proofs/coq/.*.aux
 # Agda compiled proof artifacts
 verification/proofs/agda/*.agdai
 
+
+# Locally generated deployment policy; golden policy lives in fixtures/capability/.
+/docs/deployment/policy.yaml
+/docs/deployment/policy.yaml.tmp
