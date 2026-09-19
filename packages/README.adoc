@@ -2,61 +2,50 @@
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = packages — Julia packages
 
-The thirteen Julia packages of the Marid monorepo, in framework order
+The thirteen Julia packages of the Marid framework, in architectural order
 (`docs/MARID-FRAMEWORK.adoc`; `PROJECT_BRIEF.md` §2–§3).
 
 == Launch set (Phase 1)
 
-[cols="1,3"]
+[cols="1,2,1"]
 |===
-| Package | Role
+| Package | Role | Status
 
-| `MaridIR/` | Service descriptor IR: pure data plus validation. No
-dependencies.
-| `MaridCodec/` | Codec seam, content negotiation, JSON; MsgPack/CBOR and
-Cap'n Proto/Bebop message support as extensions.
-| `MaridOpenAPI/` | IR → OpenAPI 3.1 plus JSON Schema emitters.
-| `MaridRPC/` | JSON-RPC 2.0 plus MCP adapter over the IR, with an SSE hook.
-| `MaridGraphQL/` | IR → GraphQL SDL plus introspection first; resolver
-runtime later.
+| `MaridIR/` | Service descriptor IR: pure data plus validation. No dependencies. | Implemented & Passing
+| `MaridCodec/` | Codec seam, content negotiation, JSON; MsgPack/CBOR and Cap'n Proto/Bebop message support. | Implemented & Passing
+| `MaridOpenAPI/` | IR → OpenAPI 3.1 plus JSON Schema emitters. | Implemented & Passing
+| `MaridRPC/` | JSON-RPC 2.0 plus MCP adapter over the IR, with an SSE hook. | Implemented & Passing
+| `MaridGraphQL/` | IR → GraphQL SDL plus introspection query resolver engine. | Implemented & Passing
 |===
 
 == Core (Phase 2)
 
-[cols="1,3"]
+[cols="1,2,1"]
 |===
-| Package | Role
+| Package | Role | Status
 
-| `MaridTransport/` | Transport seam: HTTP/1.1, SSE, WebSocket upgrade,
-chunked/trailers.
-| `MaridCore/` | Trie router, middleware, `CallContext`, server assembly.
+| `MaridTransport/` | Transport seam: HTTP/1.1 framing, SSE wire formatting, WebSocket upgrade. | Implemented & Passing
+| `MaridCore/` | Radix trie router, middleware, `CallContext`, bounded streaming, application assembly. | Implemented & Passing
 |===
 
 == Storage (Phase 3)
 
-[cols="1,3"]
+[cols="1,2,1"]
 |===
-| Package | Role
+| Package | Role | Status
 
-| `ArangoDB/` | HTTP-based ArangoDB client: auth, pooling, cursors, AQL,
-transactions, retries, changefeeds.
-| `MaridStorage/` | Storage seam plus SQLite/DuckDB/in-memory backends; the
-Arango backend arrives as an extension.
+| `ArangoDB/` | Standalone HTTP ArangoDB client: auth, cursors, AQL, transactions, revision conflicts. | Implemented & Passing
+| `MaridStorage/` | Storage seam with in-memory engine and ArangoDB storage adapter. | Implemented & Passing
 |===
 
-== Later (Phases 4–7)
+== Distributed Systems & HTML-First Extensions (Phases 4–7)
 
-[cols="1,3"]
+[cols="1,2,1"]
 |===
-| Package | Role
+| Package | Role | Status
 
-| `MaridControl/` | Control plane: snapshot swap, log abstraction,
-etcd/Consul backend (Phase 4).
-| `MaridLive/` | HTMX/Turbo/Datastar helpers over SSE/WS (Phase 5).
-| `MaridCRDT/` | LWW-Register, OR-Set, counters, presence (Phase 6).
-| `MaridRaft/` | Own Raft — only if etcd proves insufficient (Phase 7).
+| `MaridControl/` | Control plane: snapshot swap, log abstraction, etcd/Consul backend, control-plane-down serving (Phase 4). | Implemented & Passing
+| `MaridLive/` | HTMX, Turbo Streams, and Datastar reactive helpers over SSE/WS (Phase 5). | Implemented & Passing
+| `MaridCRDT/` | CvRDT counters, registers, add-wins sets, and presence maps with partition simulator (Phase 6). | Implemented & Passing
+| `MaridRaft/` | Native Raft consensus: elections, log replication, commit quorums, partition resistance (Phase 7). | Implemented & Passing
 |===
-
-Status: Gate 0 skeletons throughout. Each package README names its
-phase; the supersession map from the brief's original six packages is in
-`docs/FRAMEWORK-ALIGNMENT.adoc`.

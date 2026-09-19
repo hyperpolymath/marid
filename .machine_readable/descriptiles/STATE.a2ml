@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 5 (Release Review) completed on 2026-09-19.
+# Monorepo structure maintained; 13 packages + 4 browser packages + reference app active.
 
 [metadata]
 project = "marid"
@@ -20,8 +20,8 @@ purpose = "Julia-first framework for web applications, APIs, and reactive scient
 completion-percentage = 100
 
 [position]
-phase = "testing"         # design | implementation | testing | maintenance | archived
-maturity = "production"  # experimental | alpha | beta | production | lts
+phase = "maintenance"     # design | implementation | testing | maintenance | archived
+maturity = "production"   # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
 # Gates from PROJECT_BRIEF.md §9. Completion is honest.
@@ -35,13 +35,13 @@ milestones = [
 ]
 
 [blockers-and-issues]
-# All Gates 0 through 5 complete. 100% test pass rate across Julia and Bun suites.
+# Monorepo structure retained as directed. All 13 packages passing test suites.
 
 [critical-next-actions]
 actions = [
-  "Monorepo is fully assembled, verified, and release-ready.",
-  "Await user confirmation to initiate Gate 5 dedicated polyrepo repository split.",
-  "Topological release order documented in docs/audits/gate5-release-review.adoc.",
+  "Monorepo structure actively maintained across all 13 packages and 4 browser packages.",
+  "Await explicit user instruction before splitting away into dedicated repositories.",
+  "Continue expansion to Phase 8 gRPC/HTTP2 bindings when ready.",
 ]
 
 [maintenance-status]

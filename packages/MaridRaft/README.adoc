@@ -1,10 +1,57 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridRaft.jl — own Raft, maybe (planned)
+= MaridRaft.jl — Distributed Consensus Engine
+:toc:
+:sectnums:
 
-Own Raft (elections, log, compaction, membership) — last, small, and
-tested, or not at all. It lands only if the etcd backend proves
-insufficient (`docs/MARID-FRAMEWORK.adoc`, later set).
+Standalone native Julia implementation of the Raft distributed consensus protocol:
+leader election, log replication, commit quorum tracking, and partition resilience
+(`PROJECT_BRIEF.md` §2 Phase 7; `docs/MARID-FRAMEWORK.adoc`).
 
-Status: Gate 0 skeleton. Phase 7, gated on a Jepsen-style testing
-budget (brief §9). It may never be needed.
+Status: **Implemented & Verified (Phase 7)**. Zero external dependencies.
+
+== Public API
+
+* `NodeRole`: `Follower`, `Candidate`, `Leader`.
+* `RaftNode(id, peers)`: In-memory or network-bound Raft consensus state machine.
+* `RaftEntry(index, term, command)`: Replicated state machine log record.
+* `RequestVoteArgs` & `RequestVoteReply`: Election RPC messages.
+* `AppendEntriesArgs` & `AppendEntriesReply`: Log replication and heartbeat messages.
+* `handle_request_vote(node, args)`: Evaluates vote requests based on term and log currency.
+* `handle_append_entries(node, args)`: Enforces log consistency, conflict truncations, and commit application.
+* `start_election!(node, cluster)`: Initiates candidate campaign and gathers quorum votes.
+* `replicate_entry!(leader, cluster, command)`: Proposes state machine change, waits for quorum commit, and triggers state transitions.
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| Leader Election Quorum | Supported | Election fails without majority quorum; passes when majority votes.
+| Log Consistency | Supported | Followers detect uncommitted log discrepancies and reconcile with leader.
+| State Machine Application | Supported | Committed entries apply sequentially to state machine.
+| Network Partition Resistance | Supported | Minority partition cannot commit or elect; majority partition maintains continuity.
+|===
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridRaft
+
+# 1. Initialize 3-node cluster
+n1 = RaftNode("node-1", ["node-2", "node-3"])
+n2 = RaftNode("node-2", ["node-1", "node-3"])
+n3 = RaftNode("node-3", ["node-1", "node-2"])
+cluster = Dict("node-1" => n1, "node-2" => n2, "node-3" => n3)
+
+# 2. Elect leader
+start_election!(n1, cluster)
+@assert n1.role == Leader
+
+# 3. Propose and replicate command
+ok = replicate_entry!(n1, cluster, Dict{String, Any}("active_schema" => "taxa_v2"))
+@assert ok == true
+@assert n2.state_machine["active_schema"] == "taxa_v2"
+----

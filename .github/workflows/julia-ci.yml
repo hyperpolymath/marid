@@ -32,6 +32,10 @@ jobs:
           - MaridCore
           - ArangoDB
           - MaridStorage
+          - MaridControl
+          - MaridLive
+          - MaridCRDT
+          - MaridRaft
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: julia-actions/setup-julia@v2

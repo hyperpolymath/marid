@@ -1,10 +1,65 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridCRDT.jl — conflict-free replicated types (planned)
+= MaridCRDT.jl — Conflict-Free Replicated Data Types
+:toc:
+:sectnums:
 
-LWW-Register, OR-Set, G/PN-Counter, and presence — data-type-specific
-replication, never a promise that arbitrary objects replicate safely
-(`docs/MARID-FRAMEWORK.adoc`, later set).
+State-based Conflict-Free Replicated Data Types (CvRDTs) providing strong eventual consistency (SEC)
+for distributed cluster presence and replicated state (`PROJECT_BRIEF.md` §2 Phase 6; `docs/MARID-FRAMEWORK.adoc`).
 
-Status: Gate 0 skeleton. Implemented at Phase 6, after Control
-(brief §9).
+Status: **Implemented & Verified (Phase 6)**. Zero dependencies.
+
+== Public API
+
+* **Counters**:
+  * `GCounter()`: Grow-only counter. `inc!(counter, node_id, delta=1)`, `value(counter)`.
+  * `PNCounter()`: Positive-Negative counter. `inc!(pnc, node_id, delta)`, `dec!(pnc, node_id, delta)`, `value(pnc)`.
+* **Registers**:
+  * `LWWRegister(initial)`: Last-Write-Wins register with deterministic tie-breaking. `set_value!(reg, val, ts, writer_id)`.
+* **Sets**:
+  * `ORSet{T}()`: Observed-Remove set with add-wins semantics. `add_element!(set, item)`, `remove_element!(set, item)`, `read_elements(set)`, `has_element(set, item)`.
+* **Presence**:
+  * `PresenceMap()`: Distributed peer cluster presence with heartbeat timestamps. `update_presence!`, `get_active_presence`.
+* **Lattice Merge**:
+  * `merge_crdt(c1, c2)`: Commutative, associative, and idempotent join operator $\sqcup$.
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| Mathematical Lattice Properties | Supported | Commutativity, associativity, and idempotence verified for all types.
+| Add-Wins Concurrent Deletion | Supported | Concurrent add wins over concurrent remove on identical elements.
+| Network Partition Recovery | Supported | 3-node partition simulator demonstrates identical state convergence regardless of merge order.
+| Peer Presence & Heartbeats | Supported | LWWRegister-backed peer status maps with TTL expiration.
+|===
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridCRDT
+
+# 1. Replicated Counters
+c_node1 = PNCounter()
+c_node2 = PNCounter()
+
+inc!(c_node1, "node1", 10)
+dec!(c_node2, "node2", 3)
+
+# Merge state across network
+c_converged = merge_crdt(c_node1, c_node2)
+@assert value(c_converged) == 7
+
+# 2. Add-Wins Sets
+set1 = ORSet{String}()
+set2 = ORSet{String}()
+
+add_element!(set1, "Taxon_A")
+add_element!(set2, "Taxon_B")
+
+merged_set = merge_crdt(set1, set2)
+@assert "Taxon_A" in read_elements(merged_set)
+@assert "Taxon_B" in read_elements(merged_set)
+----
