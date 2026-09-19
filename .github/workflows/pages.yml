@@ -21,7 +21,11 @@ concurrency:
 
 jobs:
   build:
-    timeout-minutes: 20
+    # Cold cabal builds of casket-ssg (+pandoc) exceed 20 min, and a cancelled
+    # job saves no cache — so 20 min fails every run until one completes. 60
+    # lets the first cold build finish and populate the cache; warm runs take
+    # minutes. Raised 2026-09-19 after two consecutive cold-cache timeouts.
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
