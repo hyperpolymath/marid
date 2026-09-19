@@ -5,13 +5,17 @@
     MaridTransport
 
 Transport seam abstraction for Marid: HTTP/1.1 framing, Server-Sent Events (SSE),
-and WebSocket protocol upgrades.
+gRPC length-delimited framing, gRPC-Web trailers, and Connect protocol streams.
 """
 module MaridTransport
 
 using Sockets
 
-export format_sse_event, parse_http_status_line
+include("grpc.jl")
+
+export format_sse_event, parse_http_status_line,
+       frame_grpc_message, unframe_grpc_messages, format_grpc_web_trailers,
+       grpc_status_code, GRPC_FLAG_DATA, GRPC_FLAG_COMPRESSED, GRPC_FLAG_WEB_TRAILER, CONNECT_FLAG_END_STREAM
 
 """
     format_sse_event(; data::String, event::String="", id::String="") -> String

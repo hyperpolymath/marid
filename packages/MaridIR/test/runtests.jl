@@ -50,4 +50,31 @@ using MaridIR
     # 7. Validation Rejection - Empty service name
     empty_svc = ServiceDescriptor("", "1.0.0", TypeDescriptor[], MethodDescriptor[])
     @test_throws ErrorException validate_service(empty_svc)
+    # 5. Protobuf v3 Schema Generator
+    @testset "Protobuf Schema Emission" begin
+        t_taxon = TypeDescriptor("Taxon", [
+            FieldDescriptor("id", PrimitiveType("String")),
+            FieldDescriptor("name", PrimitiveType("String")),
+            FieldDescriptor("characters", ListType(PrimitiveType("Int32"))),
+            FieldDescriptor("notes", PrimitiveType("String"), nullable=true)
+        ])
+        
+        m_get = MethodDescriptor("GetTaxon", "TaxonQuery", "Taxon", streaming=Unary)
+        m_stream = MethodDescriptor("StreamTaxa", "TaxonQuery", "Taxon", streaming=ServerStreaming)
+        m_chat = MethodDescriptor("Chat", "TaxonMessage", "TaxonMessage", streaming=BidirectionalStreaming)
+        
+        svc = ServiceDescriptor("TaxonomyService", "1.0.0", [t_taxon], [m_get, m_stream, m_chat])
+        proto_txt = emit_proto(svc)
+        
+        @test occursin("syntax = \"proto3\";", proto_txt)
+        @test occursin("package taxonomy_service;", proto_txt)
+        @test occursin("message Taxon {", proto_txt)
+        @test occursin("string id = 1;", proto_txt)
+        @test occursin("repeated int32 characters = 3;", proto_txt)
+        @test occursin("optional string notes = 4;", proto_txt)
+        @test occursin("service TaxonomyService {", proto_txt)
+        @test occursin("rpc GetTaxon (TaxonQuery) returns (Taxon);", proto_txt)
+        @test occursin("rpc StreamTaxa (TaxonQuery) returns (stream Taxon);", proto_txt)
+        @test occursin("rpc Chat (stream TaxonMessage) returns (stream TaxonMessage);", proto_txt)
+    end
 end
