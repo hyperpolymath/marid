@@ -49,11 +49,19 @@ Return `app` after replacing its route table. Invalid descriptors, non-unary HTT
 bindings, missing or non-function handlers, and conflicting route parameters raise
 an exception before the app's route table is replaced.
 """
+function _validate_canonical_route_path(path::String)
+    startswith(path, "/") || throw(ArgumentError("Route must start with /: $path"))
+    (occursin("//", path) || (path != "/" && endswith(path, "/"))) &&
+        throw(ArgumentError("Use canonical routes (no repeated/trailing slash): $path"))
+    return path
+end
+
 function bind_service!(app::MaridApp, service::ServiceDescriptor, handlers::AbstractDict)
     validate_service(service)
     table = app.routes
     for method in service.methods
         isempty(method.route_path) && continue
+        _validate_canonical_route_path(method.route_path)
         method.streaming == Unary || throw(ArgumentError("HTTP JSON slice supports unary methods only"))
         haskey(handlers, method.name) || throw(ArgumentError("Missing handler: $(method.name)"))
         handler = handlers[method.name]

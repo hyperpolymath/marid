@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
+= Gate 5: Final Release Review & Standalone Repository Migration Plan
+:toc:
+:sectnums:
+
 [WARNING]
 ====
 Historical implementation report, not current gate acceptance. Its readiness
 claims are superseded by link:evidence-ledger.adoc[the evidence ledger].
 Mock/unit coverage must not be interpreted as independent interoperability.
 ====
-= Gate 5: Final Release Review & Standalone Repository Migration Plan
-:toc:
-:sectnums:
 
 [abstract]
 Comprehensive release audit for the Marid framework (`PROJECT_BRIEF.md` §8–§9; `docs/marid-roadmap.adoc`).

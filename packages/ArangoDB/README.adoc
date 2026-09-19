@@ -43,6 +43,19 @@ tests; see link:../../docs/audits/evidence-ledger.adoc[the evidence ledger].
 * ArangoDB internal Agency consensus management (Marid does not manage database clusters).
 * Foxx JavaScript microservices runtime integration.
 
+== Environment Setup
+
+The runnable example requires `ARANGO_USER` and `ARANGO_PASSWORD` to be set in your shell.
+Export them before running Julia, for example:
+
+[source,shell]
+----
+export ARANGO_USER=root
+export ARANGO_PASSWORD=dev
+----
+
+These variables are read via `ENV[\"ARANGO_USER\"]` and `ENV[\"ARANGO_PASSWORD\"]` in the example below.
+
 == Runnable Example
 
 [source,julia]
