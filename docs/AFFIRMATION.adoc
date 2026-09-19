@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= AFFIRMATION — Marid, as of <YYYY-MM-DD>
+= AFFIRMATION — Marid, as of 2026-09-19
 :toc: macro
 :toclevels: 2
 :std-docs: https://github.com/hyperpolymath/standards/blob/main/docs
@@ -9,13 +9,6 @@ _the No-Bullshit file: what we affirm was true and checkable at this moment._
 
 [NOTE]
 ====
-*This file is a template.* Replace the `{{…}}` placeholders and the `<…>` anchor
-fields, then re-run your project's own checks in the same session before
-signing. It conforms to *profile A (evidential)* of the
-link:{std-docs}/AFFIRMATION-STANDARD.adoc[AFFIRMATION authoring standard]. A
-policy-surface repo should use profile B (MUST / INTEND / WISH) instead — see
-that standard for the profile B skeleton.
-
 An *affirmation* is a solemn declaration of the truth of a statement, made by
 someone who _declines to swear an oath_ — our truth-as-best-believed at a
 stamped instant, binding on our honesty, not a claim of infallibility. It is the
@@ -104,20 +97,24 @@ file. Bring a counter-example, a failing run, or a contradicting source.
 | `main`
 
 | Commit (HEAD)
-| `<full 40-character SHA — never abbreviated, never a tag>`
+| `908a671eba80caf766937add61a2e9ae6c519878`
 
 | Permalink
-| https://github.com/hyperpolymath/marid/tree/<full 40-character SHA>
+| https://github.com/hyperpolymath/marid/tree/908a671eba80caf766937add61a2e9ae6c519878
 
 | Verified (UTC)
-| `<ISO-8601 with the Z suffix, e.g. 2026-09-09T00:52:11Z>`
+| `2026-09-19T01:02:30Z`
 
 | Working-tree delta at verification
-| `clean`, or every modified and untracked file present when the checks ran,
-  with an explicit statement of whether it affects the results below.
+| `docs/AFFIRMATION.adoc` (this file) modified: skeleton → completed text.
+  Re-verified with the filled file present — `just validate`, repo-map
+  determinism, and the full AsciiDoc render suite pass — so the file's own
+  content does not affect any result below.
 
 | Toolchain
-| `<every compiler, prover and runtime version the claims depend on>`
+| `just 1.40.0`, `git 2.47.3`, `nickel 1.17.0`, `asciidoctor 2.0.23`,
+  `bash 5.2.37`, `python 3.13.14`, `curl 8.14.1` (GitHub REST evidence),
+  GitHub-hosted `ubuntu-latest` (CI).
 
 | Affirmed by
 | Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
@@ -142,21 +139,42 @@ themselves is not.
 * `docs/EXPLAINME.adoc` — the mechanism.
 * `docs/AUDIT.adoc` — the standing conformance audit.
 * `0-AI-MANIFEST.a2ml` — machine-readable repo metadata.
-* `<any status document, dashboard or percentage that disagrees with the state
-  below — name it and say which one wins>`
+* Central Estate CI/CD Audit, run `35410828209` — *contradicts* the canon
+  reading: its Required Files Gate fails while the canon profile gates pass.
+  The live run wins as fact (it fails); the canon profile gates win as
+  authority; the contradiction is open and the owner's ruling is pending
+  (see <<outstanding>>).
 
 == The honest state (one breath)
 
-`<One paragraph. If it needs two, the repo is not ready for an affirmation.>`
+Marid is a freshly minted Gate 0 monorepo baseline — template machinery plus
+honestly labelled skeleton stubs for the Marid packages, web clients,
+contracts, fixtures, and the relationship-explorer reference app — whose local
+gates and CI pass except two pre-existing estate-level reds and a Pages build
+still in flight when this was written.
 
 === What is solid (and how we checked)
 
 [cols="2,1,3",options="header"]
 |===
 | Claim | Status | Evidence (command, and what it printed)
-| _e.g. The library builds clean_ | affirmed | `just build` at the anchor SHA — exit 0
-| _e.g. The ABI seam typechecks_ | affirmed | `idris2 --typecheck abi.ipkg` — 0 errors
-| _e.g. Feature X is complete_ | aspiration | README §… — *not checked*, do not read as affirmed
+| Full local validation passes at the anchor | affirmed | `just validate` —
+  `All validations passed!`
+| Repo map is deterministic and current | affirmed |
+  `bash tests/shape/repo_map_determinism_test.sh` — `PASS: repository map is
+  byte-identical across locales, and committed copy is current`
+| Every tracked AsciiDoc renders | affirmed |
+  `bash scripts/check-adoc-renders.sh .` — `PASS: all 179 tracked .adoc
+  file(s) render clean`
+| Licence texts and per-file SPDX headers are present | affirmed |
+  `ls LICENSES/` shows `CC-BY-SA-4.0.txt` + `MPL-2.0.txt`; 92 `.adoc`
+  files carry `SPDX-License-Identifier`
+| CI at the anchor is green except the two named estate reds | affirmed |
+  GitHub REST, 26 runs: 25 completed, all green except audit run
+  `35410828209` and CodeQL run `35410828666` (see <<outstanding>>);
+  Pages run `35410827911` in flight, outcome unaffirmed
+| README aspirations beyond Gate 0 | aspiration | `README.adoc` — *not
+  checked*, do not read as affirmed
 |===
 
 === The honest nuance you must not lose
@@ -164,16 +182,26 @@ themselves is not.
 Where a true claim above is easily over-read. This section is what separates an
 affirmation from marketing.
 
-* `<e.g. "the tests pass" — 55 static assertion sites, not the 1,282
-  assertion EXECUTIONS a loop-amplified counter reports>`
+* "`just validate` green" covers template shape gates, not Marid behaviour:
+  at Gate 0 there are no Marid unit tests by design (brief §5 starts
+  executable gates at Gate 1). The estate suite passing means the skeleton
+  is well-formed, not that Marid works.
+* "CI green" means the 23 completed runs other than the two estate reds.
+  The Pages outcome postdates this file and is unaffirmed.
+* The anchor sits two fix commits (`099a562`: map trim, `[canon]` 2.0.4,
+  audit pin; `b90d070`: Pages timeout) and five owner README trims above
+  the mint commit `b0c9ebc`. This file covers the anchor tree only.
 
 === Known-incomplete but honestly fenced
 
 Gaps that fail *loudly* rather than silently. Name the guard that makes the
 failure loud — a gap with no guard belongs in <<outstanding>> instead.
 
-* `<gap>` — fenced by `<the check, postulate or fail-closed stub that
-  catches it>`
+* Unimplemented components (packages, web clients, contracts, fixtures,
+  reference app) — fenced by: 14 component READMEs carry a `Status: Gate 0
+  skeleton` line naming the implementing gate, and zero `Project.toml` /
+  zero `src/` dirs exist, so any Julia tooling fails closed ("not a
+  project") instead of half-working.
 
 [#outstanding]
 === Outstanding / weak / refuted (no spin)
@@ -181,6 +209,33 @@ failure loud — a gap with no guard belongs in <<outstanding>> instead.
 Known gaps, trust boundaries, postulates, unwired modules and stale docs.
 *Silence is not affirmation* — name what you have not verified, and name
 anything this session *refuted*.
+
+* Pages cold-build outcome unobserved: run `35410827911` was in flight at
+  writing with the 60-minute fix (`b90d070`); earlier cold builds were
+  cancelled by the old 20-minute timeout before the cabal cache could save
+  (proof: run `35409714397` build log, `1612: The operation was canceled`
+  mid-pandoc). Check the deployment before citing the site.
+* Estate audit red: run `35410828209` fails Required Files (demands root
+  `GOVERNANCE` / `ARCHITECTURE` / `MAINTAINERS`), contradicting the canon
+  profile gates (accept `docs/` + `.github/` forms) and `root-allow.txt`
+  (forbids root additions). Template `main` fails the same gate (run
+  `35366237363`, 2026-09-18). Left red for the owner's ruling; the
+  recommended fix is in the checker, not this repo.
+* CodeQL `startup_failure`, run `35410828666` — identical on the
+  template's last five runs (`34953137485`, `34952690152`,
+  `34952076985`, `34952060100`, `34952023994`): pre-existing estate
+  condition, not a Marid finding.
+* Unsigned landing: this file reads as *draft* until the owner
+  countersigns with `-S`; the anchor matches the landing commit's
+  parent, the signature is pending.
+* `docs/legal/EXHIBIT-B-QUANTUM-SAFE.txt` (template provenance
+  machinery) remains though the owner scrubbed Provenance claims from
+  `README.adoc`; removal is the owner's call.
+* Refuted this session: (a) "the audit failure is a Marid defect" —
+  refuted by the template failing identically; (b) "the Pages
+  cancellations are flakiness" — refuted by the timeout log proof;
+  (c) "the `f9e173a` audit pin is resolvable" — refuted by
+  NOT-ANCESTOR (squash orphan; repinned to `222b1d9`).
 
 [IMPORTANT]
 ====
@@ -195,13 +250,19 @@ to prevent — mark it refuted and say what refuted it.
 ----
 git clone https://github.com/hyperpolymath/marid
 cd marid
-git checkout <full 40-character SHA>
-# <the exact commands, in order, with their expected output>
+git checkout 908a671eba80caf766937add61a2e9ae6c519878
+just validate
+# expect: All validations passed!
+bash tests/shape/repo_map_determinism_test.sh
+# expect: PASS: repository map is byte-identical across locales,
+#         and committed copy is current
+bash scripts/check-adoc-renders.sh .
+# expect: PASS: all 179 tracked .adoc file(s) render clean
 ----
 
 == One-line characterisation (quote this)
 
-> `<the one sentence Jonathan D.A. Jewell is willing to be quoted on>`
+> Marid's Gate 0 baseline is minted, green, and honestly fenced; the two reds belong to the estate, not the repo.
 
 == Joint attestation
 
@@ -210,16 +271,17 @@ timestamp above, every claim in this file is true and was checked as described*
 — with no intentional overclaim, and with the open gaps stated rather than
 hidden.
 
-* *Engineering party (AI):* `<exact model identifier>` — ran the checks recorded
-  here at `<ISO-8601 UTC>` and stands behind the wording above as a faithful
-  report of those runs.
+* *Engineering party (AI):* Arena.ai Agent Mode — the exact backing-model
+  identifier is not disclosed to this session — ran the checks recorded
+  here at `2026-09-19T01:02:30Z` and stands behind the wording above as a
+  faithful report of those runs.
 * *Owner / maintainer:* Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk> — _signs by committing
   this file with `-S`; the git commit signature over this content, at the
   commit SHA recorded above, is the cryptographic form of this affirmation._
 
 [source,bash]
 ----
-git commit -S -s docs/AFFIRMATION.adoc -m "docs: affirm state at <sha>"
+git commit -S -s docs/AFFIRMATION.adoc -m "docs: affirm state at 908a671eba80caf766937add61a2e9ae6c519878"
 git log --show-signature -1
 ----
 
