@@ -96,3 +96,7 @@ web/                       # browser client: framework-independent TS + React/Vu
 contracts/                 # contract registry: identifiers, versions, fingerprints, bindings (brief §4)
 fixtures/                  # interop fixtures, incl. Cap'n Proto/Bebop import/export (brief §7)
 test/                      # cross-protocol interop tests (brief §7); RSR estate tests live in tests/
+
+# Compatibility symlinks required by pinned cicd-suite gate; docs/ stays canonical.
+GOVERNANCE.adoc        # symlink to docs/GOVERNANCE.adoc, not a second policy
+MAINTAINERS.adoc       # symlink to docs/MAINTAINERS.adoc, not a duplicate roster

@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Native Capability Spec
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  policy-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+        with:
+          version: '1.10.10'
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1
+        with:
+          otp-version: '27.3.4'
+          elixir-version: '1.19.4'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.4.2'
+      - name: Emitter and CLI tests
+        run: |
+          julia --startup-file=no --project=packages/MaridIR packages/MaridIR/test/runtests.jl
+          bash test/interop/capability_cli.sh
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: hyperpolymath/http-capability-gateway
+          ref: 19b343c1e9b7c61668c60887369783d12a486f41
+          path: gateway-under-test
+          persist-credentials: false
+      - name: Apply paired gateway changes (not yet upstream)
+        run: |
+          git -C gateway-under-test apply --check ../test/interop/gateway-strict.patch
+          git -C gateway-under-test apply ../test/interop/gateway-strict.patch
+      - name: Native gateway policy pipeline
+        run: |
+          mix local.hex --force
+          elixir test/interop/capability_gateway.exs gateway-under-test
+      - name: Gateway strict-policy and real upstream-wire tests
+        working-directory: gateway-under-test
+        env:
+          VERISIMDB_URL: http://127.0.0.1:1
+        run: |
+          mix local.rebar --force
+          mix deps.get
+          mix test test/policy_compiler_test.exs test/policy_validator_test.exs test/strict_policy_test.exs test/proxy_wire_test.exs test/policy_property_test.exs test/policy_capability_test.exs test/gateway_test.exs test/e2e_property_test.exs
+      - name: Actual gateway to Julia HTTP roundtrip and backend outage
+        run: |
+          julia --startup-file=no scripts/bootstrap.jl examples/http_json
+          bash test/interop/run_http_gateway.sh gateway-under-test
+      # The wider gateway suite has known failures; this targeted integration job
+      # does not assert that repository is production-ready or its full CI is green.

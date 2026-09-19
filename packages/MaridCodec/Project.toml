@@ -3,7 +3,11 @@ uuid = "eca7d35b-6611-5bf5-a92e-bc308a796804"
 authors = ["Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>"]
 version = "0.1.0"
 
+[deps]
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+
 [compat]
+JSON3 = "1.14"
 julia = "1.10"
 
 [extras]
