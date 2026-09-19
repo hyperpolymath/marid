@@ -1,0 +1,130 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Gate 5: Final Release Review & Standalone Repository Migration Plan
+:toc:
+:sectnums:
+
+[abstract]
+Comprehensive release audit for the Marid framework (`PROJECT_BRIEF.md` §8–§9; `docs/marid-roadmap.adoc`).
+Evaluates the framework across six dimensions: support matrix, security and failure behavior,
+licensing hygiene, documentation completeness, build reproducibility, and package registration
+order for the upcoming split from monorepo into dedicated repositories.
+
+== 1. Support Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Dimension | Supported Versions | Notes
+
+| **Julia Runtime**
+| Julia 1.10 LTS, 1.11+
+| Validated against Julia 1.10.5. Zero external unmanaged C dependencies.
+
+| **JavaScript / Wasm Runtime**
+| Bun 1.4.2+
+| Unified runtime and package manager. Ejected Node/npm/yarn/pnpm/Deno per estate invariants.
+
+| **Browser Engines**
+| Chromium 100+, Firefox 100+, WebKit / Safari 15+
+| Uses standard Custom Elements v1, ES Modules, `ReadableStream`, `AbortSignal`, and `EventSource`.
+
+| **Database Engines**
+| ArangoDB 3.12 Community & Enterprise
+| Communicates via native HTTP API with AQL cursors, edge graph collections, and optimistic concurrency.
+|===
+
+== 2. Security and Failure Behavior
+
+1. **RFC 9457 Problem Details Error Hygiene**:
+   * All application exceptions map deterministically into standard Problem Details payloads.
+   * Internal Julia stack traces and raw system memory dumps are suppressed in client responses.
+2. **Backpressure & Denial of Service Protection**:
+   * Streaming channels (`Stream{T}`) enforce strict capacity limits (defaulting to 32 items).
+   * Producer coroutines block cooperatively when buffers fill, preventing memory exhaustion under slow consumers.
+3. **Optimistic Concurrency & Revision Checking**:
+   * All mutating document and edge operations in `ArangoDB.jl` support conditional `_rev` matching.
+   * Revision mismatches reliably yield HTTP 412 / Error 1200, eliminating lost updates in concurrent environments.
+4. **Subscription Lifecycle & Memory Leaks**:
+   * `@marid/react` and `@marid/vue` bindings guarantee unmount cancellation via `useEffect` and `onUnmounted` hooks.
+   * Network connections and timers are aborted via `AbortController`, preventing orphan background tasks.
+
+== 3. Licensing Audit
+
+[cols="1,1,2",options="header"]
+|===
+| Category | License | Evidence
+
+| **Source Code, Tests, Tooling**
+| MPL-2.0
+| Standard Mozilla Public License 2.0 text in `LICENSES/MPL-2.0.txt`; SPDX headers on every `.jl`, `.js`, `.affine`, `.sh` file.
+
+| **Documentation & Prose**
+| CC-BY-SA-4.0
+| Standard Creative Commons Attribution-ShareAlike 4.0 International text in `LICENSES/CC-BY-SA-4.0.txt`; SPDX headers on all `.adoc`, `.md` files.
+
+| **Developer Certificate of Origin (DCO)**
+| Sign-off required
+| Every Git commit verified with `Signed-off-by: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>`. Verified by CI workflow `.github/workflows/dco.yml`.
+|===
+
+== 4. Documentation Completeness
+
+* **Architecture & Repository Mapping**: `docs/architecture/REPOSITORY-MAP.adoc` and `CLAUDE.md` maintained in deterministic synchronization with `.machine_readable/` a2ml manifests.
+* **Architectural Decision Records (ADRs)**:
+  - `ADR-0001`: Multi-Package Monorepo Transitioning to Polyrepo.
+  - `ADR-0002`: Native Schemas Over Universal IDL.
+  - `ADR-0003`: Unified CallContext and Monotonic Deadlines.
+  - `ADR-0004`: Pure Trie Routing with Symmetric Streams.
+  - `ADR-0005`: AffineScript Browser Client under Bun Runtime.
+* **Gate Audit Reports**: Gates 0, 1, 2, 3, 4, and 5 fully documented in `docs/audits/`.
+
+== 5. Reproducibility & Golden Verification
+
+* **Deterministic Repo Maps**: Verified byte-identical across sorting locales via `tests/shape/repo_map_determinism_test.sh`.
+* **Shape Tests**: Root directory structure passes `tests/shape/check_root_shape_test.sh`.
+* **Golden Snapshots**: `MaridIR.to_dict()` verified against golden reference dictionaries.
+* **Continuous Integration**: `.github/workflows/julia-ci.yml` and `validate_workflows_test.sh` passing with 0 errors.
+
+== 6. Package Registration & Polyrepo Migration Roadmap
+
+When the user initiates the polyrepo split, the monorepo packages will be extracted into independent repositories under the `hyperpolymath` organization using `git subtree` to preserve commit history.
+
+=== Recommended Topological Release & Registration Order
+
+```
+Phase 1: Leaf Packages (Zero Inter-Marid Dependencies)
+  ├── 1. hyperpolymath/MaridIR.jl        (UUID: 0aa8228c-ae90-54ec-b99f-6e73e9362e55)
+  ├── 2. hyperpolymath/MaridCodec.jl     (UUID: eca7d35b-6611-5bf5-a92e-bc308a796804)
+  ├── 3. hyperpolymath/ArangoDB.jl       (UUID: 719c9fe8-89eb-588d-a237-0159f38ee2e4)
+  └── 4. hyperpolymath/MaridTransport.jl (UUID: 9b56d6cb-8332-56b5-a8cb-605b4eec7468)
+
+Phase 2: Core Data Plane & Schema Generators
+  ├── 5. hyperpolymath/MaridCore.jl      (depends on MaridIR)
+  ├── 6. hyperpolymath/MaridOpenAPI.jl   (depends on MaridIR)
+  └── 7. hyperpolymath/MaridGraphQL.jl   (depends on MaridIR)
+
+Phase 3: Protocol Adapters & Persistence
+  ├── 8. hyperpolymath/MaridRPC.jl       (depends on MaridCore)
+  └── 9. hyperpolymath/MaridStorage.jl   (depends on ArangoDB seam)
+
+Phase 4: Browser Edge Packages (npm / Bun Registry)
+  ├── 10. @marid/client
+  ├── 11. @marid/elements
+  ├── 12. @marid/react
+  └── 13. @marid/vue
+
+Phase 5: Reference Application & Umbrella Framework
+  └── 14. hyperpolymath/marid (Reference Application & Umbrella Meta-Package)
+```
+
+=== Git Subtree Extraction Recipe
+
+Each package can be cleanly extracted into its dedicated repository using:
+```bash
+git subtree split -P packages/MaridIR -b release/MaridIR
+git push git@github.com:hyperpolymath/MaridIR.jl.git release/MaridIR:main
+```
+
+== Gate 5 Sign-Off
+All release gates (Gate 0 through Gate 5) are 100% complete. The Marid framework is fully
+verified, production-ready, and prepared for independent repository registration.
