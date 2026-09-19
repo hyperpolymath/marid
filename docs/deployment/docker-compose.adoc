@@ -31,14 +31,24 @@ bindings are emitted; protocol adapters are not invented by policy generation.
 
 [source,bash]
 ----
-# From Marid root, against a gateway at or after the #112 correction:
+# From Marid root, to stdout or to a file, legacy profile (any gateway accepts it):
 scripts/marid generate capability-spec examples/http_json/service.jl \
-  --deny-by-default > docs/deployment/policy.yaml.tmp && \
-  mv docs/deployment/policy.yaml.tmp docs/deployment/policy.yaml
+  --global-verbs GET --out docs/deployment/policy.yaml
 ----
 
-Write a temporary file and rename only after success. Direct redirection over a
-live policy can truncate it on generator failure. Diagnostics go to stderr.
+`build/container/compose.yaml` mounts the legacy golden
+`fixtures/capability/policy.yaml`, because `:latest` is a mutable tag that cannot be
+verified to contain `#112`. To mount the deny-by-default policy instead, generate it
+against a gateway at or after `#112`:
+
+[source,bash]
+----
+scripts/marid generate capability-spec fixtures/capability/service.jl \
+  --deny-by-default --out fixtures/capability/policy-strict.yaml
+----
+
+`--out` is opened only after the emitter succeeds, so a failing generation cannot
+truncate a live policy; diagnostics go to stderr.
 Strict native DSL v1 has `global_verbs: []`; unknown application paths deny.
 A matched path owns its verb allowlist; omitted verbs cannot inherit globals.
 Exact paths take precedence, while multiple distinct matching regex patterns deny.

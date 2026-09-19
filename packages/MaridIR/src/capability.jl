@@ -107,7 +107,8 @@ function emit_capability_spec(svc::ServiceDescriptor; global_verbs::AbstractVect
     # the capability contract promises callers.
     gateway_profile in (:legacy, :strict) || throw(ArgumentError("Unknown gateway profile"))
     if gateway_profile == :legacy
-        isempty(global_verbs) && throw(ArgumentError("Legacy gateway requires nonempty globals; use :strict only with the paired gateway fix"))
+        isempty(global_verbs) && throw(ArgumentError(
+            "Legacy gateway requires nonempty globals; use :strict only with a gateway at or after #112"))
     else
         isempty(global_verbs) || throw(ArgumentError("Strict deny-default profile requires empty global_verbs"))
     end

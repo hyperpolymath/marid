@@ -85,8 +85,21 @@ case "${1:-help}" in
                 exit 1
             fi
             if [[ -n "$out_file" ]]; then
-                julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
-                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$global_verbs" "$profile" | tee "$out_file"
+                # Never open the live policy for writing before the emitter has
+                # succeeded: piping through tee truncates the target first, so one
+                # bad service file would leave an empty file where a working gateway
+                # policy was. Write aside, echo it, rename only on success.
+                tmp_file="$(mktemp "${out_file}.tmp.XXXXXX")"
+                if julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$global_verbs" "$profile" > "$tmp_file"; then
+                    cat "$tmp_file"
+                    mv -f "$tmp_file" "$out_file"
+                else
+                    rc=$?
+                    rm -f "$tmp_file"
+                    echo "marid: capability-spec generation failed; ${out_file} left untouched" >&2
+                    exit "$rc"
+                fi
             else
                 julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
                     "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$global_verbs" "$profile"

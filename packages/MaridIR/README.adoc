@@ -44,13 +44,19 @@ Status: **Implemented & Verified (Gate 3 + Capability Gateway Integration)**. Ze
 
 To emit a Verb Governance Spec directly from any service file:
 
+Run from the repository root, so the dev environment resolves `MaridIR`. A profile
+is mandatory: the CLI refuses to guess between compatibility and deny-by-default.
+
 [source,bash]
 ----
-# Emit to stdout
-marid generate capability-spec path/to/service.jl
+# Emit to stdout, explicit global fallback verbs (legacy profile)
+scripts/marid generate capability-spec path/to/service.jl --global-verbs GET
+
+# Emit to stdout, deny-by-default (strict profile; needs the #112 gateway, see ADR-0007)
+scripts/marid generate capability-spec path/to/service.jl --deny-by-default
 
 # Emit directly to a gateway policy file
-marid generate capability-spec path/to/service.jl policy.yaml
+scripts/marid generate capability-spec path/to/service.jl --global-verbs GET --out policy.yaml
 ----
 
 == Runnable Example
@@ -71,8 +77,9 @@ m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary,
 svc = ServiceDescriptor("TaxonomyAPI", "1.0.0", [taxon_type], [m_get])
 validate_service(svc) # returns true
 
-# Emit http-capability-gateway Verb Governance Spec
-spec_yaml = emit_capability_spec(svc)
+# Emit http-capability-gateway Verb Governance Spec.
+# global_verbs is a required keyword: there is no permissive default.
+spec_yaml = emit_capability_spec(svc; global_verbs=["GET"])
 println(spec_yaml)
 ----
 
