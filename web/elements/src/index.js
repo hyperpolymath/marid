@@ -62,6 +62,7 @@ export class MaridProgressElement extends BaseElement {
     return ["value", "max", "status", "indeterminate"];
   }
 
+  /** Creates a progress element and builds its shadow DOM when available. */
   constructor() {
     super();
     if (typeof this.attachShadow === "function") {

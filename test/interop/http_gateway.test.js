@@ -3,6 +3,12 @@
 import { beforeAll, afterAll, test, expect } from "bun:test";
 const base = process.env.MARID_GATEWAY_URL || "http://127.0.0.1:8088";
 let initialWrites;
+
+/**
+ * Reads and validates the backend's mutation counter.
+ *
+ * @returns {Promise<number>} The current number of successful writes.
+ */
 const status = async () => {
   const response = await fetch(`${base}/api/status`);
   if (response.status !== 200) throw new Error(`Backend not ready: ${response.status}`);
