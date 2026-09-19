@@ -77,4 +77,65 @@ using MaridIR
         @test occursin("rpc StreamTaxa (TaxonQuery) returns (stream Taxon);", proto_txt)
         @test occursin("rpc Chat (stream TaxonMessage) returns (stream TaxonMessage);", proto_txt)
     end
+
+    # 6. http-capability-gateway Verb Governance Spec (DSL v1) Generator
+    @testset "Capability Spec Emission" begin
+        # Test standard route emission with :param and annotations
+        cap_ann = Annotation("capability", "taxa:read")
+        exp_ann = Annotation("exposure", "authenticated")
+        m_get = MethodDescriptor("getTaxon", "String", "TaxonNode", streaming=Unary,
+                                 route_path="/api/v1/taxa/:id", http_method="GET",
+                                 description="Fetch taxon by ID", annotations=[cap_ann, exp_ann])
+        m_del = MethodDescriptor("deleteTaxon", "String", "Void", streaming=Unary,
+                                 route_path="/api/v1/taxa/:id", http_method="DELETE",
+                                 description="Delete taxon by ID", annotations=[Annotation("capability", "taxa:delete")])
+        m_create = MethodDescriptor("createTaxon", "TaxonNode", "TaxonNode", streaming=Unary,
+                                    route_path="/api/v1/taxa", http_method="POST",
+                                    description="Create new taxon")
+        m_patch = MethodDescriptor("patchTaxon", "TaxonNode", "TaxonNode", streaming=Unary,
+                                   route_path="/api/v1/taxa/{id}", http_method="PATCH",
+                                   description="Patch taxon")
+
+        svc_cap = ServiceDescriptor("TaxonomyService", "1.0.0", [taxon_type], [m_get, m_del, m_create, m_patch])
+        spec_yaml = emit_capability_spec(svc_cap)
+
+        # Basic DSL v1 header and structure
+        @test occursin("dsl_version: \"1\"", spec_yaml)
+        @test occursin("governance:", spec_yaml)
+        @test occursin("global_verbs:", spec_yaml)
+        @test occursin("- GET", spec_yaml)
+        @test occursin("- POST", spec_yaml)
+
+        # Route regex normalization (:id -> [^/]+)
+        @test occursin("path: \"^/api/v1/taxa/[^/]+\$\"", spec_yaml)
+        # Multiple verbs grouped on same path
+        @test occursin("- GET", spec_yaml)
+        @test occursin("- DELETE", spec_yaml)
+        # Capability label from annotation
+        @test occursin("capability: \"taxa:read, taxa:delete, TaxonomyService.patchTaxon\"", spec_yaml)
+        @test occursin("exposure: authenticated", spec_yaml)
+
+        # Route normalization ({id} -> [^/]+)
+        @test occursin("- PATCH", spec_yaml)
+
+        # POST route without param
+        @test occursin("path: \"^/api/v1/taxa\$\"", spec_yaml)
+
+        # Stealth configuration
+        @test occursin("stealth:", spec_yaml)
+        @test occursin("enabled: true", spec_yaml)
+        @test occursin("status_code: 404", spec_yaml)
+
+        # Custom options test
+        custom_spec = emit_capability_spec(svc_cap; global_verbs=["GET"], stealth_enabled=false, stealth_status=403)
+        @test occursin("- GET", custom_spec)
+        @test !occursin("- POST\n\n  routes:", custom_spec)
+        @test occursin("enabled: false", custom_spec)
+        @test occursin("status_code: 403", custom_spec)
+
+        # Invalid arguments rejection
+        @test_throws ErrorException emit_capability_spec(svc_cap; global_verbs=["INVALID_VERB"])
+        @test_throws ErrorException emit_capability_spec(svc_cap; stealth_status=99)
+        @test_throws ErrorException emit_capability_spec(svc_cap; stealth_status=600)
+    end
 end

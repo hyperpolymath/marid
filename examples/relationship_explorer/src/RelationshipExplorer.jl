@@ -27,6 +27,6 @@ include("server.jl")
 
 export Taxon, Relationship, Neighborhood, AnalysisProgress, AnalysisResult,
        TaxonService, create_taxon!, get_taxon, list_taxa, create_relationship!,
-       get_neighborhood, execute_analysis, build_app
+       get_neighborhood, execute_analysis, build_app, service_descriptor
 
 end # module RelationshipExplorer

@@ -14,7 +14,8 @@ module MaridIR
 export FieldDescriptor, TypeDescriptor, MethodDescriptor, ServiceDescriptor,
        StreamingMode, Unary, ServerStreaming, ClientStreaming, BidirectionalStreaming,
        TypeRef, PrimitiveType, ObjectType, ListType, MapType, OptionalType,
-       Annotation, validate_service, to_dict, from_dict, emit_proto
+       Annotation, validate_service, to_dict, from_dict, emit_proto,
+       emit_capability_spec
 
 @enum StreamingMode begin
     Unary
@@ -190,5 +191,6 @@ function to_dict(svc::ServiceDescriptor)::Dict{String, Any}
 end
 
 include("proto.jl")
+include("capability_spec.jl")
 
 end # module MaridIR
