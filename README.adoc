@@ -142,6 +142,4 @@ The short version:
 Code, configuration and scripts are link:LICENSE[Mozilla Public License 2.0]
 (`MPL-2.0`); prose documentation is `CC-BY-SA-4.0`. Both texts live in
 `LICENSES/`, and per-file `SPDX-License-Identifier` headers are authoritative.
-The GitHub-detected licence is MPL-2.0 (the root `LICENSE`). Long-term
-attribution uses Quantum-Safe Provenance — see
-link:docs/legal/EXHIBIT-B-QUANTUM-SAFE.txt[the Quantum-Safe Provenance exhibit].
+The GitHub-detected licence is MPL-2.0 (the root `LICENSE`).
