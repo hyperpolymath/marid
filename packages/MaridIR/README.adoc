@@ -8,10 +8,12 @@ The canonical Intermediate Representation (IR) for the Marid framework.
 Pure data definitions for services, RPC methods, fields, streaming semantics,
 and annotations (`docs/MARID-FRAMEWORK.adoc`, launch set).
 
-Every schema artifact — OpenAPI 3.1, JSON Schema 2020-12, GraphQL SDL, Protobuf `.proto`,
-and Bebop `.bop` — is emitted from this IR. Nothing is hand-maintained in parallel.
+Every schema and governance artifact — OpenAPI 3.1, JSON Schema 2020-12, GraphQL SDL, Protobuf `.proto`,
+Bebop `.bop`, and http-capability-gateway Verb Governance Specs (DSL v1) — is emitted directly from this IR.
+Nothing is hand-maintained in parallel, guaranteeing zero contract drift between application routes
+and perimeter governance policies.
 
-Status: **Implemented & Verified (Gate 3)**. Zero dependencies.
+Status: **Implemented & Verified (Gate 3 + Capability Gateway Integration)**. Zero dependencies.
 
 == Public API
 
@@ -21,6 +23,8 @@ Status: **Implemented & Verified (Gate 3)**. Zero dependencies.
 * `MethodDescriptor(name, input_type, output_type; streaming, route_path, http_method, description, annotations)`
 * `validate_service(svc)`: validates type integrity, route uniqueness, and non-empty metadata.
 * `to_dict(svc)`: serializes service definitions into pure dictionary structures for golden snapshot comparisons.
+* `emit_proto(svc)`: emits Protocol Buffers v3 `.proto` definitions.
+* `emit_capability_spec(svc; global_verbs, stealth_enabled, stealth_status)`: emits declarative `http-capability-gateway` Verb Governance Spec (DSL v1 YAML) enforcing perimeter verb exposure, regex route governance, capability tagging, and stealthing (404/403).
 
 == Feature Matrix
 
@@ -32,11 +36,22 @@ Status: **Implemented & Verified (Gate 3)**. Zero dependencies.
 | Streaming Kinds | Supported | Unary, ServerStreaming, ClientStreaming, BidirectionalStreaming.
 | Route Validation | Supported | Duplicate routes with identical HTTP verbs trigger descriptive errors.
 | Schema Golden Export | Supported | `to_dict` snapshot export verified byte-for-byte.
+| Protobuf v3 Emission | Supported | `emit_proto` verified against canonical proto3 syntax.
+| Verb Governance Spec (DSL v1) | Supported | `emit_capability_spec` emits valid YAML matching `http-capability-gateway` schema.
 |===
 
-== Unsupported Features
-* Dynamic metaprogramming or code generation from unverified strings.
-* In-line circular recursive type definitions without pointer indirection.
+== CLI Usage
+
+To emit a Verb Governance Spec directly from any service file:
+
+[source,bash]
+----
+# Emit to stdout
+marid generate capability-spec path/to/service.jl
+
+# Emit directly to a gateway policy file
+marid generate capability-spec path/to/service.jl policy.yaml
+----
 
 == Runnable Example
 
@@ -48,8 +63,15 @@ field_id = FieldDescriptor("id", "String", nullable=false)
 field_name = FieldDescriptor("name", "String", nullable=false)
 taxon_type = TypeDescriptor("Taxon", [field_id, field_name])
 
-m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary, route_path="/taxa/:id", http_method="GET")
+m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary,
+                         route_path="/api/v1/taxa/:id", http_method="GET",
+                         description="Fetch taxon by ID",
+                         annotations=[Annotation("capability", "taxa:read")])
 
 svc = ServiceDescriptor("TaxonomyAPI", "1.0.0", [taxon_type], [m_get])
 validate_service(svc) # returns true
+
+# Emit http-capability-gateway Verb Governance Spec
+spec_yaml = emit_capability_spec(svc)
+println(spec_yaml)
 ----

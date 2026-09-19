@@ -12,6 +12,16 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
 ==== Added
 
+* Native `http-capability-gateway` Verb Governance Spec (DSL v1 YAML) generator (`emit_capability_spec`) in `MaridIR.jl` ensuring zero contract drift between Marid services and perimeter verb governance.
+* CLI support in `scripts/marid generate capability-spec <path> [out]` and `scripts/marid routes <path>`.
+* Benchmark suite for IR generation and emitters in `benches/marid_bench.sh`, wired into `just bench`.
+* Wired `just test` recipe to run estate verification across all 13 Julia packages.
+* Fixed aspect test pattern filtering for documentation and header comments in `tests/aspect_tests.sh`.
+* SHA-pinned GitHub Action references in `.github/workflows/julia-ci.yml` and added CLI emitter verification job.
+* Added `docs/deployment/docker-compose.adoc` specifying production deployment with Podman Pods, Podman Compose, and the `http-capability-gateway` sidecar architecture.
+* Wired `http-capability-gateway` into `build/container/compose.yaml` with fixture policy mounting and healthchecks, verified with `podman compose config` via `just container-verify`.
+* Cross-referenced capability governance and Podman container architecture in `docs/deployment/PRODUCTION-GUIDE.adoc`.
+
 * Repository minted from `hyperpolymath/rsr-template-repo` via
   `just repo-init julia-library` (2026-09-18); clade `dx` (Developer
   Ecosystem, secondary `pt`), lineage `monorepo`, preset `julia-library`.

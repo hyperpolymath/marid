@@ -38,9 +38,26 @@ jobs:
           - MaridRaft
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
         with:
           version: ${{ matrix.version }}
       - name: Run Package Tests
         run: |
           julia --project=packages/${{ matrix.package }} packages/${{ matrix.package }}/test/runtests.jl
+
+  cli-and-emitters:
+    name: CLI & Emitters - Julia 1.10 - ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+        with:
+          version: '1.10'
+      - name: Verify CLI Capability Spec Generation
+        run: |
+          ./scripts/marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl /tmp/rel_spec.yaml
+          grep "RelationshipExplorerAPI" /tmp/rel_spec.yaml
+          grep "dsl_version: \"1\"" /tmp/rel_spec.yaml
+      - name: Run Framework Benchmarks
+        run: |
+          bash benches/marid_bench.sh json

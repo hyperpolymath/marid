@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MPL-2.0
+# http-capability-gateway Verb Governance Spec (DSL v1)
+# Generated automatically by MaridIR for RelationshipExplorerAPI (v1.0.0)
+
+dsl_version: "1"
+
+governance:
+  global_verbs:
+    - GET
+    - POST
+
+  routes:
+    - path: "^/api/v1/taxa$"
+      verbs:
+        - GET
+      capability: "taxa:read"
+      narrative: "List all taxa"
+    - path: "^/api/v1/taxa/[^/]+$"
+      verbs:
+        - GET
+      capability: "taxa:read"
+      narrative: "Get taxon by ID"
+    - path: "^/api/v1/neighborhood/[^/]+$"
+      verbs:
+        - GET
+      capability: "graph:read"
+      narrative: "Get taxon neighborhood graph"
+    - path: "^/api/v1/analysis$"
+      verbs:
+        - POST
+      capability: "analysis:execute"
+      narrative: "Run cladistics parsimony analysis"
+    - path: "^/api/v1/export/bebop$"
+      verbs:
+        - GET
+      capability: "export:binary"
+      narrative: "Export taxa in Bebop format"
+    - path: "^/api/v1/export/capnp$"
+      verbs:
+        - GET
+      capability: "export:binary"
+      narrative: "Export taxa in Cap'n Proto format"
+
+stealth:
+  enabled: true
+  status_code: 404

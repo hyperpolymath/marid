@@ -1,0 +1,254 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Marid Container Deployment: Podman & Compose Architecture
+:toc:
+:sectnums:
+
+[abstract]
+Production container deployment specification for Marid applications (`PROJECT_BRIEF.md` §2 Phase 8).
+Features the `http-capability-gateway` sidecar for perimeter verb governance, declarative DSL v1 exposure
+policies, and deceptive stealthing (404/403), with **Podman** as the preferred rootless container runtime.
+
+== Overview & Architectural Topology
+
+In high-assurance deployments, exposed HTTP methods must be governed deterministically rather than
+trusted to reverse-proxy defaults. Marid pairs natively with `http-capability-gateway`—an Elixir/BEAM
+policy-driven governance layer enforcing declarative verb exposure control, stealth mode, and trust-level
+matching before requests ever reach application endpoints.
+
+Because Marid is Intermediate Representation (IR) first, governance policies are never maintained by hand.
+Running `marid generate capability-spec <service.jl>` emits the exact Verb Governance Spec (DSL v1 YAML)
+consumed by the gateway sidecar, ensuring **zero contract drift** between what Julia exposes and what
+the gateway permits.
+
+[source,text]
+----
+                       [ Incoming Client Request ]
+                                   │
+                                   ▼
+             ┌──────────────────────────────────────────┐
+             │      http-capability-gateway (BEAM)      │  <── Reverse Proxy / Sidecar
+             │   - Declarative Verb Governance DSL v1   │      - Enforces allowed verbs per route
+             │   - Stealth Mode (404/403 ungranted)     │      - Header/Trust-level evaluation
+             │   - Structured Audit Log & Provenance    │      - Line-rate O(1) ETS policy rules
+             └─────────────────────┬────────────────────┘
+                                   │ Verified HTTP / SSE (Safe, governed traffic)
+                                   ▼
+             ┌──────────────────────────────────────────┐
+             │            Marid Server (Julia)          │
+             │   - MaridCore.Router (Radix Trie)        │
+             │   - CallContext (Principal, Tenant, TTL) │
+             │   - Service Methods & Symmetric Streams  │
+             └─────────────────────┬────────────────────┘
+                                   │
+                                   ▼
+             ┌──────────────────────────────────────────┐
+             │         ArangoDB 3.12 Backend            │
+             │   - Document & Graph Collections         │
+             │   - AQL Streaming Cursors                │
+             └──────────────────────────────────────────┘
+----
+
+== Why Podman is Preferred
+
+The hyperpolymath estate standardizes on **Podman** as the default container engine:
+
+1. **Rootless & Daemonless**: Runs without root privileges or a persistent daemon socket, drastically reducing attack surface.
+2. **First-Class Pod Semantics**: Podman supports Kubernetes-style Pods (`podman pod`). Containers in the same pod share `localhost` networking, allowing `http-capability-gateway` to front Marid over `127.0.0.1` with zero virtual bridge latency.
+3. **OCI & Compose-Spec Compliance**: Podman supports standard OCI `Containerfile`s and executes standard `compose.yaml` files seamlessly via `podman compose`.
+4. **Systemd Integration**: Supports native generation of systemd unit files and Quadlets (`.container`, `.pod`) for production process supervision.
+
+== Deployment Pattern 1: Podman Compose (Multi-Container Stack)
+
+This pattern orchestrates the gateway sidecar, Marid backend, and ArangoDB database via OCI `compose.yaml`.
+
+=== Spec Generation Pre-Step
+
+Generate the gateway policy directly from the service intermediate representation:
+
+[source,bash]
+----
+# Generate policy.yaml from your service descriptor
+marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl config/policy.yaml
+----
+
+=== `compose.yaml` Definition
+
+[source,yaml]
+----
+# SPDX-License-Identifier: MPL-2.0
+# Marid + http-capability-gateway Compose Stack
+
+services:
+  # ────────────────────────────────────────────────────────────────────
+  # Perimeter Capability Gateway (Front-Facing Sidecar)
+  # ────────────────────────────────────────────────────────────────────
+  gateway:
+    image: "ghcr.io/hyperpolymath/http-capability-gateway:latest"
+    container_name: "marid-capability-gateway"
+    ports:
+      - "8080:4000" # Public gateway ingress
+    environment:
+      POLICY_PATH: "/app/config/policy.yaml"
+      BACKEND_URL: "http://marid:8080"
+      PORT: "4000"
+      TRUST_LEVEL_HEADER: "x-trust-level"
+    volumes:
+      - "./config/policy.yaml:/app/config/policy.yaml:ro"
+    depends_on:
+      marid:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - marid-tier
+
+  # ────────────────────────────────────────────────────────────────────
+  # Marid Application Backend (Internal Network Only)
+  # ────────────────────────────────────────────────────────────────────
+  marid:
+    build:
+      context: .
+      dockerfile: build/container/Containerfile
+    image: "ghcr.io/hyperpolymath/marid:latest"
+    container_name: "marid-backend"
+    expose:
+      - "8080" # Exposed to gateway on internal bridge; not published to host
+    environment:
+      APP_HOST: "[::]"
+      APP_PORT: "8080"
+      APP_LOG_FORMAT: "json"
+      ARANGODB_URL: "http://arangodb:8529"
+      ARANGODB_USER: "root"
+      ARANGODB_PASSWORD: "${ARANGODB_PASSWORD:-marid_dev_secret}"
+    depends_on:
+      arangodb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - marid-tier
+      - data-tier
+
+  # ────────────────────────────────────────────────────────────────────
+  # ArangoDB 3.12 Database Backend
+  # ────────────────────────────────────────────────────────────────────
+  arangodb:
+    image: "docker.io/arangodb:3.12"
+    container_name: "marid-arangodb"
+    environment:
+      ARANGO_ROOT_PASSWORD: "${ARANGODB_PASSWORD:-marid_dev_secret}"
+    volumes:
+      - "arangodb-data:/var/lib/arangodb3"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8529/_api/version"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - data-tier
+
+networks:
+  marid-tier:
+    driver: bridge
+  data-tier:
+    driver: bridge
+
+volumes:
+  arangodb-data:
+----
+
+=== Lifecycle Commands with Podman
+
+[source,bash]
+----
+# 1. Start the stack in background
+podman compose -f compose.yaml up -d
+
+# 2. Check running services & health statuses
+podman compose -f compose.yaml ps
+
+# 3. Stream structured governance audit logs from gateway
+podman compose -f compose.yaml logs -f gateway
+
+# 4. Stop the stack
+podman compose -f compose.yaml down
+----
+
+== Deployment Pattern 2: Native Podman Pod (True Sidecar Topology)
+
+For zero-overhead production environments, deploying as a single **Podman Pod** allows the gateway
+and Marid to share a common network namespace (`localhost`). This eliminates bridge NAT routing
+and enforces that Marid only listens on `127.0.0.1`.
+
+[source,bash]
+----
+# 1. Create a pod exposing only the gateway port (8080)
+podman pod create \
+  --name marid-service-pod \
+  -p 8080:4000
+
+# 2. Run Marid inside the pod listening strictly on localhost
+podman run -d \
+  --pod marid-service-pod \
+  --name marid-node \
+  -e APP_HOST=127.0.0.1 \
+  -e APP_PORT=8081 \
+  ghcr.io/hyperpolymath/marid:latest
+
+# 3. Run http-capability-gateway fronting Marid over 127.0.0.1:8081
+podman run -d \
+  --pod marid-service-pod \
+  --name capability-gateway \
+  -v $(pwd)/config/policy.yaml:/app/config/policy.yaml:ro \
+  -e POLICY_PATH=/app/config/policy.yaml \
+  -e BACKEND_URL=http://127.0.0.1:8081 \
+  -e PORT=4000 \
+  ghcr.io/hyperpolymath/http-capability-gateway:latest
+----
+
+== Verification & Testing Governance Enforcement
+
+Once deployed, verify that the gateway enforces declarative HTTP verb policies:
+
+[source,bash]
+----
+# 1. Valid route & allowed verb (GET /api/v1/taxa) -> 200 OK
+curl -i -X GET http://localhost:8080/api/v1/taxa
+
+# 2. Valid route & ungranted verb (DELETE /api/v1/taxa) -> 404 Not Found (Stealth Mode)
+curl -i -X DELETE http://localhost:8080/api/v1/taxa
+
+# 3. Attenuated mutation with trust header (POST /api/v1/analysis)
+curl -i -X POST http://localhost:8080/api/v1/analysis \
+  -H "X-Trust-Level: internal" \
+  -H "Content-Type: application/json" \
+  -d '{"taxa": ["t1", "t2"]}'
+----
+
+Notice test (2) returns `404 Not Found` rather than `405 Method Not Allowed` or `403 Forbidden`.
+This is `http-capability-gateway`'s stealth mode in action, preventing reconnaissance scanning
+from discovering unauthorized capabilities.
+
+== Docker Compose Compatibility
+
+While Podman is the primary recommendation, the identical `compose.yaml` specification is 100%
+compatible with standard Docker or Nerdctl:
+
+[source,bash]
+----
+docker compose -f compose.yaml up -d
+nerdctl compose -f compose.yaml up -d
+----
