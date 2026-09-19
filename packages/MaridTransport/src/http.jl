@@ -45,11 +45,18 @@ function _read_request(stream, max_body_bytes)
 end
 
 """
-    serve_http(handler; host="127.0.0.1", port=8080, max_body_bytes=1048576, readtimeout=5)
+    serve_http(handler; host="127.0.0.1", port=8080, max_body_bytes=1048576,
+               readtimeout=5, on_shutdown=nothing)
 
-Start an HTTP.jl HTTP/1.1 listener and return its closable server handle. Handler
-receives transport-owned values, never an HTTP.jl request. This is bounded unary
-HTTP, not SSE/WS/HTTP2 support. Use 0.0.0.0 explicitly for container deployment.
+Start an HTTP.jl HTTP/1.1 listener and return its closable server handle. `handler`
+receives transport-owned values, never an HTTP.jl request. Non-canonical paths and
+oversized bodies are rejected before it runs; exceptions while reading a request or
+running the handler produce a generic 500 response. `on_shutdown` is passed to the
+listener.
+
+Throw `ArgumentError` unless `max_body_bytes` is positive and below `typemax(Int)`,
+or when `readtimeout` is not positive. This is bounded unary HTTP, not SSE, WebSocket
+or HTTP/2 support. Use `0.0.0.0` explicitly for container deployment.
 """
 function serve_http(handler::Function; host="127.0.0.1", port::Integer=8080,
                     max_body_bytes::Integer=1048576, readtimeout::Integer=5, on_shutdown=nothing)
