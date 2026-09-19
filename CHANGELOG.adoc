@@ -13,7 +13,10 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 ==== Added
 
 * Native `http-capability-gateway` Verb Governance Spec (DSL v1 YAML) generator (`emit_capability_spec`) in `MaridIR.jl` ensuring zero contract drift between Marid services and perimeter verb governance.
-* CLI support in `scripts/marid generate capability-spec <path> [out]` and `scripts/marid routes <path>`.
+* CLI support in `scripts/marid generate capability-spec <path>
+  (--global-verbs GET[,POST] | --deny-by-default) [--out FILE]` and `scripts/marid
+  routes <path>`. The exposure policy must be named: the CLI refuses to emit a spec
+  whose global verbs were guessed, because global verbs are public on every path.
 * Benchmark suite for IR generation and emitters in `benches/marid_bench.sh`, wired into `just bench`.
 * Wired `just test` recipe to run estate verification across all 13 Julia packages.
 * Fixed aspect test pattern filtering for documentation and header comments in `tests/aspect_tests.sh`.
@@ -81,6 +84,37 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
   Cap'n Proto/Bebop message support becomes `MaridCodec` extensions).
 
 ==== Fixed
+
+* Capability-spec API split left by the #1 conflict resolution (`39d250a`),
+  which kept both sides of every clash. `packages/MaridIR/src/capability_spec.jl`
+  was retained while `MaridIR.jl` includes only `capability.jl`, so the file was
+  orphaned yet main's `Capability Spec Emission` testset still drove its
+  signature; MaridIR failed on Julia 1.10 and 1.11 with
+  `UndefKeywordError: keyword argument 'global_verbs' not assigned`. The orphan and that testset are
+  removed (`test/capability.jl` covers the surviving emitter, 58 assertions), and
+  `emit_capability_spec` now runs `validate_service` last, so a rejected route
+  keeps the documented `ArgumentError` instead of degrading to a bare
+  `ErrorException`.
+* `scripts/bootstrap.jl` instantiates before it resolves. `Pkg.resolve()` was
+  re-deriving a resolution that a committed `Manifest.toml` already states, and
+  demands a usable General registry to do so; on a fresh runner depot that read
+  "expected package 'Parsers [69de0a69]' to be registered" and redded MaridCodec
+  and MaridTransport on both Julia versions. Resolve remains the fallback for a
+  missing or stale manifest (MaridIR tracks none).
+* `cli-and-emitters`, `benches/marid_bench.sh` and the `compose.yaml` policy
+  mount all referenced the removed emitter: the job invoked a CLI form the parser
+  rejects, against a service file the emitter cannot resolve, and grepped for
+  'dsl_version: "1"' and a top-level `service:` key the surviving emitter does not
+  print; the bench passed no `global_verbs` and timed a `/tmp/sample_service.jl`
+  that nothing creates; the gateway container mounted
+  `fixtures/capability-policy.yaml`, an output that no longer has a generator. The
+  job now emits from `fixtures/capability/service.jl` and `cmp`s the golden
+  policy, the bench names its verbs and times the in-repo fixture, and the
+  container mounts the generated strict golden policy with the producing command
+  recorded beside it.
+* `docs/architecture/REPOSITORY-MAP.adoc` regenerated after `35aff92` purged the
+  a2ml tree: the committed map still listed `src/bridges/`, `src/core/` and
+  `verification/coverage/`, failing the estate-rules staleness step.
 
 * Regenerated `docs/architecture/REPOSITORY-MAP.adoc` after staging: the
   generator reads tracked files, so a map generated pre-staging omits new

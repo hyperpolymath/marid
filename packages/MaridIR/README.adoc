@@ -24,7 +24,7 @@ Status: **Implemented & Verified (Gate 3 + Capability Gateway Integration)**. Ze
 * `validate_service(svc)`: validates type integrity, route uniqueness, and non-empty metadata.
 * `to_dict(svc)`: serializes service definitions into pure dictionary structures for golden snapshot comparisons.
 * `emit_proto(svc)`: emits Protocol Buffers v3 `.proto` definitions.
-* `emit_capability_spec(svc; global_verbs, stealth_enabled, stealth_status)`: emits declarative `http-capability-gateway` Verb Governance Spec (DSL v1 YAML) enforcing perimeter verb exposure, regex route governance, capability tagging, and stealthing (404/403).
+* `emit_capability_spec(svc; global_verbs, gateway_profile, stealth, status_code)`: emits the native `http-capability-gateway` Verb Governance Spec (DSL v1 YAML) with canonical route validation, an explicit global fallback, and a deny-by-default `:strict` profile.
 
 == Feature Matrix
 

@@ -109,7 +109,12 @@ services:
       PORT: "4000"
       TRUST_LEVEL_HEADER: "x-trust-level"
     volumes:
-      - ../../fixtures/capability-policy.yaml:/app/config/policy.yaml:ro
+      # Generated, never hand-edited:
+      #   ./scripts/marid generate capability-spec fixtures/capability/service.jl \
+      #     --deny-by-default --out fixtures/capability/policy-strict.yaml
+      # global_verbs: [] needs the validator/compiler fix in test/interop/gateway-strict.patch;
+      # against the upstream image use --global-verbs GET[,POST] instead. See docs/adr/0007.
+      - ../../fixtures/capability/policy-strict.yaml:/app/config/policy.yaml:ro
     depends_on:
       "marid":
         condition: service_healthy
