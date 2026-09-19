@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: MPL-2.0
 using MaridIR, MaridCore, MaridCodec, MaridTransport
 
+"""
+    unary_result(ctx, value)
+
+Return a closed unary output stream containing `value` and associated with `ctx`.
+"""
 function unary_result(ctx, value)
     output = Stream{Any}(1, ctx)
     push_item!(output, value)
@@ -8,6 +13,11 @@ function unary_result(ctx, value)
     return output
 end
 
+"""
+    build_example()
+
+Build the unary HTTP/JSON example and return its app with the echo-write counter.
+"""
 function build_example()
     descriptor = include(joinpath(@__DIR__, "service.jl"))
     app = MaridApp()

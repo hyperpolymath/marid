@@ -13,7 +13,10 @@ MediaType(type::String, subtype::String; q::Float64=1.0) = MediaType(type, subty
 Base.string(m::MediaType) = m.q_value < 1.0 ? "$(m.type)/$(m.subtype);q=$(m.q_value)" : "$(m.type)/$(m.subtype)"
 
 """
-Return the best acceptable supported media type, or throw ArgumentError (HTTP 406).
+    negotiate_content_type(accept, supported) -> String
+
+Return the best acceptable supported media type. Throw `ArgumentError` when no
+representations are supported or the header permits none of them.
 More-specific ranges override wildcard q-values. q=0 excludes that representation.
 Tie-break by supported order. Parameterized media ranges are not supported in this
 initial JSON slice and never match a bare representation accidentally.
@@ -64,12 +67,23 @@ function negotiate_content_type(accept::String, supported::Vector{String})::Stri
     return winner
 end
 
+"""
+    encode_bytes(value, mime="application/json") -> Vector{UInt8}
+
+Encode `value` as UTF-8 JSON bytes. Throw `ArgumentError` for unsupported codecs.
+"""
 function encode_bytes(value, mime::String="application/json")::Vector{UInt8}
     mime == "application/json" || throw(ArgumentError("Unsupported codec: $mime"))
     return Vector{UInt8}(codeunits(JSON3.write(value)))
 end
 
 # Explicit JSON decoding; no eval or Julia object deserialization.
+"""
+    decode_json(bytes)
+
+Parse UTF-8 JSON bytes into the corresponding JSON3 value. Invalid JSON propagates
+the parser error.
+"""
 decode_json(bytes::AbstractVector{UInt8}) = JSON3.read(bytes)
 decode_bytes(bytes::Vector{UInt8}, ::Type{String}) = String(bytes)
 end
