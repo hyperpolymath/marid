@@ -31,8 +31,10 @@ acceptance must be resolved or explicitly reviewed before advancement.
 |===
 
 This is a working experimental unary slice, not a production framework or approved
-sidecar deployment. Strict support exists only in the delivered patch, not in the
-pinned upstream gateway. The full logs retain both passing and failing outcomes.
+sidecar deployment. As of this checkpoint, strict support existed only in the
+delivered patch, not in the pinned upstream gateway; the section below records that
+the gateway merged those changes on 2026-09-20, which is now the CI pin. The full
+logs retain both passing and failing outcomes.
 
 == Delivery and reproduction
 

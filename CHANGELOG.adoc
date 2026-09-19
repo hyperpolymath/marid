@@ -85,6 +85,29 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
 ==== Fixed
 
+* `scripts/marid generate capability-spec ... --out FILE` piped the emitter through
+  `tee`, which opens and truncates the target *before* the generator runs, so a
+  rejected service file left an empty policy where a working one had been. `--out`
+  now writes to a temporary file in the target's directory and renames only on
+  success, and `test/interop/capability_cli.sh` fails if a live policy is ever
+  truncated or a stray temporary file is left behind.
+* `build/container/compose.yaml` mounted the strict fixture while pulling the
+  mutable `ghcr.io/...:latest` gateway image, so the documented quickstart could not
+  start against an image predating the #112 correction. It mounts the legacy golden
+  `fixtures/capability/policy.yaml` instead — every gateway accepts it, and both
+  fixtures are `cmp`-verified outputs of the committed emitter — with the strict
+  variant and its gateway-version precondition stated in the comment rather than
+  assumed.
+* The capability-spec examples in `packages/MaridIR/README.adoc` and
+  `docs/deployment/PRODUCTION-GUIDE.adoc` were copy-failures: they omitted the
+  mandatory profile flag and used a positional output path the parser rejects, and
+  the production guide pointed at a module file that the CLI cannot evaluate. Each
+  block now shows a command that runs (checked against the real CLI), including the
+  Julia call `emit_capability_spec(svc; global_verbs=["GET"])`.
+* The CLI warning and the emitter's `ArgumentError` named "the paired gateway fix",
+  an artifact that no longer exists; both now name the upstream change
+  `http-capability-gateway#112` (`c67c743`) and what an older gateway does.
+
 * `test/interop/gateway-strict.patch` could not be applied by any git (`corrupt
   patch at ../test/interop/gateway-strict.patch:270`; four hunks declared line
   counts that did not match their bodies), which red the `Native Capability Spec`
