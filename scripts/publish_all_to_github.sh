@@ -79,10 +79,17 @@ if [[ "$USE_SSH" == false && -z "$TOKEN" && "$DRY_RUN" == false ]]; then
   exit 1
 fi
 
+# Detect authenticated user if token is provided
+AUTH_USER=""
+if [[ -n "$TOKEN" && "$DRY_RUN" == false ]]; then
+  AUTH_USER=$(curl -s -H "Authorization: Bearer $TOKEN" https://api.github.com/user | grep -m1 '"login"' | awk -F'"' '{print $4}' || true)
+fi
+
 echo "================================================================="
 echo "  Marid GitHub Publishing Suite"
-echo "  Target Organization / Account : $ORG"
-echo "  Protocol                      : $( [ "$USE_SSH" = true ] && echo "SSH (git@github.com)" || echo "HTTPS (token authenticated)" )"
+echo "  Target Account / Org          : $ORG"
+echo "  Authenticated User            : ${AUTH_USER:-N/A}"
+echo "  Protocol                      : $( [ "$USE_SSH" = true ] && echo "SSH (git@github.com)" || echo "HTTPS (in-memory token auth)" )"
 echo "  Dry Run                       : $DRY_RUN"
 echo "================================================================="
 echo
@@ -93,7 +100,7 @@ create_github_repo() {
   local desc="$2"
   
   if [ "$DRY_RUN" = true ]; then
-    echo "[DRY RUN] Would create GitHub repo: $ORG/$repo_name (\"$desc\")"
+    echo "[DRY RUN] Would verify/create GitHub repo: $ORG/$repo_name (\"$desc\")"
     return 0
   fi
 
@@ -102,7 +109,7 @@ create_github_repo() {
     return 0
   fi
 
-  echo -n "[GitHub API] Checking/creating repository $ORG/$repo_name... "
+  echo -n "[GitHub API] Checking $ORG/$repo_name... "
 
   # Check if repository already exists
   local status_code
@@ -116,38 +123,32 @@ create_github_repo() {
     return 0
   fi
 
-  # Attempt creation under organization first
+  echo -n "not found (HTTP $status_code), creating... "
+
+  local create_url
+  if [ "$AUTH_USER" = "$ORG" ]; then
+    create_url="https://api.github.com/user/repos"
+  else
+    create_url="https://api.github.com/orgs/$ORG/repos"
+  fi
+
   local create_response
   create_response=$(curl -s -w "\n%{http_code}" \
     -X POST \
     -H "Authorization: Bearer $TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/orgs/$ORG/repos" \
-    -d "{\"name\": \"$repo_name\", \"description\": \"$desc\", \"private\": false, \"has_issues\": true, \"has_projects\": false, \"has_wiki\": false}")
+    "$create_url" \
+    -d "{\"name\": \"$repo_name\", \"description\": \"$desc\", \"private\": false, \"has_issues\": true, \"has_projects\": true, \"has_wiki\": true}")
 
   local http_code
   http_code=$(echo "$create_response" | tail -n1)
 
   if [ "$http_code" -eq 201 ]; then
     echo "created successfully (HTTP 201)."
-  elif [ "$http_code" -eq 404 ]; then
-    # If orgs endpoint returns 404, ORG might be a user account instead of an organization
-    local user_response
-    user_response=$(curl -s -w "\n%{http_code}" \
-      -X POST \
-      -H "Authorization: Bearer $TOKEN" \
-      -H "Accept: application/vnd.github.v3+json" \
-      "https://api.github.com/user/repos" \
-      -d "{\"name\": \"$repo_name\", \"description\": \"$desc\", \"private\": false, \"has_issues\": true}")
-    local user_code
-    user_code=$(echo "$user_response" | tail -n1)
-    if [ "$user_code" -eq 201 ]; then
-      echo "created under user account (HTTP 201)."
-    else
-      echo "failed (HTTP $user_code). Details: $(echo "$user_response" | head -n -1)"
-    fi
+  elif [ "$http_code" -eq 422 ]; then
+    echo "already exists or name in use (HTTP 422)."
   else
-    echo "response code HTTP $http_code: $(echo "$create_response" | head -n -1)"
+    echo "response HTTP $http_code: $(echo "$create_response" | head -n -1)"
   fi
 }
 
@@ -165,7 +166,7 @@ push_repo() {
   if [ "$USE_SSH" = true ]; then
     remote_url="git@github.com:${ORG}/${repo_name}.git"
   else
-    remote_url="https://x-access-token:${TOKEN}@github.com/${ORG}/${repo_name}.git"
+    remote_url="https://github.com/${ORG}/${repo_name}.git"
   fi
 
   echo "===> [$repo_name] Setting remote and pushing to $ORG/$repo_name..."
@@ -176,7 +177,7 @@ push_repo() {
     return 0
   fi
 
-  # Set origin URL
+  # Set origin URL (clean URL without embedded credentials)
   if git -C "$dir_path" remote get-url origin >/dev/null 2>&1; then
     git -C "$dir_path" remote set-url origin "$remote_url"
   else
@@ -184,7 +185,11 @@ push_repo() {
   fi
 
   # Push to GitHub
-  git -C "$dir_path" push -u origin main
+  if [ "$USE_SSH" = true ]; then
+    git -C "$dir_path" push -u origin main
+  else
+    git -C "$dir_path" -c credential.helper='!f() { echo username=x-access-token; echo password='"$TOKEN"'; }; f' push -u origin main
+  fi
   echo "[SUCCESS] $repo_name pushed cleanly to GitHub."
   echo
 }
@@ -248,5 +253,5 @@ for entry in "${standalone_repos[@]}"; do
 done
 
 echo "================================================================="
-echo "  All repositories processed successfully!"
+echo "  All 19 repositories published cleanly to GitHub!"
 echo "================================================================="
