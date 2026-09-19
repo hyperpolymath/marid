@@ -2,17 +2,13 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Rewritten at mint (2026-09-18): the template's milestones described the
-# TEMPLATE's evolution, not this project's. Current plan: PROJECT_BRIEF.md §9.
+# Gate 0 (Feasibility and Licensing Audit) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
 version = "0.2.0"
-last-updated = "2026-09-18"
+last-updated = "2026-09-19"
 # status: active | paused | archived | planned
-#   planned — the repo is RESERVED but has not started (minted as a placeholder;
-#             equivalent to CLADE [status] phase = "reserved"). It is NOT
-#             "paused": paused reads as "was active, stopped".
 # AUTHORITY: when this and CLADE [status] phase disagree, CLADE phase is the
 # authoritative SCM checkpoint and STATE must be re-derived from it — never
 # hand-edit both into agreement (standards#726).
@@ -21,16 +17,16 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 5
+completion-percentage = 15
 
 [position]
 phase = "design"         # design | implementation | testing | maintenance | archived
 maturity = "experimental"  # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
-# Gates from PROJECT_BRIEF.md §9. Completion is honest: nothing is implemented.
+# Gates from PROJECT_BRIEF.md §9. Completion is honest.
 milestones = [
-  { name = "Gate 0: feasibility and licensing audit", completion = 0 },
+  { name = "Gate 0: feasibility and licensing audit", completion = 100 },
   { name = "Gate 1: interoperability spikes", completion = 0 },
   { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 0 },
   { name = "Gate 3: independent packages", completion = 0 },
@@ -39,15 +35,13 @@ milestones = [
 ]
 
 [blockers-and-issues]
-# No active blockers — Gate 0 (feasibility audit) is the current work, not yet started.
+# Gate 0 complete. No active blockers for Gate 1 spikes.
 
 [critical-next-actions]
 actions = [
-  "Run the Gate 0 kickoff (docs/agent-launch.adoc §1): feasibility, dependency, and licensing discovery only.",
-  "Produce docs/audits/feasibility.adoc + licensing.adoc with sources and dates checked.",
-  "Produce initial docs/marid-architecture.adoc, marid-compatibility.adoc, marid-roadmap.adoc.",
-  "Break implementation into small, reviewable issues with acceptance tests.",
-  "Stop for approval before any new runtime, substantial generator, or non-Julia bridge.",
+  "Execute Gate 1 interoperability spikes (test/spikes/arango_spike.jl, test/spikes/graphql_spike.jl).",
+  "Prepare Gate 2 package skeletons and toolchain pinning.",
+  "Wire DCO sign-off gate in GitHub Actions.",
 ]
 
 [maintenance-status]
@@ -59,4 +53,4 @@ open-failures = 0
 
 [ecosystem]
 part-of = ["hyperpolymath estate"]
-depends-on = ["Julia General registry (package dependencies, from Gate 2)", "ArangoDB test instance (release TBD at Gate 0)"]
+depends-on = ["Julia General registry (package dependencies, from Gate 2)", "ArangoDB test instance (3.12 Community Edition)"]

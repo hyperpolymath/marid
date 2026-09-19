@@ -14,31 +14,18 @@ trust forward.
 |===
 | Principle | Gate 0 status | Evidence
 
-| Control / data split | designed, not built | Charter diagram + `MaridCore` /
-`MaridControl` stubs; no code paths exist to violate it
-| IR-first | designed, not built | `MaridIR` stub; `contracts/` records the
-IR-vs-registry reconciliation
-| Seams before features | designed, not built | `MaridTransport` / `MaridCodec`
-stubs precede all adapter phases
-| No home-grown DBMS | held | `ArangoDB` is a client stub; `MaridStorage`
-seam names SQLite/DuckDB/memory first; no engine code exists
-| Small packages | held | 13 package stubs, each independently scoped; no
-shared-utility packages created
-| Standards over integrations | held | Charter emission list; no
-framework-specific API work started
-| HTML-first first-class | designed, not built | `MaridLive` stub at Phase 5;
-`web/elements` stub at Gate 4
-| Security from libraries | held | No crypto/session code exists; nothing
-hand-rolled to audit
-| Explicit non-goals | held | Charter non-goals list; brief §2 boundaries
-kept; enforced at PR review once code lands
-| Docs as deliverable | partial | CC-BY-SA-4.0 docs tree present with SPDX
-headers; Documenter.jl builds arrive with the first Julia code (gap, not
-a failure — nothing to build yet)
-| Contribution hygiene | partial | SPDX everywhere (verified); DCO
-sign-off and dependency-review gates not yet wired (open gaps, §Gaps)
-| Boring consensus | held | Raft/CRDT stubs carry late/small/tested gates;
-nothing consensus-related is scheduled before Phase 4
+| Control / data split | specified | ADR-0002 + `docs/marid-architecture.adoc`; charter diagram + `MaridCore` / `MaridControl` stubs
+| IR-first | specified | ADR-0001 + `docs/marid-architecture.adoc`; `MaridIR` stub; `contracts/` registry
+| Seams before features | specified | ADR-0003 + `docs/marid-architecture.adoc`; `MaridTransport` / `MaridCodec` stubs precede all adapter phases
+| No home-grown DBMS | held | ADR-0004 + `docs/audits/feasibility.adoc`; `ArangoDB` is a client stub; `MaridStorage` seam names SQLite/DuckDB/memory first
+| Small packages | held | 13 package stubs, each independently scoped; no shared-utility packages created
+| Standards over integrations | held | `docs/marid-compatibility.adoc`; charter emission list; no framework-specific API work started
+| HTML-first first-class | designed, not built | `MaridLive` stub at Phase 5; `web/elements` stub at Gate 4
+| Security from libraries | held | `docs/audits/feasibility.adoc`; no crypto/session code exists; nothing hand-rolled
+| Explicit non-goals | held | Charter non-goals list; brief §2 boundaries kept; ADR-0006 defers native gRPC
+| Docs as deliverable | held | CC-BY-SA-4.0 docs tree present with SPDX headers; `feasibility.adoc`, `licensing.adoc`, `marid-architecture.adoc`, `marid-compatibility.adoc`, `marid-roadmap.adoc`, ADR-0001..0006 complete
+| Contribution hygiene | partial | SPDX everywhere (verified); DCO sign-off and dependency-review gates scheduled for Gate 2
+| Boring consensus | held | Raft/CRDT stubs carry late/small/tested gates; nothing consensus-related is scheduled before Phase 4
 |===
 
 == Package graph

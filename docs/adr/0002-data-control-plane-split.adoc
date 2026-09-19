@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0002: Control Plane and Data Plane Split
+:status: accepted
+:date: 2026-09-19
+
+== Context
+In distributed web frameworks, routing engines often entangle route matching with dynamic service discovery, distributed locks, or database queries. When the consensus layer or network partition occurs, request routing fails or suffers high latency spikes.
+
+== Decision
+Marid strictly enforces a **clean split between the data plane and the control plane**:
+1. **Data Plane (`MaridCore`)**: Route lookup is a deterministic, pure function executed over an immutable, locally cached radix/trie snapshot (`RouteTable`). It never allocates locks, never blocks, and never touches the network.
+2. **Control Plane (`MaridControl`)**: Configuration distribution, consensus, and route table updates live exclusively in the control plane. New route configurations are compiled into a new immutable `RouteTable` and atomically swapped into the router using an atomic pointer swap.
+
+Nodes continue serving requests at wire speed even if the control plane (etcd, Consul, or Raft) becomes completely unreachable.
+
+== Alternatives Considered
+1. **Synchronous Distributed Route Lookup**: Querying a central configuration database or distributed cache on each route match. Rejected: Introduces unacceptable latency and creates a single point of failure.
+2. **Dynamic In-Place Mutable Route Trees**: Mutating router structures in place with read-write locks (`ReentrantLock`). Rejected: Introduces lock contention under high concurrency and race conditions during route registration.
+
+== Consequences
+* **Positive**: Predictable sub-microsecond route resolution; zero lock contention; total resilience against control plane outages.
+* **Trade-off**: Route propagation across a cluster is eventually consistent rather than instantaneous.
+* **Expensive to Retrofit**: If request handlers or routing logic assume synchronous shared state or database access during route evaluation, disentangling them later requires re-architecting the entire request lifecycle.

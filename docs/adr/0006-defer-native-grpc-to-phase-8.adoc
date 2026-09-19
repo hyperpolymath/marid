@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0006: Defer Native gRPC to Phase 8 and Launch with MaridRPC
+:status: accepted
+:date: 2026-09-19
+
+== Context
+The initial project brief proposed `MaridGRPC.jl` as a Phase 1 launch deliverable. However, the Gate 0 feasibility audit revealed that the Julia ecosystem currently lacks a production-grade, multiplexing HTTP/2 server. `HTTP.jl` is an HTTP/1.1 engine; experimental pure-Julia HTTP/2 libraries (`PureHTTP2.jl`) lack flow-control windowing and battle-testing. Attempting to build a pure-Julia HTTP/2 and gRPC engine in Phase 1 would expand Marid from an application framework into an unbudgeted low-level networking project.
+
+== Decision
+Marid reconciles the gRPC roadmap per `docs/MARID-FRAMEWORK.adoc`:
+1. **Launch RPC (`Phase 1`)**: Launch with **`MaridRPC.jl`**, supporting JSON-RPC 2.0 and the Anthropic Model Context Protocol (MCP) over HTTP/1.1 and Server-Sent Events (SSE). This provides immediate, production-ready RPC capabilities for AI agents and distributed services without HTTP/2 complexity.
+2. **Native gRPC (`Phase 8`)**: Defer native gRPC until Phase 8. When introduced, it will use `JuliaIO/gRPCServer.jl` with `Nghttp2Wrapper.jl` (FFI binding to C `libnghttp2`), or connect via a gRPC-Web gateway for browser clients.
+3. **Scope Clarification**: gRPC unary and server streaming are prioritized; bidirectional streaming remains strictly gated on robust HTTP/2 stream multiplexing.
+
+== Alternatives Considered
+1. **Implement Pure Julia HTTP/2 in Phase 1**: Write custom HPACK encoders and frame parsers. Rejected: Massive engineering overhead with high stability risk.
+2. **Drop RPC Entirely**: Offer only REST and GraphQL. Rejected: AI agent integration (MCP) and distributed microservice communication require structured RPC interfaces.
+
+== Consequences
+* **Positive**: De-risks Phase 1 deliverables; delivers immediate high-value RPC (JSON-RPC + MCP); avoids reinventing HTTP/2 engines.
+* **Trade-off**: Native `.proto` gRPC endpoints are not available in the Phase 1 MVP.
+* **Expensive to Retrofit**: Building an unstable custom HTTP/2 stack early would lead to fragile connections, memory leaks, and prolonged debugging cycles.
