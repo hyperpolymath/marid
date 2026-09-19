@@ -299,7 +299,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `src/errors/`
 | `src/interface/generated/`
 | `src/interface/generated/abi/`
-| `test/`
 | `test/interop/`
 | `tests/fuzz/`
 | `verification/benchmarks/`

@@ -1,0 +1,91 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Browser Event Contract & Resynchronization Protocol
+:toc:
+:sectnums:
+
+[abstract]
+Normative specification for browser event streams, Server-Sent Events (SSE),
+WebSocket frames, reconnection, and state resynchronization (`PROJECT_BRIEF.md` §4, §5).
+Approved at Gate 2.
+
+== Event Envelope Specification
+
+All server-to-browser reactive events pushed via SSE or WebSocket must conform to the
+canonical JSON envelope:
+
+[source,json]
+----
+{
+  "id": "evt_01HZX894KMNPQRST",
+  "topic": "taxa:relationship_updated",
+  "cursor": "arango_seq_1092834",
+  "timestamp": 1774003200000,
+  "tenant": "default",
+  "payload": {
+    "source_id": "taxa_42",
+    "target_id": "taxa_89",
+    "edge_type": "synapomorphy",
+    "weight": 0.95
+  }
+}
+----
+
+=== Envelope Fields
+
+[cols="1,1,1,3",options="header"]
+|===
+| Field | Type | Required | Semantics
+
+| `id`
+| String
+| Yes
+| Monotonically increasing or lexicographically sortable unique event ID (e.g., ULID or monotonic counter).
+
+| `topic`
+| String
+| Yes
+| Domain event classification string (`{namespace}:{event_name}`).
+
+| `cursor`
+| String
+| Yes
+| Opaque stream cursor token used for reconnection and gap detection.
+
+| `timestamp`
+| Int64
+| Yes
+| Unix millisecond UTC timestamp of server emission.
+
+| `tenant`
+| String
+| Yes
+| Tenant scope identifier ensuring cross-tenant event isolation.
+
+| `payload`
+| Object
+| Yes
+| The typed event data emitted from `MaridIR`.
+|===
+
+== Reconnection & Gap Resynchronization
+
+When network disconnections occur, the client browser SDK (`@marid/client`) must resynchronize
+state without duplicate processing or silent data loss:
+
+1. **SSE Reconnection**:
+   - The browser automatically reconnects supplying the standard `Last-Event-ID` header.
+   - The server inspects the event log backlog:
+     - **In-Buffer Resynchronization**: If the missed events exist in the memory buffer, the server re-streams the missed events in sequence.
+     - **Gap / Buffer Expiration**: If the cursor is expired or purged, the server emits a special event `event: resync_required`. The client must invalidate its local snapshot and request a fresh snapshot from the REST/GraphQL endpoint.
+2. **WebSocket Resynchronization**:
+   - On reconnect, the client sends an initialization message:
+     `{"action": "subscribe", "topic": "taxa:updates", "last_cursor": "arango_seq_1092834"}`.
+   - The server resumes from `last_cursor` or replies with `{"status": "resync_required"}`.
+
+== Client Lifecycle & Unmount Cleanup
+
+1. **Component Unmount Guarantee**:
+   - Framework wrappers (`@marid/react`, `@marid/vue`) must register cleanup callbacks. When a UI component unmounts, the underlying `AbortController` aborts the HTTP/SSE connection within < 5ms.
+2. **Server Resource Reclamation**:
+   - The server streaming handler detects disconnection immediately via TCP socket error or channel closure, and notifies `CallContext.cancellation`, stopping backend computation.

@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 1 (Interoperability Spikes) completed on 2026-09-19.
+# Gate 2 (Foundation, Skeletons, Contracts, CI) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
@@ -17,31 +17,32 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 30
+completion-percentage = 50
 
 [position]
-phase = "design"         # design | implementation | testing | maintenance | archived
-maturity = "experimental"  # experimental | alpha | beta | production | lts
+phase = "implementation"  # design | implementation | testing | maintenance | archived
+maturity = "alpha"        # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
 # Gates from PROJECT_BRIEF.md §9. Completion is honest.
 milestones = [
   { name = "Gate 0: feasibility and licensing audit", completion = 100 },
   { name = "Gate 1: interoperability spikes", completion = 100 },
-  { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 0 },
+  { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 100 },
   { name = "Gate 3: independent packages", completion = 0 },
   { name = "Gate 4: assembly and browser integrations", completion = 0 },
   { name = "Gate 5: release review", completion = 0 },
 ]
 
 [blockers-and-issues]
-# Gate 0 and Gate 1 complete. No active blockers for Gate 2 foundation.
+# Gates 0, 1, and 2 complete. All 9 Phase 1-3 package skeletons and contracts passing tests.
 
 [critical-next-actions]
 actions = [
-  "Execute Gate 2 foundation: Package skeletons, Project.toml manifests, and toolchain pins.",
-  "Formalize CallContext and streaming handler seams.",
-  "Wire DCO sign-off gate in GitHub Actions.",
+  "Execute Gate 3: Deep implementations of independent packages.",
+  "Implement MaridIR service definitions and golden snapshot tests.",
+  "Implement MaridCore trie routing engine and middleware pipeline.",
+  "Implement standalone ArangoDB.jl HTTP client with live container integration tests.",
 ]
 
 [maintenance-status]

@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+name: DCO Sign-off Enforcement
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dco-check:
+    name: DCO Sign-off Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request commits
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check Developer Certificate of Origin (DCO) Sign-offs
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha || 'HEAD' }}"
+          
+          echo "Checking commits from $BASE_SHA to $HEAD_SHA for DCO sign-offs..."
+          
+          FAILED=0
+          for commit in $(git rev-list "$BASE_SHA..$HEAD_SHA"); do
+            msg=$(git log -1 --format="%B" "$commit")
+            if ! echo "$msg" | grep -qE "^Signed-off-by: .+ <.+@.+>$"; then
+              echo "::error::Commit $commit is missing DCO sign-off: Signed-off-by: Name <email>"
+              FAILED=1
+            fi
+          done
+          
+          if [ "$FAILED" -ne 0 ]; then
+            echo "DCO check failed. All commits must include a Signed-off-by trailer (-s)."
+            exit 1
+          fi
+          echo "All commits satisfy Developer Certificate of Origin."

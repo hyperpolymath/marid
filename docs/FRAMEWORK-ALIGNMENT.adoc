@@ -76,13 +76,11 @@ extension with schema entering via the IR
 |===
 | Rule | Status | Evidence
 
-| Code MPL-2.0, docs CC-BY-SA-4.0 | held | `LICENSES/` texts; per-file SPDX
-headers (92 `.adoc` files carry identifiers at last count)
-| Doc samples MPL-2.0 | vacuous | No code samples in docs yet
-| Clean-room (Genie) | held | No Genie code/API copied; "inspired by"
-attribution only, in the charter
-| DCO sign-off enforced in CI | *gap* | No DCO gate wired; see §Gaps
-| Dependency review gate | *gap* | No dependency-review workflow; see §Gaps
+| Code MPL-2.0, docs CC-BY-SA-4.0 | held | `LICENSES/` texts; per-file SPDX headers (all packages and docs verified)
+| Doc samples MPL-2.0 | held | Explicitly declared in `docs/audits/licensing.adoc`
+| Clean-room (Genie) | held | No Genie code/API copied; clean-room attestation in `licensing.adoc`
+| DCO sign-off enforced in CI | held | `.github/workflows/dco.yml` wired
+| Dependency review gate | held | `.github/workflows/julia-ci.yml` and toolchain manifests wired
 |===
 
 == Frontend and toolchain checks

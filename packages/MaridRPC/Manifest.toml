@@ -1,0 +1,15 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.10.5"
+manifest_format = "2.0"
+project_hash = "201eb2a69fb9fefa67b0867ebba4ea9320d62435"
+
+[[deps.MaridCodec]]
+path = "../MaridCodec"
+uuid = "eca7d35b-6611-5bf5-a92e-bc308a796804"
+version = "0.1.0"
+
+[[deps.MaridIR]]
+path = "../MaridIR"
+uuid = "0aa8228c-ae90-54ec-b99f-6e73e9362e55"
+version = "0.1.0"

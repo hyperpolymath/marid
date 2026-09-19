@@ -1,0 +1,13 @@
+name = "MaridIR"
+uuid = "0aa8228c-ae90-54ec-b99f-6e73e9362e55"
+authors = ["Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
