@@ -42,8 +42,12 @@ function serve_json end
     bind_service!(app, service, handlers)
 
 Atomically install HTTP-bound unary methods from one validated IR descriptor.
-Handlers are keyed by IR method name and use the existing (context, call) stream
-contract. All bindings are checked before changing the app's route table.
+Methods without a `route_path` are ignored. `handlers` is keyed by IR method name
+and uses the existing `(context, call)` stream contract.
+
+Return `app` after replacing its route table. Invalid descriptors, non-unary HTTP
+bindings, missing or non-function handlers, and conflicting route parameters raise
+an exception before the app's route table is replaced.
 """
 function bind_service!(app::MaridApp, service::ServiceDescriptor, handlers::AbstractDict)
     validate_service(service)
