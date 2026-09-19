@@ -40,8 +40,8 @@ milestones = [
 [critical-next-actions]
 actions = [
   "Monorepo meta-repository actively maintained across all 13 packages and 4 browser packages.",
-  "Standalone polyrepo split executed: all 18 standalone repositories materialized in /home/user/ with linear Git history and 100% passing tests.",
-  "Continue expansion to Phase 8 gRPC/HTTP2 bindings and capability gateway edge deployments when ready.",
+  "Standalone polyrepo split and published: all 18 standalone repositories created and published to GitHub under hyperpolymath/ with linear history and CI workflows.",
+  "Umbrella monorepo hyperpolymath/marid synchronized and published to GitHub main branch.",
 ]
 
 [maintenance-status]
