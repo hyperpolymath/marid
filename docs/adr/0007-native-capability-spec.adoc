@@ -67,3 +67,18 @@ validation. Existing overlapping Marid routes may require redesign or upstream
 precedence fixes. No core routing semantics or project brief requirements change.
 
 See `docs/deployment/docker-compose.adoc` for the full contract and release gate.
+
+== Update (2026-09-20): the paired patch is upstream
+
+The decision above authorized "a separately delivered gateway patch, not an upstream
+push". That premise changed: the gateway repository merged the correction as
+`hyperpolymath/http-capability-gateway#112`, commit
+`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`. Strict mode no longer depends on an
+unmerged local artifact, so `test/interop/gateway-strict.patch` is deleted (it had also
+become unapplicable: `corrupt patch at ...:270`, four hunks with line counts that did not
+match their bodies) and `capability-spec.yml` pins the merged commit and greps
+`policy_validator.ex` for the empty-globals clause instead of patching.
+
+Everything else stands: the legacy profile remains the default with mandatory explicit
+`global_verbs`, `:strict` is opt-in, and an image built before the correction still
+rejects `global_verbs: []`. No Marid-side behaviour changes.

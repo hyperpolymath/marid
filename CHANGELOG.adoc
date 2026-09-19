@@ -85,6 +85,15 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
 ==== Fixed
 
+* `test/interop/gateway-strict.patch` could not be applied by any git (`corrupt
+  patch at ../test/interop/gateway-strict.patch:270`; four hunks declared line
+  counts that did not match their bodies), which red the `Native Capability Spec`
+  workflow at its "Apply paired gateway changes" step and skipped every step after
+  it. The paired changes are upstream now (gateway `#112`, `c67c743`), so the patch
+  is deleted rather than hand-repaired: `capability-spec.yml` pins that commit and
+  asserts the strict-policy clause is present, and the deployment guide, compose
+  caveat, evidence ledger and `docs/adr/0007` stop describing it as unmerged.
+
 * Capability-spec API split left by the #1 conflict resolution (`39d250a`),
   which kept both sides of every clash. `packages/MaridIR/src/capability_spec.jl`
   was retained while `MaridIR.jl` includes only `capability.jl`, so the file was
