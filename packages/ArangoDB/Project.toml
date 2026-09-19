@@ -1,0 +1,18 @@
+name = "ArangoDB"
+uuid = "719c9fe8-89eb-588d-a237-0159f38ee2e4"
+authors = ["Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
