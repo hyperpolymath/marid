@@ -68,10 +68,17 @@ function handle_json(app, req, timeout_ms, max_response_bytes)
 end
 
 """
-Optional unary JSON assembly. Load MaridCodec + MaridTransport to activate.
+    serve_json(app::MaridApp; timeout_ms=30000, max_response_bytes=1048576, kwargs...)
+
+Start the optional unary JSON server and return its closable server handle. Loading
+MaridCodec and MaridTransport activates this method. The app becomes ready after
+startup and becomes not ready and draining when the server shuts down.
+
 Handlers must cooperatively return exactly one item in a closed Stream; arbitrary
 CPU work cannot be forcibly cancelled. No authentication or JSON Schema validation
-is inferred from IR annotations. Application services validate/authorize inputs.
+is inferred from IR annotations. Application services validate/authorise inputs.
+Throw `ArgumentError` when either limit is not positive; remaining keyword arguments
+are forwarded to `serve_http`.
 """
 function serve_json(app::MaridApp; timeout_ms::Int=30000, max_response_bytes::Int=1048576, kwargs...)
     timeout_ms > 0 || throw(ArgumentError("Timeout must be positive"))
