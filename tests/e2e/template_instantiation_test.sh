@@ -354,8 +354,7 @@ done
 log_step "Verifying machine-readable metadata"
 
 METADATA_FILES=(
-    ".machine_readable/descriptiles/STATE.a2ml"
-    ".machine_readable/descriptiles/META.a2ml"
+    ".machine_readable/descriptiles/marid_chora.deed"
 )
 
 for file in "${METADATA_FILES[@]}"; do

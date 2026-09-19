@@ -9,8 +9,8 @@ Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 ## Before Writing Code
 
-- Read `0-AI-MANIFEST.a2ml` in the repo root for canonical file locations.
-- State files (.a2ml) live in `.machine_readable/` ONLY, never the root.
+- Read `0-AI-MANIFEST.deed` in the repo root for canonical file locations.
+- Metadata files live in `.machine_readable/` ONLY, never the root.
 
 ## License
 
@@ -78,8 +78,6 @@ migration destination is AffineScript.
 - FFI implementations in Zig (`src/interface/ffi/`).
 - Generated C headers in `src/interface/generated/`.
 
-## State Files
+## Metadata Files
 
-Never create these in the repo root:
-STATE.a2ml, META.a2ml, ECOSYSTEM.a2ml, AGENTIC.a2ml, NEUROSYM.a2ml, PLAYBOOK.a2ml.
-They belong in `.machine_readable/` only.
+Metadata files belong in `.machine_readable/` only.

@@ -25,13 +25,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
 
-      - name: Check for A2ML files
+      - name: Check for DEED files
         id: detect
         run: |
-          COUNT=$(find . \( -name '*.a2ml' -o -name '*.deed' \) -not -path './.git/*' | wc -l)
+          COUNT=$(find . -name '*.deed' -not -path './.git/*' | wc -l)
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -eq 0 ]; then
-            echo "::warning::No .a2ml/.deed manifest files found. Every RSR repo should have 0-AI-MANIFEST.a2ml (estate mid-migration to .deed — standards #64)"
+            echo "::warning::No .deed manifest files found. Every RSR repo should have 0-AI-MANIFEST.deed"
           fi
 
       - name: "🟡 CHECK: Validate DEED manifests"
@@ -48,12 +48,12 @@ jobs:
             cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           ## DEED Manifest Validation
 
-          :warning: **No .a2ml/.deed manifest files found.** Every RSR-compliant repo should have at least `0-AI-MANIFEST.a2ml`.
+          :warning: **No .deed manifest files found.** Every RSR-compliant repo should have at least `0-AI-MANIFEST.deed`.
 
-          Copy it from [marid](https://github.com/hyperpolymath/marid). Manifests are validated against the DEED grammar (standards `1-formats/deed/`); the `.a2ml` → `.deed` extension migration is tracked in standards #64 — the deed validator scans both.
+          Copy it from [marid](https://github.com/hyperpolymath/marid). Manifests are validated against the DEED grammar.
           EOF
           else
             echo "## DEED Manifest Validation" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "Scanned **${MANIFEST_COUNT}** .a2ml/.deed manifest(s). See step output for details." >> "$GITHUB_STEP_SUMMARY"
+            echo "Scanned **${MANIFEST_COUNT}** .deed manifest(s). See step output for details." >> "$GITHUB_STEP_SUMMARY"
           fi

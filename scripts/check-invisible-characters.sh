@@ -41,7 +41,7 @@ if ! "$find_bin" "$scan_root" \
       -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name '*.adoc' \
       -o -name '*.idr' -o -name '*.zig' -o -name '*.v' -o -name '*.jl' \
       -o -name '*.gleam' -o -name '*.hs' -o -name '*.ml' -o -name '*.sh' \
-      -o -name '*.a2ml' -o -name '*.txt' -o -name '*.just' \
+      -o -name '*.deed' -o -name '*.txt' -o -name '*.just' \
       -o -name 'Justfile' -o -name 'Mustfile' -o -name 'Trustfile' -o -name 'Bustfile' \) \
     -print0 > "$enumeration_file"; then
   echo "file enumeration failed: $scan_root" >&2

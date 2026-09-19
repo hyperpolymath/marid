@@ -4,9 +4,9 @@
 # VALIDATION & COMPLIANCE
 #
 # Imported by ../../Justfile via `import? "build/just/validate.just"`.
-# Recipes here check that this repo conforms to the RSR (Rhodium Standard
-# Repository) skeleton: required files, METAdata, AI install guide
-# completeness, etc. Run via `just validate`.
+# Recipes here check that this repo conforms to project requirements:
+# required files, licenses, AI install guide completeness, etc.
+# Run via `just validate`.
 
 # Validate RSR compliance
 validate-rsr:
@@ -17,13 +17,9 @@ validate-rsr:
     for f in .editorconfig .gitignore Justfile README.adoc LICENSE; do
         [ -f "$f" ] || MISSING="$MISSING $f"
     done
-    # Estate mid-migration .a2ml → .deed (standards#837): accept either manifest name.
-    if [ ! -f "0-AI-MANIFEST.a2ml" ] && [ ! -f "0-AI-MANIFEST.deed" ]; then
-        MISSING="$MISSING 0-AI-MANIFEST.a2ml-or-.deed"
+    if [ ! -f "0-AI-MANIFEST.deed" ]; then
+        MISSING="$MISSING 0-AI-MANIFEST.deed"
     fi
-    for f in .machine_readable/descriptiles/STATE.a2ml .machine_readable/descriptiles/META.a2ml .machine_readable/descriptiles/ECOSYSTEM.a2ml .machine_readable/descriptiles/anchors/ANCHOR.a2ml .machine_readable/policies/MAINTENANCE-AXES.a2ml .machine_readable/policies/MAINTENANCE-CHECKLIST.a2ml .machine_readable/policies/SOFTWARE-DEVELOPMENT-APPROACH.a2ml; do
-        [ -f "$f" ] || MISSING="$MISSING $f"
-    done
     for f in docs/legal/EXHIBIT-A-ETHICAL-USE.txt docs/legal/EXHIBIT-B-QUANTUM-SAFE.txt LICENSES/MPL-2.0.txt; do
         [ -f "$f" ] || MISSING="$MISSING $f"
     done
@@ -36,35 +32,11 @@ validate-rsr:
     for f in docs/governance/MAINTENANCE-CHECKLIST.adoc docs/governance/SOFTWARE-DEVELOPMENT-APPROACH.adoc; do
         [ -f "$f" ] || MISSING="$MISSING $f"
     done
-    if [ -f ".machine_readable/descriptiles/META.a2ml" ]; then
-        grep -q 'axis-1 = "must > intend > like"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:axis-1"
-        grep -q 'axis-2 = "corrective > adaptive > perfective"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:axis-2"
-        grep -q 'axis-3 = "systems > compliance > effects"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:axis-3"
-        grep -q 'scoping-first = true' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:scoping-first"
-        grep -q 'idris-unsound-scan = "believe_me/assert_total"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:idris-unsound-scan"
-        grep -q 'audit-focus = "systems in place, documentation explains actual state, safety/security accounted for, observed effects reviewed"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:audit-focus"
-        grep -q 'compliance-focus = "seams/compromises/exception register, bounded exceptions, anti-drift checks"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:compliance-focus"
-        grep -q 'effects-evidence = "benchmark execution/results and maintainer status dialogue/review"' .machine_readable/descriptiles/META.a2ml || MISSING="$MISSING META.a2ml:effects-evidence"
-        grep -q 'compliance-tooling = "panic-attack"' .machine_readable/policies/MAINTENANCE-AXES.a2ml || MISSING="$MISSING MAINTENANCE-AXES.a2ml:compliance-tooling"
-        grep -q 'effects-tooling = "ecological checking with sustainabot guidance"' .machine_readable/policies/MAINTENANCE-AXES.a2ml || MISSING="$MISSING MAINTENANCE-AXES.a2ml:effects-tooling"
-        grep -q 'source-human = "docs/governance/MAINTENANCE-CHECKLIST.adoc"' .machine_readable/policies/MAINTENANCE-CHECKLIST.a2ml || MISSING="$MISSING MAINTENANCE-CHECKLIST.a2ml:source-human"
-        grep -q 'source-human = "docs/governance/SOFTWARE-DEVELOPMENT-APPROACH.adoc"' .machine_readable/policies/SOFTWARE-DEVELOPMENT-APPROACH.a2ml || MISSING="$MISSING SOFTWARE-DEVELOPMENT-APPROACH.a2ml:source-human"
-    fi
     if [ -n "$MISSING" ]; then
         echo "MISSING:$MISSING"
         exit 1
     fi
     echo "RSR compliance: PASS"
-
-# Validate STATE.a2ml syntax
-validate-state:
-    @cd "{{justfile_directory()}}" && if [ -f ".machine_readable/descriptiles/STATE.a2ml" ]; then \
-        grep -q '^\[metadata\]' .machine_readable/descriptiles/STATE.a2ml && \
-        grep -q 'project\s*=' .machine_readable/descriptiles/STATE.a2ml && \
-        echo "STATE.a2ml: valid" || echo "STATE.a2ml: INVALID (missing required sections)"; \
-    else \
-        echo "No .machine_readable/descriptiles/STATE.a2ml found"; \
-    fi
 
 # Validate AI installation guide completeness (finishbot pre-release check)
 validate-ai-install:
@@ -132,5 +104,5 @@ validate-ai-install:
     echo "AI install guide: PASS"
 
 # Full validation suite
-validate: validate-rsr validate-state validate-ai-install
+validate: validate-rsr validate-ai-install
     @echo "All validations passed!"

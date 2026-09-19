@@ -52,7 +52,7 @@ info:
     @echo "Version: {{version}}"
     @echo "RSR Tier: {{tier}}"
     @echo "Recipes: $(just --summary | wc -w)"
-    @[ -f ".machine_readable/descriptiles/STATE.a2ml" ] && grep -oP 'phase\s*=\s*"\K[^"]+' .machine_readable/descriptiles/STATE.a2ml | head -1 | xargs -I{} echo "Phase: {}" || true
+    @[ -f ".machine_readable/descriptiles/marid_chora.deed" ] && grep -oP ':phase\s+\K[a-z0-9_-]+' .machine_readable/descriptiles/marid_chora.deed | head -1 | xargs -I{} echo "Phase: {}" || true
 
 # Run Invariant Path overlay tools for this repository
 invariant-path *ARGS:
@@ -276,10 +276,10 @@ deps-audit:
     @echo "Audit complete"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ARRIVAL PACK — agent-facing CLAUDE.md, compiled from a2ml
+# ARRIVAL PACK — agent-facing CLAUDE.md
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Compile CLAUDE.md (the agent arrival pack) from this repo's a2ml
+# Compile CLAUDE.md (the agent arrival pack)
 claude-md:
     @bash .machine_readable/arrival-pack/generate.sh
 
@@ -303,7 +303,7 @@ validate-repo-map:
     rm -f "$before"
     echo "repository map: up to date"
 
-# Fail if CLAUDE.md's generated region drifted from a2ml or was hand-edited
+# Fail if CLAUDE.md's generated region drifted or was hand-edited
 validate-claude-md:
     @bash .machine_readable/arrival-pack/verify.sh
 
@@ -426,16 +426,16 @@ import? "build/just/validate.just"
 # STATE MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Update STATE.a2ml timestamp
+# Update manifest timestamp
 state-touch:
-    @if [ -f ".machine_readable/descriptiles/STATE.a2ml" ]; then \
-        sed -i 's/last-updated = "[^"]*"/last-updated = "'"$(date +%Y-%m-%d)"'"/' .machine_readable/descriptiles/STATE.a2ml && \
-        echo "STATE.a2ml timestamp updated"; \
+    @if [ -f "0-AI-MANIFEST.deed" ]; then \
+        sed -i 's/last-updated = "[^"]*"/last-updated = "'"$(date +%Y-%m-%d)"'"/' 0-AI-MANIFEST.deed && \
+        echo "0-AI-MANIFEST.deed timestamp updated"; \
     fi
 
-# Show current phase from STATE.a2ml
+# Show current phase from marid_chora.deed
 state-phase:
-    @sed -n 's/^[[:space:]]*phase[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' .machine_readable/descriptiles/STATE.a2ml 2>/dev/null | head -1 || echo "unknown"
+    @grep -oP ':phase\s+\K[a-z0-9_-]+' .machine_readable/descriptiles/marid_chora.deed 2>/dev/null | head -1 || echo "unknown"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GUIX

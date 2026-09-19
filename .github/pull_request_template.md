@@ -29,9 +29,6 @@ Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 ### As Applicable
 
-- [ ] `.machine_readable/descriptiles/STATE.a2ml` updated (if project state changed)
-- [ ] `.machine_readable/descriptiles/ECOSYSTEM.a2ml` updated (if integrations changed)
-- [ ] `.machine_readable/descriptiles/META.a2ml` updated (if architectural decisions changed)
 - [ ] Documentation updated for user-facing changes
 - [ ] `TOPOLOGY.md` updated (if architecture changed)
 - [ ] `CHANGELOG` or release notes updated
