@@ -1,14 +1,55 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridIR.jl — service descriptor IR (planned)
+= MaridIR.jl — Canonical Service Descriptor IR
+:toc:
+:sectnums:
 
-The one service descriptor: `ServiceDescriptor`, `MethodDescriptor`,
-`TypeRef`, streaming kinds, and annotations. Pure data plus validation,
-with no dependencies (`docs/MARID-FRAMEWORK.adoc`, launch set).
+The canonical Intermediate Representation (IR) for the Marid framework.
+Pure data definitions for services, RPC methods, fields, streaming semantics,
+and annotations (`docs/MARID-FRAMEWORK.adoc`, launch set).
 
-Every schema artifact — OpenAPI, JSON Schema, GraphQL SDL, `.proto`,
-AsyncAPI, client stubs, docs — is emitted from this IR. Nothing is
-hand-maintained in parallel.
+Every schema artifact — OpenAPI 3.1, JSON Schema 2020-12, GraphQL SDL, Protobuf `.proto`,
+and Bebop `.bop` — is emitted from this IR. Nothing is hand-maintained in parallel.
 
-Status: Gate 0 skeleton. Implemented at Phase 1; the IR freezes after
-the first emitter proves it (brief §9).
+Status: **Implemented & Verified (Gate 3)**. Zero dependencies.
+
+== Public API
+
+* `ServiceDescriptor(name, version, types, methods; description, annotations)`
+* `TypeDescriptor(name, fields; description, annotations)`
+* `FieldDescriptor(name, type_ref; nullable, description, annotations)`
+* `MethodDescriptor(name, input_type, output_type; streaming, route_path, http_method, description, annotations)`
+* `validate_service(svc)`: validates type integrity, route uniqueness, and non-empty metadata.
+* `to_dict(svc)`: serializes service definitions into pure dictionary structures for golden snapshot comparisons.
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| Primitive & Object Types | Supported | `test/runtests.jl` validates Int, Float, String, and custom structs.
+| Streaming Kinds | Supported | Unary, ServerStreaming, ClientStreaming, BidirectionalStreaming.
+| Route Validation | Supported | Duplicate routes with identical HTTP verbs trigger descriptive errors.
+| Schema Golden Export | Supported | `to_dict` snapshot export verified byte-for-byte.
+|===
+
+== Unsupported Features
+* Dynamic metaprogramming or code generation from unverified strings.
+* In-line circular recursive type definitions without pointer indirection.
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridIR
+
+field_id = FieldDescriptor("id", "String", nullable=false)
+field_name = FieldDescriptor("name", "String", nullable=false)
+taxon_type = TypeDescriptor("Taxon", [field_id, field_name])
+
+m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary, route_path="/taxa/:id", http_method="GET")
+
+svc = ServiceDescriptor("TaxonomyAPI", "1.0.0", [taxon_type], [m_get])
+validate_service(svc) # returns true
+----

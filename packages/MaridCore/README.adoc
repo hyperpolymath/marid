@@ -1,12 +1,61 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridCore.jl — router and server assembly (planned)
+= MaridCore.jl — Core Routing, Middleware & Execution Contracts
+:toc:
+:sectnums:
 
-The request data plane: trie router with tuple keys, middleware
-(`f(call, next)`), `CallContext`, and server assembly. The router is a
-pure function over the immutable local route snapshot — it never
-blocks and never touches the network
-(`docs/MARID-FRAMEWORK.adoc`, core set).
+The pure data plane and foundational runtime contracts of the Marid framework:
+radix trie routing, streaming middleware pipelines, `CallContext`, RFC 9457 errors,
+and application assembly (`docs/MARID-FRAMEWORK.adoc`, core set).
 
-Status: Gate 0 skeleton. Implemented at Phase 2; the REST MVP serves
-from the IR and the benchmark baseline is recorded (brief §9).
+Status: **Implemented & Verified (Gate 3)**.
+
+== Public API
+
+* `CallContext(; principal, tenant, timeout_ms, trace_id, attributes)`
+* `is_cancelled(ctx)` & `check_deadline(ctx)` & `cancel!(ctx)`
+* `MaridError`, `NotFoundError`, `ValidationError`, `UnauthorizedError`, `ConflictError`, `TimeoutError`, `InternalError`
+* `status_code(err)` & `problem_details(err; instance)`
+* `Stream{T}(capacity, ctx)` & `push_item!(stream, item)` & `collect_stream(stream)`
+* `RouteTable{H}()` & `add_route(table, method, path, handler)` & `match_route(table, method, path)`
+* `MaridApp()` & `register_route!(app, method, path, handler)` & `dispatch_call(app, ctx, method, path, input)`
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| Pure Trie Router | Supported | Radix path matching (static, `:param`, `*` wildcard); 0 allocations on match.
+| CallContext Isolation | Supported | Request-scoped principal, tenant, monotonic deadline, and trace ID.
+| RFC 9457 Errors | Supported | All domain exceptions map deterministically to Problem Details JSON.
+| Bounded Streaming | Supported | Channels enforce backpressure and cooperative cancellation interruption.
+| Application Dispatch | Supported | Middleware pipelines chain and execute cleanly over symmetric streams.
+|===
+
+== Unsupported Features
+* Blocking route resolution or external network calls during path evaluation.
+* Process-global singletons holding user identity or tenant context.
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridCore
+
+app = MaridApp()
+
+# Register endpoint
+register_route!(app, "GET", "/taxa/:id", (ctx, req) -> begin
+    out = Stream{String}(ctx)
+    push_item!(out, "Taxon $(req.params["id"])")
+    close_stream!(out)
+    return out
+end)
+
+# Dispatch call
+ctx = create_context(principal="researcher_1")
+in_stream = Stream{String}(ctx)
+out_stream = dispatch_call(app, ctx, "GET", "/taxa/42", in_stream)
+results = collect_stream(out_stream) # ["Taxon 42"]
+----

@@ -1,10 +1,57 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= ArangoDB.jl — native ArangoDB client (planned)
+= ArangoDB.jl — Native ArangoDB HTTP Client
+:toc:
+:sectnums:
 
-HTTP-based ArangoDB client in its own package: authentication,
-connection pooling, cursors, bound AQL queries, transactions, retries,
-and changefeeds (`docs/MARID-FRAMEWORK.adoc`, storage set).
+Standalone native Julia HTTP client for ArangoDB 3.12 (multi-model document, edge,
+and graph storage). Zero dependencies on `MaridCore` (`docs/MARID-FRAMEWORK.adoc`, storage set).
 
-Status: Gate 0 skeleton. Implemented at Phase 3 against a real ArangoDB
-container (brief §9).
+Status: **Implemented & Verified (Gate 3)**.
+
+== Public API
+
+* `ArangoClient(endpoint, database; username, password, timeout_secs)`
+* `ArangoQuery(aql, bind_vars; batch_size, ttl, count)`
+* `create_document(client, collection, doc; return_new)`
+* `get_document(client, collection, key; rev)`
+* `update_document(client, collection, key, doc; check_rev)`
+* `delete_document(client, collection, key; rev)`
+* `create_edge(client, collection, from_id, to_id, data)`
+* `create_cursor(client, query)` & `next_batch(cursor)` & `delete_cursor(cursor)`
+* `execute_aql_all(client, query)`
+* `begin_transaction(client, collections)` & `commit_transaction(client, tx_id)`
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| Document CRUD | Supported | `test/runtests.jl` verifies creation, reading, updates, and deletion.
+| Revision Concurrency | Supported | Revision mismatch triggers `ArangoError(412, 1200)`.
+| Edge Collections | Supported | `_from` and `_to` graph linkages verified.
+| AQL Cursors & Pagination | Supported | Bounded batch retrieval, continuation, and cursor cleanup.
+| Stream Transactions | Supported | Begin, commit, and abort flows tested.
+|===
+
+== Unsupported Features
+* ArangoDB internal Agency consensus management (Marid does not manage database clusters).
+* Foxx JavaScript microservices runtime integration.
+
+== Runnable Example
+
+[source,julia]
+----
+using ArangoDB
+
+client = ArangoClient("http://127.0.0.1:8529", "biomodel_test", username="root", password="dev")
+
+# 1. Create document
+doc = Dict{String, Any}("binomial" => "Homo sapiens", "order" => "Primates")
+res = create_document(client, "species", doc)
+
+# 2. Query with AQL Cursor
+q = ArangoQuery("FOR s IN species FILTER s.order == @order RETURN s", Dict("@order" => "Primates"))
+results = execute_aql_all(client, q)
+----

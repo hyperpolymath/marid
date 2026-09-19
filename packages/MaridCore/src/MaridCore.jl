@@ -6,7 +6,7 @@
 
 Core data plane and foundational runtime contracts for Marid.
 Provides CallContext, domain error mapping (RFC 9457), bounded streaming seams,
-and trie-based request routing.
+radix trie routing, streaming middleware pipelines, and application lifecycle assembly.
 """
 module MaridCore
 
@@ -17,5 +17,8 @@ using MaridIR
 include("errors.jl")
 include("context.jl")
 include("streaming.jl")
+include("router.jl")
+include("middleware.jl")
+include("app.jl")
 
 end # module MaridCore

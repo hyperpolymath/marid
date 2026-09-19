@@ -17,6 +17,25 @@ export emit_graphql_sdl, execute_graphql_query
 
 Emits canonical GraphQL SDL schema from a service descriptor.
 """
+function _type_name(ref::TypeRef)::String
+    if ref isa PrimitiveType
+        ref.name == "String" && return "String"
+        ref.name in ["Int32", "Int64"] && return "Int"
+        ref.name in ["Float32", "Float64"] && return "Float"
+        ref.name == "Bool" && return "Boolean"
+        ref.name == "ID" && return "ID"
+        return "String"
+    elseif ref isa ObjectType
+        return ref.name
+    elseif ref isa ListType
+        return "[" * _type_name(ref.element_type) * "]"
+    elseif ref isa OptionalType
+        return _type_name(ref.inner_type)
+    else
+        return "String"
+    end
+end
+
 function emit_graphql_sdl(svc::ServiceDescriptor)::String
     lines = String[]
     
@@ -24,8 +43,9 @@ function emit_graphql_sdl(svc::ServiceDescriptor)::String
     for t in svc.types
         push!(lines, "type $(t.name) {")
         for f in t.fields
+            tname = _type_name(f.type_ref)
             bang = f.nullable ? "" : "!"
-            push!(lines, "  $(f.name): $(f.type_name)$bang")
+            push!(lines, "  $(f.name): $tname$bang")
         end
         push!(lines, "}\n")
     end
