@@ -1,0 +1,13 @@
+{
+  "name": "@marid/elements",
+  "version": "0.3.0",
+  "description": "Portable Web Components demonstrator for Marid",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "author": "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>",
+  "license": "MPL-2.0"
+}

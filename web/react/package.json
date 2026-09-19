@@ -1,0 +1,16 @@
+{
+  "name": "@marid/react",
+  "version": "0.3.0",
+  "description": "Thin React lifecycle integration for Marid client",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@marid/client": "workspace:*"
+  },
+  "author": "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>",
+  "license": "MPL-2.0"
+}

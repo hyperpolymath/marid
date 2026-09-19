@@ -2,11 +2,11 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 3 (Independent Packages Implementation) completed on 2026-09-19.
+# Gate 4 (Assembly and Browser Integrations) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
-version = "0.3.0"
+version = "0.4.0"
 last-updated = "2026-09-19"
 # status: active | paused | archived | planned
 # AUTHORITY: when this and CLADE [status] phase disagree, CLADE phase is the
@@ -17,11 +17,11 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 70
+completion-percentage = 85
 
 [position]
-phase = "implementation"  # design | implementation | testing | maintenance | archived
-maturity = "alpha"        # experimental | alpha | beta | production | lts
+phase = "testing"         # design | implementation | testing | maintenance | archived
+maturity = "beta"         # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
 # Gates from PROJECT_BRIEF.md §9. Completion is honest.
@@ -30,19 +30,19 @@ milestones = [
   { name = "Gate 1: interoperability spikes", completion = 100 },
   { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 100 },
   { name = "Gate 3: independent packages", completion = 100 },
-  { name = "Gate 4: assembly and browser integrations", completion = 0 },
+  { name = "Gate 4: assembly and browser integrations", completion = 100 },
   { name = "Gate 5: release review", completion = 0 },
 ]
 
 [blockers-and-issues]
-# Gates 0, 1, 2, and 3 complete. All 9 packages passing 93 unit test assertions.
+# All Gates 0 through 4 complete. 9 packages + 4 browser packages + reference app tested and passing.
 
 [critical-next-actions]
 actions = [
-  "Execute Gate 4: Assemble browser client and reference application.",
-  "Implement @marid/client in AffineScript / JS with reconnect and SSE subscriptions.",
-  "Deliver relationship_explorer reference application integrating ArangoDB and Cladistics.jl.",
-  "Run cross-protocol integration tests.",
+  "Execute Gate 5: Comprehensive Release Review.",
+  "Perform complete licensing, security, and reproducibility audits.",
+  "Author release review audit report docs/audits/gate5-release-review.adoc.",
+  "Present standalone repository migration roadmap for when user signals Gate 5 split.",
 ]
 
 [maintenance-status]
@@ -54,4 +54,4 @@ open-failures = 0
 
 [ecosystem]
 part-of = ["hyperpolymath estate"]
-depends-on = ["Julia General registry (package dependencies, from Gate 2)", "ArangoDB test instance (3.12 Community Edition)"]
+depends-on = ["Julia General registry (package dependencies)", "ArangoDB test instance (3.12 Community Edition)", "Bun 1.4 runtime"]

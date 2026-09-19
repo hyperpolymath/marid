@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "title": "Hominoidea Morphological Character Matrix",
+    "characters": [
+      "opposable_thumb",
+      "loss_of_external_tail",
+      "habitual_bipedalism",
+      "cranial_capacity_over_1000cc",
+      "symbolic_language_adaptations"
+    ]
+  },
+  "taxa": [
+    {
+      "name": "Lemur catta",
+      "rank": "Species",
+      "characters": [1, 0, 0, 0, 0]
+    },
+    {
+      "name": "Macaca mulatta",
+      "rank": "Species",
+      "characters": [1, 0, 0, 0, 0]
+    },
+    {
+      "name": "Hylobates lar",
+      "rank": "Species",
+      "characters": [1, 1, 0, 0, 0]
+    },
+    {
+      "name": "Pan troglodytes",
+      "rank": "Species",
+      "characters": [1, 1, 0, 0, 0]
+    },
+    {
+      "name": "Homo neanderthalensis",
+      "rank": "Species",
+      "characters": [1, 1, 1, 1, 0]
+    },
+    {
+      "name": "Homo sapiens",
+      "rank": "Species",
+      "characters": [1, 1, 1, 1, 1]
+    }
+  ],
+  "edges": [
+    { "from": "Lemur catta", "to": "Macaca mulatta", "rel": "sister_to", "weight": 0.4 },
+    { "from": "Macaca mulatta", "to": "Hylobates lar", "rel": "sister_to", "weight": 0.6 },
+    { "from": "Hylobates lar", "to": "Pan troglodytes", "rel": "sister_to", "weight": 0.8 },
+    { "from": "Pan troglodytes", "to": "Homo neanderthalensis", "rel": "sister_to", "weight": 0.95 },
+    { "from": "Homo neanderthalensis", "to": "Homo sapiens", "rel": "sister_to", "weight": 0.99 }
+  ]
+}
