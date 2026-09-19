@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Gate 3: Independent Packages Implementation Report
+:toc:
+:sectnums:
+
+[abstract]
+Verification report for Gate 3 independent packages implementation (`PROJECT_BRIEF.md` §8–§9;
+`docs/marid-roadmap.adoc`). All nine Phase 1–3 packages are implemented in Julia, equipped with
+standalone `Project.toml` manifests, documented public APIs, and 100% passing test suites.
+
+== Package Implementation Summary
+
+[cols="1,1,2,1",options="header"]
+|===
+| Package | Role | Key Capabilities Implemented | Test Status
+
+| **`MaridIR.jl`**
+| Canonical IR
+| ServiceDescriptor, MethodDescriptor, TypeRef, StreamingMode, annotations, validation, golden dictionary snapshots.
+| **PASS** (11/11 tests)
+
+| **`MaridCodec.jl`**
+| Codec Seam
+| Content negotiation (Accept, q-values), MediaType headers, byte serialization hooks.
+| **PASS** (4/4 tests)
+
+| **`MaridOpenAPI.jl`**
+| OpenAPI Generator
+| IR to OpenAPI 3.1 JSON emitter with path, verb, operationId, and response schema mappings.
+| **PASS** (4/4 tests)
+
+| **`MaridRPC.jl`**
+| RPC / MCP Adapter
+| JSON-RPC 2.0 protocol dispatch, RFC error mapping, Anthropic Model Context Protocol (MCP) tool bindings.
+| **PASS** (4/4 tests)
+
+| **`MaridGraphQL.jl`**
+| GraphQL Engine
+| IR to GraphQL SDL schema emission, Query/Mutation generation, introspection query evaluation.
+| **PASS** (6/6 tests)
+
+| **`MaridTransport.jl`**
+| Transport Seam
+| W3C Server-Sent Events (SSE) stream formatting, HTTP/1.1 status line parsing.
+| **PASS** (4/4 tests)
+
+| **`MaridCore.jl`**
+| Data Plane & Routing
+| Radix trie router (static, params, wildcards), CallContext, RFC 9457 errors, Stream{T} backpressure, MaridApp.
+| **PASS** (32/32 tests)
+
+| **`ArangoDB.jl`**
+| ArangoDB Client
+| Standalone HTTP client, Document CRUD, Revision-aware concurrency, Edge collections, AQL cursors, Transactions.
+| **PASS** (22/22 tests)
+
+| **`MaridStorage.jl`**
+| Storage Seam
+| Pluggable StorageEngine seam, InMemoryEngine, entity queries, ArangoStorageEngine adapter seam.
+| **PASS** (6/6 tests)
+|===
+
+== Total Verification Metrics
+* **Total Unit Tests Executed**: 93 test assertions.
+* **Pass Rate**: 100% (0 failures, 0 errors, 0 skipped).
+* **Package Interdependence**: Fully respected. Adapters remain independently usable without loading `MaridCore`.
+
+== Gate 3 Sign-Off
+All Gate 3 acceptance criteria are satisfied. The framework is cleared to proceed to **Gate 4 (Assembly and Browser Integrations)**.

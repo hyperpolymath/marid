@@ -238,7 +238,6 @@ your own repo - but do not read their emptiness as neglect here.
 [cols="1"]
 |===
 | `.machine_readable/scripts/verification/`
-| `contracts/`
 | `docs/governance/audit/`
 | `docs/governance/audit/compliance/`
 | `docs/governance/audit/effects/`
@@ -274,20 +273,10 @@ your own repo - but do not read their emptiness as neglect here.
 | `features/boj-server/`
 | `features/panic-attacker/`
 | `fixtures/`
-| `packages/`
-| `packages/ArangoDB/`
 | `packages/MaridCRDT/`
-| `packages/MaridCodec/`
 | `packages/MaridControl/`
-| `packages/MaridCore/`
-| `packages/MaridGraphQL/`
-| `packages/MaridIR/`
 | `packages/MaridLive/`
-| `packages/MaridOpenAPI/`
-| `packages/MaridRPC/`
 | `packages/MaridRaft/`
-| `packages/MaridStorage/`
-| `packages/MaridTransport/`
 | `src/aspects/`
 | `src/aspects/integrity/`
 | `src/aspects/observability/`

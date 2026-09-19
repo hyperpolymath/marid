@@ -4,7 +4,7 @@
 using Test
 using MaridCore
 
-@testset "MaridCore Contracts" begin
+@testset "MaridCore Complete Suite" begin
     # 1. Error Mapping & Problem Details
     @testset "RFC 9457 Domain Errors" begin
         not_found = NotFoundError("Taxon", "42")
@@ -33,11 +33,9 @@ using MaridCore
         @test !is_expired(ctx)
         @test check_deadline(ctx) > 0.0
         
-        # Test explicit cancellation
         cancel!(ctx)
         @test is_cancelled(ctx) == true
         
-        # Test expiration
         expired_ctx = create_context(timeout_ms=-10)
         @test is_expired(expired_ctx) == true
         @test_throws TimeoutError check_deadline(expired_ctx)
@@ -48,7 +46,6 @@ using MaridCore
         ctx = create_context(timeout_ms=5000)
         stream = Stream{Int}(4, ctx)
         
-        # Produce items asynchronously
         @async begin
             for i in 1:5
                 push_item!(stream, i)
@@ -56,7 +53,6 @@ using MaridCore
             close_stream!(stream)
         end
         
-        # Consume items
         items = collect_stream(stream)
         @test items == [1, 2, 3, 4, 5]
         @test is_closed(stream) == true
@@ -66,11 +62,70 @@ using MaridCore
     @testset "Stream Cancellation Defense" begin
         ctx = create_context(timeout_ms=5000)
         stream = Stream{String}(2, ctx)
-        
         push_item!(stream, "item1")
         cancel!(ctx)
-        
-        # Pushing to cancelled context triggers error
         @test_throws ErrorException push_item!(stream, "item2")
+    end
+
+    # 5. Radix Trie Router Matching
+    @testset "Trie Router" begin
+        table = RouteTable{String}()
+        table = add_route(table, "GET", "/api/v1/taxa", "list_taxa")
+        table = add_route(table, "GET", "/api/v1/taxa/:id", "get_taxon")
+        table = add_route(table, "POST", "/api/v1/taxa", "create_taxon")
+        table = add_route(table, "GET", "/static/*", "serve_static")
+        
+        # Exact match
+        m1 = match_route(table, "GET", "/api/v1/taxa")
+        @test m1 !== nothing
+        @test m1.handler == "list_taxa"
+        @test isempty(m1.params)
+        
+        # Parameterized match
+        m2 = match_route(table, "GET", "/api/v1/taxa/hominini")
+        @test m2 !== nothing
+        @test m2.handler == "get_taxon"
+        @test m2.params["id"] == "hominini"
+        
+        # Wildcard match
+        m3 = match_route(table, "GET", "/static/css/theme.css")
+        @test m3 !== nothing
+        @test m3.handler == "serve_static"
+        @test m3.params["*"] == "css/theme.css"
+        
+        # Unmatched route
+        @test match_route(table, "GET", "/not/found") === nothing
+        @test match_route(table, "DELETE", "/api/v1/taxa") === nothing
+    end
+
+    # 6. Middleware and App Dispatch
+    @testset "Application Assembly" begin
+        app = MaridApp()
+        
+        # Handler returns stream of results
+        register_route!(app, "GET", "/greet/:name", (ctx, req) -> begin
+            out = Stream{String}(ctx)
+            push_item!(out, "Hello, $(req.params["name"])!")
+            close_stream!(out)
+            return out
+        end)
+        
+        # Add tracing middleware
+        push!(app.middlewares, FunctionMiddleware((ctx, call, next) -> begin
+            # Append audit attribute
+            ctx.attributes[:audited] = true
+            return next(ctx, call)
+        end))
+        
+        ctx = create_context()
+        in_stream = Stream{String}(ctx)
+        out_stream = dispatch_call(app, ctx, "GET", "/greet/Jonathan", in_stream)
+        
+        results = collect_stream(out_stream)
+        @test results == ["Hello, Jonathan!"]
+        @test ctx.attributes[:audited] == true
+        
+        # Route not found exception
+        @test_throws NotFoundError dispatch_call(app, ctx, "GET", "/unknown", in_stream)
     end
 end

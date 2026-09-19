@@ -2,11 +2,11 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 2 (Foundation, Skeletons, Contracts, CI) completed on 2026-09-19.
+# Gate 3 (Independent Packages Implementation) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
-version = "0.2.0"
+version = "0.3.0"
 last-updated = "2026-09-19"
 # status: active | paused | archived | planned
 # AUTHORITY: when this and CLADE [status] phase disagree, CLADE phase is the
@@ -17,7 +17,7 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 50
+completion-percentage = 70
 
 [position]
 phase = "implementation"  # design | implementation | testing | maintenance | archived
@@ -29,20 +29,20 @@ milestones = [
   { name = "Gate 0: feasibility and licensing audit", completion = 100 },
   { name = "Gate 1: interoperability spikes", completion = 100 },
   { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 100 },
-  { name = "Gate 3: independent packages", completion = 0 },
+  { name = "Gate 3: independent packages", completion = 100 },
   { name = "Gate 4: assembly and browser integrations", completion = 0 },
   { name = "Gate 5: release review", completion = 0 },
 ]
 
 [blockers-and-issues]
-# Gates 0, 1, and 2 complete. All 9 Phase 1-3 package skeletons and contracts passing tests.
+# Gates 0, 1, 2, and 3 complete. All 9 packages passing 93 unit test assertions.
 
 [critical-next-actions]
 actions = [
-  "Execute Gate 3: Deep implementations of independent packages.",
-  "Implement MaridIR service definitions and golden snapshot tests.",
-  "Implement MaridCore trie routing engine and middleware pipeline.",
-  "Implement standalone ArangoDB.jl HTTP client with live container integration tests.",
+  "Execute Gate 4: Assemble browser client and reference application.",
+  "Implement @marid/client in AffineScript / JS with reconnect and SSE subscriptions.",
+  "Deliver relationship_explorer reference application integrating ArangoDB and Cladistics.jl.",
+  "Run cross-protocol integration tests.",
 ]
 
 [maintenance-status]
