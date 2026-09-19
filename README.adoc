@@ -17,9 +17,6 @@ image:https://sonarcloud.io/api/project_badges/measure?project=hyperpolymath_mar
 image:https://archive.softwareheritage.org/badge/origin/https://github.com/hyperpolymath/marid/[Archived in Software Heritage,link="https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/hyperpolymath/marid"]
 
 // ── Provenance & ecosystem ──────────────────────────────────────────────────
-image:https://img.shields.io/badge/Idris-Inside-5E5086?logo=idris&logoColor=white[Idris Inside,link="https://github.com/hyperpolymath/proven"]
-image:https://img.shields.io/badge/Zig-Zero--overhead-F7A41D?logo=zig&logoColor=black[Zig Zero-overhead FFI,link="https://github.com/hyperpolymath/typed-wasm"]
-image:https://api.thegreenwebfoundation.org/greencheckimage/github.com[Green Web,link="https://www.thegreenwebfoundation.org/green-web-check/?url=github.com"]
 
 Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence.
 
