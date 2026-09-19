@@ -135,7 +135,7 @@ themselves is not.
 * `README.adoc` — the aspirational claims this file is measured against.
 * `docs/EXPLAINME.adoc` — the mechanism.
 * `docs/AUDIT.adoc` — the standing conformance audit.
-* `0-AI-MANIFEST.a2ml` — machine-readable repo metadata.
+* `0-AI-MANIFEST.deed` — machine-readable repo metadata.
 * Central Estate CI/CD Audit, run `35413738206` — *contradicts* the canon
   reading: its Required Files Gate fails while the canon profile gates pass.
   The live run wins as fact (it fails); the canon profile gates win as

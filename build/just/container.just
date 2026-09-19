@@ -129,7 +129,8 @@ _compose action *args:
     if command -v selur-compose >/dev/null 2>&1 && [ -f "build/container/stapeln/compose.toml" ]; then
         ( cd build/container/stapeln && selur-compose {{action}} {{args}} )
     elif [ -f "build/container/compose.yaml" ]; then
-        "$ENGINE" compose -f build/container/compose.yaml {{action}} {{args}}
+        COMPOSE_FILE="$(realpath build/container/compose.yaml)"
+        "$ENGINE" compose -f "$COMPOSE_FILE" {{action}} {{args}}
     else
         echo "No compose file found (build/container/stapeln/compose.toml or build/container/compose.yaml)"
         exit 1
@@ -143,7 +144,8 @@ container-verify:
     if command -v selur-compose >/dev/null 2>&1 && [ -f "build/container/stapeln/compose.toml" ]; then
         ( cd build/container/stapeln && selur-compose verify )
     elif [ -f "build/container/compose.yaml" ]; then
-        "$ENGINE" compose -f build/container/compose.yaml config
+        COMPOSE_FILE="$(realpath build/container/compose.yaml)"
+        "$ENGINE" compose -f "$COMPOSE_FILE" config
     else
         echo "No compose file found (build/container/stapeln/compose.toml or build/container/compose.yaml)"
         exit 1

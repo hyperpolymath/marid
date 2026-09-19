@@ -60,3 +60,20 @@ jobs:
       - run: |
           julia --startup-file=no scripts/bootstrap.jl examples/http_json
           julia --startup-file=no --project=examples/http_json examples/http_json/test/runtests.jl
+
+  cli-and-emitters:
+    name: CLI & Emitters - Julia 1.10 - ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+        with:
+          version: '1.10.10'
+      - name: Verify CLI Capability Spec Generation
+        run: |
+          ./scripts/marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl /tmp/rel_spec.yaml
+          grep "RelationshipExplorerAPI" /tmp/rel_spec.yaml
+          grep "dsl_version: \"1\"" /tmp/rel_spec.yaml
+      - name: Run Framework Benchmarks
+        run: |
+          bash benches/marid_bench.sh json

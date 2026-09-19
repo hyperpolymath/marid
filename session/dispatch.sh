@@ -123,7 +123,7 @@ if [ -n "$standards_dir" ] && [ -d "$standards_dir/$protocol_rel" ]; then
   echo "standard: $standards_dir/$protocol_rel"
   echo "checklist: $standards_dir/$protocol_rel/CHECKLIST.adoc"
   echo "protocol: $standards_dir/$protocol_rel/PROTOCOL.k9"
-  echo "state template: $standards_dir/$protocol_rel/STATE-template.a2ml"
+  echo "state template: $standards_dir/$protocol_rel/STATE-template.deed"
 else
   echo "warning: could not resolve central standards directory."
   echo "Set SESSION_STANDARDS_DIR to standards/3-practice/session-management-standards." >&2

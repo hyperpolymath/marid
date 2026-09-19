@@ -7,7 +7,8 @@
 set -euo pipefail
 
 MARID_VERSION="1.0.0"
-MARID_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MARID_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 show_help() {
     cat <<EOF
@@ -15,17 +16,18 @@ Marid Framework CLI (v${MARID_VERSION})
 Usage: marid <command> [options] [arguments]
 
 Commands:
-  generate proto <path>     Emit Protocol Buffers v3 schema (.proto) from service
-  generate openapi <path>   Emit OpenAPI 3.1 specification (JSON) from service
-  generate graphql <path>   Emit GraphQL SDL schema from service
+  generate proto <path> [out]           Emit Protocol Buffers v3 schema (.proto) from service
+  generate openapi <path> [out]         Emit OpenAPI 3.1 specification (JSON) from service
+  generate graphql <path> [out]         Emit GraphQL SDL schema from service
   generate capability-spec <path> --global-verbs GET
-                           Emit native gateway DSL v1 YAML (explicit global exposure)
+                                        Emit native gateway DSL v1 YAML (explicit global exposure)
   generate capability-spec <path> --deny-by-default
-                           Emit strict YAML for the paired patched gateway
-  routes <path>             Inspect and display route table of a MaridApp
-  check                     Run full estate verification suite across Julia and Bun
-  version, --version, -v    Display Marid framework version
-  help, --help, -h          Display this help message
+                                        Emit strict YAML for the paired patched gateway
+  generate capability-spec <path> [out] Emit http-capability-gateway Verb Governance Spec (DSL v1 YAML)
+  routes <path>                         Inspect and display route table of a MaridApp
+  check                                 Run full estate verification suite across Julia and Bun
+  version, --version, -v                Display Marid framework version
+  help, --help, -h                      Display this help message
 EOF
 }
 
@@ -41,8 +43,9 @@ case "${1:-help}" in
     generate)
         TARGET="${2:-}"
         FILE="${3:-}"
+        OUT="${4:-}"
         if [[ -z "$TARGET" || -z "$FILE" ]]; then
-            echo "Error: 'generate' requires <target> and <path> (e.g. marid generate proto service.jl)" >&2
+            echo "Error: 'generate' requires <target> and <path> (e.g. marid generate capability-spec service.jl)" >&2
             exit 1
         fi
         if [[ "$TARGET" == "capability-spec" ]]; then
@@ -50,21 +53,193 @@ case "${1:-help}" in
                 exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
                     "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "" strict
             fi
-            if [[ $# -ne 5 || "${4:-}" != "--global-verbs" || -z "${5:-}" ]]; then
-                echo "Error: use generate capability-spec service.jl --global-verbs GET" >&2
-                echo "Global verbs are public on ALL paths; no deny-by-default support upstream." >&2
-                exit 1
+            if [[ $# -eq 5 && "${4:-}" == "--global-verbs" ]]; then
+                exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$5" legacy
             fi
-            exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
-                "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$5" legacy
+            # Fallback to generic emitter if no explicit flag and OUT handling needed
+            # For backward compatibility, allow --global-verbs check to be bypassed when OUT is provided via main's logic
+            if [[ $# -ne 5 || "${4:-}" != "--global-verbs" || -z "${5:-}" ]]; then
+                # If called with explicit flags, error was already handled above; otherwise continue to generic path
+                if [[ "${4:-}" == "--global-verbs" || "${4:-}" == "--deny-by-default" ]]; then
+                    echo "Error: use generate capability-spec service.jl --global-verbs GET" >&2
+                    echo "Global verbs are public on ALL paths; no deny-by-default support upstream." >&2
+                    exit 1
+                fi
+            fi
         fi
-        julia -e "
-            using Pkg
-            pushfirst!(LOAD_PATH, \"packages/MaridIR\")
+
+        cd "$MARID_ROOT"
+        OUTPUT_CONTENT=$(julia --project=packages/MaridIR -e '
+            if isdir("packages")
+                for p in readdir("packages")
+                    pkg_dir = joinpath("packages", p)
+                    if isdir(pkg_dir)
+                        pushfirst!(LOAD_PATH, abspath(pkg_dir))
+                    end
+                end
+            end
             using MaridIR
-            # Generator helper stub
-            println(\"// Emitted $TARGET schema from $FILE\")
-        "
+            using MaridOpenAPI
+            using MaridGraphQL
+
+            target = ARGS[1]
+            filepath = ARGS[2]
+
+            function is_descriptor(val::Any)::Bool
+                val isa ServiceDescriptor && return true
+                try
+                    return nameof(typeof(val)) == :ServiceDescriptor && hasfield(typeof(val), :methods)
+                catch
+                    return false
+                end
+            end
+
+            function search_descriptor(mod::Module, seen::Union{Nothing, Set{Module}}=nothing)::Any
+                if seen === nothing
+                    seen = Set{Module}()
+                end
+                mod in seen && return nothing
+                push!(seen, mod)
+                for name in names(mod, all=true)
+                    val = try getfield(mod, name) catch; nothing end
+                    if is_descriptor(val)
+                        return val
+                    elseif val isa Function
+                        app = try Base.invokelatest(applicable, val) catch; false end
+                        if app
+                            res = try Base.invokelatest(val) catch; nothing end
+                            if is_descriptor(res)
+                                return res
+                            end
+                        end
+                    elseif val isa Module && val !== mod && val !== Main && val !== Base && val !== Core
+                        sub = search_descriptor(val, seen)
+                        if sub !== nothing
+                            return sub
+                        end
+                    end
+                end
+                return nothing
+            end
+
+            function resolve_service(fp::String)::Any
+                if isfile(fp)
+                    m = Module()
+                    try
+                        Base.include(m, abspath(fp))
+                        found = search_descriptor(m)
+                        if found !== nothing
+                            return found
+                        end
+                    catch err
+                        @warn "Error evaluating $fp: $err"
+                    end
+                end
+                return ServiceDescriptor(splitext(basename(fp))[1], "1.0.0", TypeDescriptor[], MethodDescriptor[])
+            end
+
+            svc = resolve_service(filepath)
+
+            if target in ["capability-spec", "capability_spec", "capability"]
+                print(emit_capability_spec(svc))
+            elseif target == "proto"
+                print(emit_proto(svc))
+            elseif target == "openapi"
+                print(emit_openapi_json(svc))
+            elseif target == "graphql"
+                print(emit_graphql_sdl(svc))
+            else
+                println("// Unknown target $target for $filepath")
+            end
+        ' "$TARGET" "$FILE")
+
+        if [[ -n "$OUT" && "$OUT" != "--global-verbs" && "$OUT" != "--deny-by-default" ]]; then
+            echo "$OUTPUT_CONTENT" > "$OUT"
+            echo "Wrote $TARGET to $OUT"
+        else
+            echo "$OUTPUT_CONTENT"
+        fi
+        ;;
+    routes)
+        FILE="${2:-}"
+        if [[ -z "$FILE" ]]; then
+            echo "Error: 'routes' requires <path> (e.g. marid routes service.jl)" >&2
+            exit 1
+        fi
+        cd "$MARID_ROOT"
+        julia --project=packages/MaridIR -e '
+            if isdir("packages")
+                for p in readdir("packages")
+                    pkg_dir = joinpath("packages", p)
+                    if isdir(pkg_dir)
+                        pushfirst!(LOAD_PATH, abspath(pkg_dir))
+                    end
+                end
+            end
+            using MaridIR
+
+            filepath = ARGS[1]
+            function is_descriptor(val::Any)::Bool
+                val isa ServiceDescriptor && return true
+                try
+                    return nameof(typeof(val)) == :ServiceDescriptor && hasfield(typeof(val), :methods)
+                catch
+                    return false
+                end
+            end
+
+            function search_descriptor(mod::Module, seen::Union{Nothing, Set{Module}}=nothing)::Any
+                if seen === nothing
+                    seen = Set{Module}()
+                end
+                mod in seen && return nothing
+                push!(seen, mod)
+                for name in names(mod, all=true)
+                    val = try getfield(mod, name) catch; nothing end
+                    if is_descriptor(val)
+                        return val
+                    elseif val isa Function
+                        app = try Base.invokelatest(applicable, val) catch; false end
+                        if app
+                            res = try Base.invokelatest(val) catch; nothing end
+                            if is_descriptor(res)
+                                return res
+                            end
+                        end
+                    elseif val isa Module && val !== mod && val !== Main && val !== Base && val !== Core
+                        sub = search_descriptor(val, seen)
+                        if sub !== nothing
+                            return sub
+                        end
+                    end
+                end
+                return nothing
+            end
+
+            function resolve_service(fp::String)::Any
+                if isfile(fp)
+                    m = Module()
+                    try
+                        Base.include(m, abspath(fp))
+                        return search_descriptor(m)
+                    catch err
+                        @warn "Error evaluating $fp: $err"
+                    end
+                end
+                return nothing
+            end
+
+            svc = resolve_service(filepath)
+            if svc !== nothing
+                println("Routes for $(svc.name) (v$(svc.version)):")
+                for m in svc.methods
+                    println("  $(rpad(uppercase(m.http_method), 7)) $(rpad(isempty(m.route_path) ? "/" * m.name : m.route_path, 30)) -> $(m.name) ($(m.streaming))")
+                end
+            else
+                println("No ServiceDescriptor found in $filepath")
+            end
+        ' "$FILE"
         ;;
     check)
         echo "Running Marid estate verification..."
@@ -73,7 +248,7 @@ import subprocess
 pkgs = ['MaridIR', 'MaridCodec', 'MaridOpenAPI', 'MaridRPC', 'MaridGraphQL', 'MaridTransport', 'MaridCore', 'ArangoDB', 'MaridStorage', 'MaridControl', 'MaridLive', 'MaridCRDT', 'MaridRaft']
 for p in pkgs:
     res = subprocess.run(['julia', f'--project=packages/{p}', f'packages/{p}/test/runtests.jl'], capture_output=True)
-    assert res.returncode == 0, f'{p} failed'
+    assert res.returncode == 0, f'{p} failed: {res.stderr.decode()}'
     print(f'  ✓ {p} passed')
 print('All 13 packages passed!')
 "

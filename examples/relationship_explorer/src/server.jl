@@ -104,3 +104,49 @@ function build_app(svc::TaxonService)::MaridApp
     
     return app
 end
+
+"""
+    service_descriptor() -> ServiceDescriptor
+
+Emits canonical intermediate representation of the Relationship Explorer API.
+"""
+function service_descriptor()::ServiceDescriptor
+    t_taxon = TypeDescriptor("Taxon", [
+        FieldDescriptor("id", PrimitiveType("String")),
+        FieldDescriptor("name", PrimitiveType("String")),
+        FieldDescriptor("rank", PrimitiveType("String"))
+    ])
+
+    m_list = MethodDescriptor("listTaxa", "Void", "Taxon", streaming=ServerStreaming,
+                              route_path="/api/v1/taxa", http_method="GET",
+                              description="List all taxa",
+                              annotations=[Annotation("capability", "taxa:read")])
+    m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary,
+                             route_path="/api/v1/taxa/:id", http_method="GET",
+                             description="Get taxon by ID",
+                             annotations=[Annotation("capability", "taxa:read")])
+    m_nh = MethodDescriptor("getNeighborhood", "String", "Neighborhood", streaming=Unary,
+                            route_path="/api/v1/neighborhood/:id", http_method="GET",
+                            description="Get taxon neighborhood graph",
+                            annotations=[Annotation("capability", "graph:read")])
+    m_analysis = MethodDescriptor("runAnalysis", "TaxonList", "AnalysisResult", streaming=ServerStreaming,
+                                  route_path="/api/v1/analysis", http_method="POST",
+                                  description="Run cladistics parsimony analysis",
+                                  annotations=[Annotation("capability", "analysis:execute")])
+    m_bebop = MethodDescriptor("exportBebop", "Void", "Bytes", streaming=Unary,
+                               route_path="/api/v1/export/bebop", http_method="GET",
+                               description="Export taxa in Bebop format",
+                               annotations=[Annotation("capability", "export:binary")])
+    m_capnp = MethodDescriptor("exportCapnp", "Void", "Bytes", streaming=Unary,
+                               route_path="/api/v1/export/capnp", http_method="GET",
+                               description="Export taxa in Cap'n Proto format",
+                               annotations=[Annotation("capability", "export:binary")])
+
+    return ServiceDescriptor(
+        "RelationshipExplorerAPI",
+        "1.0.0",
+        [t_taxon],
+        [m_list, m_get, m_nh, m_analysis, m_bebop, m_capnp],
+        description="Relationship Explorer reference application API"
+    )
+end

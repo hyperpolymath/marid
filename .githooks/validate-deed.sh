@@ -298,11 +298,11 @@ validate_deed() {
 # ---------------------------------------------------------------------------
 
 echo "::group::DEED Manifest Validation"
-echo "Scanning ${SCAN_PATH} for .a2ml files..."
+echo "Scanning ${SCAN_PATH} for .deed files..."
 echo ""
 
-# Find all .a2ml files, excluding .git directory
-mapfile -t deed_candidates < <(find "$SCAN_PATH" -name '*.a2ml' -not -path '*/.git/*' -type f | sort)
+# Find all .deed files, excluding .git directory
+mapfile -t deed_candidates < <(find "$SCAN_PATH" -name '*.deed' -not -path '*/.git/*' -type f | sort)
 
 # Apply paths-ignore filter
 deed_files=()
@@ -320,7 +320,7 @@ if [[ $SKIPPED -gt 0 ]]; then
 fi
 
 if [[ ${#deed_files[@]} -eq 0 ]]; then
-    echo "::notice::No .a2ml files found in ${SCAN_PATH}"
+    echo "::notice::No .deed files found in ${SCAN_PATH}"
     echo "files_scanned=0" >> "$GITHUB_OUTPUT_FILE" 2>/dev/null || true
     echo "errors=0" >> "$GITHUB_OUTPUT_FILE" 2>/dev/null || true
     echo "warnings=0" >> "$GITHUB_OUTPUT_FILE" 2>/dev/null || true
@@ -328,7 +328,7 @@ if [[ ${#deed_files[@]} -eq 0 ]]; then
     exit 0
 fi
 
-echo "Found ${#deed_files[@]} .a2ml file(s)"
+echo "Found ${#deed_files[@]} .deed file(s)"
 echo ""
 
 for file in "${deed_files[@]}"; do
