@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// Estate file mapping: this is the brief's docs/roadmap.md, carried as
+// AsciiDoc per the estate rule (general docs under docs/ are .adoc).
+= Marid roadmap
+
+The Marid execution plan: six gates from feasibility audit to release
+review (`PROJECT_BRIEF.md` §9).
+
+Status: Gate 0 stub. Gate 0 breaks implementation into small, reviewable
+issues (goal, scope and non-goals, dependencies, acceptance tests, affected
+files/packages, blockers); those issues become this roadmap's working
+content. Until then, the brief's §9 is authoritative.
+
+== The gates (summary)
+
+* *Gate 0 — Feasibility and licensing audit.* Inspect the Julia ecosystem
+  and native runtimes; verify versions, features, licenses, generated-code
+  terms; select the ArangoDB test release; check package names. Produce the
+  evidence-backed matrix and stop for approval before any new runtime,
+  substantial generator, or non-Julia bridge.
+* *Gate 1 — Interoperability spikes.* Disposable, minimal proofs: standard
+  gRPC client, Cap'n Proto and Bebop bidirectional interop, standard
+  GraphQL client, Julia client against real ArangoDB. Do not freeze the
+  shared API until these results are understood.
+* *Gate 2 — Foundation.* Package skeletons and independent environments,
+  license mapping, CI and test tooling, shared context and lifecycle
+  contracts, ADRs, browser-event contract.
+* *Gate 3 — Independent packages.* Implement the five packages against
+  their acceptance criteria; parallel work once contracts and runtime
+  choices are approved.
+* *Gate 4 — Assembly and browser integrations.* Thin Marid bindings,
+  framework-independent client, React/Vue wrappers, reference application,
+  real-browser and cross-protocol tests.
+* *Gate 5 — Release review.* Support matrix, security and failure behavior,
+  licensing, documentation, reproducibility, package registration and
+  release order. Public registration, publishing, deployment, and paid
+  services require explicit approval.
+
+== Current position
+
+Gate 0 not yet started. Repository minted 2026-09-18
+(`docs/AFFIRMATION.adoc`, `.machine_readable/descriptiles/STATE.a2ml`).
+The Gate 0 assignment is `docs/agent-launch.adoc`.

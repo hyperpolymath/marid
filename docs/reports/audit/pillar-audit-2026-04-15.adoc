@@ -4,7 +4,7 @@
 :date: 2026-04-15
 
 Date: 2026-04-15 +
-Repository: `/var/mnt/eclipse/repos/rsr-template-repo`
+Repository: `/var/mnt/eclipse/repos/marid`
 
 == Audit Criteria
 

@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// Estate file mapping: this is the brief's docs/compatibility.md, carried as
+// AsciiDoc per the estate rule (general docs under docs/ are .adoc).
+= Marid compatibility
+
+Supported versions, feature matrices, and compatibility rules for every
+Marid integration (`PROJECT_BRIEF.md` §2, §5, §8).
+
+Status: Gate 0 stub. Populated from the Gate 0 feasibility audit
+(`docs/audits/feasibility.adoc`): exact runtime versions, supported
+streaming modes, transport selections, and the ArangoDB release under test.
+Nothing here may promise what the audit has not verified.
+
+== Checklist: what this document must contain
+
+* Per-package supported-version and feature matrix (§8: a package is ready
+  only when this exists).
+* Exact gRPC streaming modes supported — no more, no less (§2 scope
+  boundaries).
+* GraphQL subscription transport selection (§2: subscriptions require a
+  separately identified transport).
+* Browser-facing gRPC approach: gRPC-Web, Connect, or gateway (§5: native
+  gRPC alone is insufficient).
+* Browser compatibility rules: SSR safety, subscription cleanup on unmount,
+  reconnect/resynchronize behavior, rolling-deployment tolerance (§5).
+* Type translations: large integers, timestamps, binary data, null versus
+  omitted values, default values (§4).
+* Explicit per-package lists of unsupported features (§8).
+
+== Compatibility rules (standing)
+
+* Older browser bundles remain compatible during rolling server deployments.
+* Contract evolution follows stable identifiers and pinned generators; see
+  `contracts/`.
+* Interoperability is proved by independent implementations, never by mocks
+  (§8).

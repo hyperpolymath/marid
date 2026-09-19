@@ -50,7 +50,7 @@ jobs:
 
           :warning: **No .a2ml/.deed manifest files found.** Every RSR-compliant repo should have at least `0-AI-MANIFEST.a2ml`.
 
-          Copy it from [rsr-template-repo](https://github.com/hyperpolymath/rsr-template-repo). Manifests are validated against the DEED grammar (standards `1-formats/deed/`); the `.a2ml` → `.deed` extension migration is tracked in standards #64 — the deed validator scans both.
+          Copy it from [marid](https://github.com/hyperpolymath/marid). Manifests are validated against the DEED grammar (standards `1-formats/deed/`); the `.a2ml` → `.deed` extension migration is tracked in standards #64 — the deed validator scans both.
           EOF
           else
             echo "## DEED Manifest Validation" >> "$GITHUB_STEP_SUMMARY"

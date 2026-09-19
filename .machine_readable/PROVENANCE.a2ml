@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# PROVENANCE.a2ml — what this repo was minted FROM.
+# Written once, at mint, by build/just/repo-init.just. Not a hand-edited
+# file: tools that want "what is this repo" read STATE.a2ml; tools that
+# want "where did this repo come from" read this.
+
+[provenance]
+minted_at          = "2026-09-18"
+
+template_repo      = "hyperpolymath/rsr-template-repo"
+template_commit    = "db1eaf10e21b3af61a3867aadfb344e103f6773e"
+
+canon_version      = "2.0.4"
+criteria_sha256    = "37cb5f679b414f6ee99c6bb62c460fd5349ff7d50cc1dab25b1e1a8e8d3c7bb9"
+gates_sha256       = "b65ce75438c42d01bedf0325b9a97f1a575064866158b4340d7427fca911dd1b"
+
+archetype          = "julia-library"
+minted_by          = "hand"
+
+[substitutions]
+# ADR-0003 records the old state honestly: "renders 34 substitutions and
+# derives identity, but leaves 12 tokens UNASSIGNED". Listing them here
+# converts that from a known defect into a QUERYABLE one: a non-empty
+# list means the mint did not fully render, and the validation step
+# below already fails on a leftover token.
+rendered   = 34
+unassigned = []

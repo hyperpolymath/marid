@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Copyright (c) {{CURRENT_YEAR}} {{AUTHOR}} ({{OWNER}}) <{{AUTHOR_EMAIL}}>
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # methodology.a2ml — AI agent methodology configuration
 # Declares how agents should approach work in this repository.
@@ -9,7 +9,7 @@
 
 [metadata]
 version = "1.0.0"
-last-updated = "{{CURRENT_DATE}}"
+last-updated = "2026-09-18"
 spec = "https://github.com/hyperpolymath/standards/blob/main/agentic-a2ml/docs/ADR-002-methodology-layer.adoc"
 
 # ============================================================================
@@ -55,7 +55,7 @@ perfective = 10   # % for SPDX headers, doc updates, formatting, style
 # Customise this per project — the template default is generic.
 
 [methodology.unique-strength]
-description = "{{PROJECT_UNIQUE_STRENGTH}}"
+description = "Julia-first web/API framework with native protocol interop: five independently usable integrations (ArangoDB, gRPC, GraphQL, Cap'n Proto, Bebop) assembled by a small core, with frontend independence via standard APIs."
 deepen-not-broaden = true
 
 # ============================================================================
@@ -71,10 +71,10 @@ deepen-not-broaden = true
 
 [methodology.divergent-invariants]
 rules = [
-  # Customise per project. Examples:
-  # "Idris2 only for formal verification — no Lean4, Coq, Agda",
-  # "believe_me count must remain zero",
-  # "FFI architecture: Idris2 → RefC → Zig → C ABI (no shortcuts)",
+  "Adapters must not depend on one another; Marid must not unconditionally load every adapter (PROJECT_BRIEF.md §3).",
+  "No replacement universal IDL — native schemas stay native (OpenAPI/SDL/.proto/.capnp/.bop).",
+  "No arbitrary Julia evaluation from network messages; no Julia object deserialization from untrusted clients.",
+  "Mocks never prove interoperability — every integration needs a real interop or database integration test.",
 ]
 
 # Optional: language invariant for the core strength
@@ -89,9 +89,9 @@ rules = [
 
 [methodology.known-constraints]
 constraints = [
-  # Customise per project. Examples:
-  # "End-to-end build has never been verified",
-  # "libproject.so does not exist yet — all bindings call stubs",
+  "Gate 0 feasibility audit not yet run — no runtime, compiler, or version choices made.",
+  "No Julia code exists yet — package skeletons land at Gate 2.",
+  "Julia/Node toolchain versions unpinned until Gate 2.",
 ]
 
 # ============================================================================
@@ -102,14 +102,14 @@ constraints = [
 
 [methodology.state-validation]
 # A regex, not a literal list. The list form named the exact strings it was
-# meant to catch ("{{PROJECT}}"), so `just repo-init` substituted the detector along
+# meant to catch ("MARID"), so `just repo-init` substituted the detector along
 # with everything else and shipped reject-if-contains = ["MY_PROJECT", ...] —
 # a guard against unfilled tokens that had been eaten by the filling. The
 # escaped pattern below contains no token for init to match, and covers every
 # upper-snake token rather than the three anyone remembered to enumerate.
 # Enforced by scripts/check-no-placeholders.sh.
 reject-if-matches = ["\\{\\{[A-Z][A-Z0-9_]*\\}\\}"]
-reject-if-contains = ["rsr-template-repo"]
+reject-if-contains = ["marid"]
 reject-if-project-name-mismatch = true
 staleness-threshold-days = 90
 fallback-files = ["TODO.md", "TODO.adoc", "ROADMAP.adoc", "README.adoc"]

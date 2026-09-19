@@ -1,6 +1,6 @@
 K9!
 # SPDX-License-Identifier: MPL-2.0
-# Copyright (c) {{CURRENT_YEAR}} {{AUTHOR}} ({{OWNER}}) <{{AUTHOR_EMAIL}}>
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # K9 Validator: Methodology Guard
 # Checks that agent work respects methodology constraints declared in
@@ -64,8 +64,8 @@ let methodology_guard = {
       # out of the file (in this comment too) so init cannot match it, while
       # Nickel still evaluates the element back to the full token. Do not
       # "simplify" it to a plain string. (The PLACEHOLDER token and
-      # "rsr-template-repo" are not init tokens, so they survive as-is.)
-      reject_patterns = ["{{PLACEHOLDER}}", "{{" ++ "PROJECT}}", "rsr-template-repo"],
+      # "marid" are not init tokens, so they survive as-is.)
+      reject_patterns = ["{{PLACEHOLDER}}", "{{" ++ "PROJECT}}", "marid"],
     },
 
     coverage_updated = {

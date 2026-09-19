@@ -5,14 +5,14 @@
 
 [receipt]
 schema = "hyperpolymath.coaptation/1"
-repo = "rsr-template-repo"
-band = "amber"
-proposed-action = "advisory — soft drift within bands (posture/intend). Open an advisory issue; no re-anchor."
+repo = "marid"
+band = "green"
+proposed-action = "none — the descriptile self-model coapts with the contractile set-point within tolerance."
 
 [coverage]
-clauses-total = 50
-descriptile-witnessed = 3
-probe-deferred-to-hunt = 22
+clauses-total = 53
+descriptile-witnessed = 4
+probe-deferred-to-hunt = 25
 must-trust-unmeasured-gaps = 0
 note = "Yard sees descriptile evidence only; probe-deferred obligations need a Hunt-tier run for a full hard-gate."
 
@@ -21,13 +21,13 @@ grade = "boolean_gate / boolean_gate_provenance"
 witnessed = 3
 refuted = 0
 unmeasured-gaps = 0
-probe-deferred = 22
+probe-deferred = 25
 gate = "pass"
 
 [reading.adjust]
 grade = "posture (advisory; accessibility / inclusive design)"
-satisfied = "0/1"
-posture-ok = false
+satisfied = "1/1"
+posture-ok = true
 
 [reading.intend]
 grade = "tropical (min-plus distance-to-north-star; wishes excluded)"
@@ -76,7 +76,10 @@ trust.template-files-readonly = probe-deferred
 trust.trust-deny-areas = probe-deferred
 trust.container-images-pinned = probe-deferred
 trust.no-dockerfile = probe-deferred
-adjust.placeholder-drift = refuted
+trust.site-security-headers = probe-deferred
+trust.site-well-known = probe-deferred
+trust.site-resource-records = probe-deferred
+adjust.placeholder-drift = witnessed
 adjust.template-version-drift = unmeasured
 adjust.readme-completeness = unmeasured
 adjust.example-accuracy = unmeasured
@@ -87,7 +90,7 @@ adjust.spdx-header-consistency = unmeasured
 dust.no-template-artifacts = expected
 dust.no-example-placeholders = expected
 dust.no-old-contractile-formats = expected
-dust.no-duplicate-justfile = expected
+dust.justfile-imports-in-sync = expected
 dust.no-duplicate-readme-format = expected
 dust.no-stale-template-references = expected
 dust.version-sync-checked = expected
@@ -96,5 +99,5 @@ bust.sync-drift-between-repos = latent
 bust.contractile-parse-error = latent
 
 [provenance]
-contractiles = "intend@b5248bb14c9b must@deb0cb5de0b2 trust@76884f439a88 adjust@8faad9ca0650 dust@8ce4f3c1efa0 bust@dd6a53e1fc9b"
-descriptiles = "clade@b974798d108a state@9fbef88c72f8 ecosystem@1c30abd8f618 agentic@d72859864bbe anchor@8b66b03d7736"
+contractiles = "intend@03fabc7d855d must@bb60b2afffd1 trust@b028c7b831c4 adjust@0fe3b353cfa1 dust@43109f59ddc8 bust@16a5d3f2210b"
+descriptiles = "clade@c7b2a442b70f state@d5f2e383a9c2 ecosystem@f0c97a39747d agentic@6abc2719f63a anchor@d8190633f96c"

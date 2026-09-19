@@ -3,9 +3,10 @@
 # 13 tools that do not exist in the registry, so mise emitted ~25 lines of
 # warnings on every shell entry while installing none of them.
 #
-# This file is a TEMPLATE. Repos minted from it inherit it verbatim, so add
-# your project's actual language toolchain here after minting — pinned to the
-# same versions your CI uses, so local and CI agree.
+# MARID (2026-09-18): Julia (+ Node for web/) toolchain pins land at Gate 2,
+# pinned to the same versions the CI matrix uses (PROJECT_BRIEF.md §8-§9).
+# Until the Gate 0 audit selects versions, this file keeps the inherited
+# template entries; do not read `latest` as a Marid version decision.
 
 [tools]
 # Language runtimes

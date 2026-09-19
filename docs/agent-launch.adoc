@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Agent launch prompts
+
+The operational prompts for assigning Marid implementation work to coding
+agents, transcribed from the owner's program brief on 2026-09-18. The
+repository instructions themselves live in `AGENTS.md` at the repository
+root; the product/engineering contract is `PROJECT_BRIEF.md`.
+
+NOTE: Where these prompts name `docs/*.md` paths, the estate rule applies:
+general docs under `docs/` are AsciiDoc. See the file mapping in
+`AGENTS.md` (e.g. `docs/audits/feasibility.md` is
+`docs/audits/feasibility.adoc`).
+
+== 1. Gate 0 kickoff prompt (first assignment: Gate 0 only)
+
+[source,text]
+----
+You are the lead implementer for Marid.
+
+Read PROJECT_BRIEF.md and AGENTS.md. Your first assignment is Gate 0 only:
+feasibility, dependency, and licensing discovery.
+
+Do not attempt to generate the entire framework.
+
+Tasks:
+
+1. Inspect the repository and identify any conflicts or ambiguities
+   in the brief.
+
+2. Investigate implementation options for:
+   - ArangoDB HTTP client
+   - gRPC server/client tooling, including HTTP/2 and streaming
+   - GraphQL schema validation and execution
+   - Cap'n Proto message tooling
+   - Bebop v3 schema/compiler/runtime tooling
+
+3. Verify claims against actual repositories, official documentation,
+   versions, and licenses. Record sources and the date checked.
+
+4. For each package, distinguish adapter work from missing runtime,
+   compiler, or protocol-engine work.
+
+5. Propose the dependency graph and package boundaries. The five
+   integrations must remain independently usable, with optional Marid
+   bindings.
+
+6. Produce:
+   - docs/audits/feasibility.md
+   - docs/audits/licensing.md
+   - docs/architecture.md
+   - docs/compatibility.md
+   - docs/roadmap.md
+   - initial architectural decision records where needed
+
+7. Break implementation into small, reviewable issues, each containing:
+   - goal
+   - scope and non-goals
+   - dependencies
+   - acceptance tests
+   - expected files/packages affected
+   - blockers requiring human decisions
+
+Do not invent missing ecosystem capabilities. If a requirement needs a
+new runtime, external bridge, or substantial generator implementation,
+provide options and stop for a decision.
+
+At completion, summarize:
+- verified facts
+- unresolved assumptions
+- recommended choices
+- estimated effort ranges with reasons
+- the next smallest executable task
+
+Stop before production implementation.
+----
+
+The expected first result is a trustworthy engineering decision package —
+not thousands of lines of speculative code.
+
+== 2. Bounded-task prompt (after the audit is approved)
+
+[source,text]
+----
+Implement issue <ID> from the approved roadmap.
+
+Read the relevant architecture decisions and compatibility requirements.
+Do not make unrelated changes or silently change public contracts.
+
+Deliver:
+1. Working implementation.
+2. Tests, including the required real interoperability/integration test.
+3. Updated documentation and examples.
+4. Dependency and licensing updates.
+5. Exact commands executed and their results.
+6. Remaining limitations and blockers.
+
+If a prerequisite is missing, report it instead of replacing the required
+behavior with a mock, placeholder, or incompatible private protocol.
+
+Stop when this issue's acceptance criteria are met and the work is ready
+for review.
+----
+
+== 3. Parallel workstreams (only after the foundation is agreed)
+
+A sensible division once the shared contracts and runtime choices are
+approved:
+
+* Integration lead: architecture, context, contracts, CI.
+* Database worker: ArangoDB client.
+* RPC worker: gRPC.
+* Query worker: GraphQL.
+* Binary-schema workers: Cap'n Proto and Bebop.
+* Browser worker: SDK, React/Vue, Web Components.
+
+These are workstreams, not a requirement for seven agents. One agent can
+execute them sequentially. Each worker owns a package or issue; changes to
+shared contracts go through the integration lead, otherwise every package
+will invent its own context, errors, cancellation, and lifecycle model.

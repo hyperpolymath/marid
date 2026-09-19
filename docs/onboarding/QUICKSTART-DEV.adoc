@@ -1,14 +1,22 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // Template: QUICKSTART-DEV.adoc — clone → build → test → PR
-// Replace rsr-template-repo, {{BUILD_CMD}}, {{TEST_CMD}}, {{LANG_STACK}} with actuals
-= rsr-template-repo — Quick Start for Developers
+= marid — Quick Start for Developers
 :toc:
 :toclevels: 2
 
 == Tech Stack
 
-{{LANG_STACK}}
+Julia for the backend packages (`packages/`), TypeScript/Node for the
+browser client (`web/`).
+
+[NOTE]
+====
+Exact toolchain versions — the Julia versions for the CI matrix and the
+Node version for `web/` — are pinned at Gate 2 (`PROJECT_BRIEF.md`
+§8–§9). The Gate 0 feasibility audit selects the ArangoDB release under
+test (`docs/audits/feasibility.adoc`).
+====
 
 == Set Up Development Environment
 
@@ -23,40 +31,58 @@ guix shell
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/rsr-template-repo.git
-cd rsr-template-repo
+git clone https://github.com/hyperpolymath/marid.git
+cd marid
 just setup-dev
 ----
 
 == Build
 
+Per-package environments land at Gate 2. The shape will be:
+
 [source,bash]
 ----
-{{BUILD_CMD}}
+julia --project=packages/Marid -e 'using Pkg; Pkg.instantiate()'
 ----
+
+[NOTE]
+====
+At Gate 0 no `Project.toml` exists yet and there is nothing to instantiate.
+The repository root intentionally has no `Project.toml`
+(`PROJECT_BRIEF.md` §3).
+====
 
 == Test
 
 [source,bash]
 ----
-{{TEST_CMD}}
+julia --project=packages/Marid -e 'using Pkg; Pkg.test()'
 ----
+
+Package unit tests live with their packages; cross-protocol suites live in
+`test/interop/` (`PROJECT_BRIEF.md` §8).
 
 == Project Structure
 
 [source]
 ----
-rsr-template-repo/
-├── src/                  # Source code
-├── src/interface/Abi/              # Idris2 ABI definitions (if applicable)
-├── ffi/zig/              # Zig FFI bridge (if applicable)
-├── tests/                # Test suite
-├── docs/                 # Documentation
-├── .machine_readable/    # Checkpoint files (STATE, META, ECOSYSTEM)
+marid/
+├── PROJECT_BRIEF.md      # The product/engineering contract — read first
+├── AGENTS.md             # Repository instructions for coding agents
+├── packages/             # Six Julia packages (Marid + five integrations)
+├── web/                  # Browser client (client, react, vue, elements)
+├── contracts/            # Contract registry (identifiers, versions, bindings)
+├── fixtures/             # Interop fixtures
+├── examples/             # Reference application (relationship_explorer)
+├── test/                 # Cross-protocol tests (interop)
+├── docs/                 # Documentation (.adoc only, estate rule)
+├── .machine_readable/    # Checkpoint files (STATE, META, ECOSYSTEM, CLADE, …)
 ├── Justfile              # Task runner recipes
-├── guix.scm              # Guix environment
 └── 0-AI-MANIFEST.a2ml    # AI agent entry point
 ----
+
+The authoritative map is generated:
+`docs/architecture/REPOSITORY-MAP.adoc` (regenerate with `just repo-map`).
 
 == Key Recipes
 
@@ -81,10 +107,18 @@ just panic-scan     # No new security issues
 
 == Contractile Invariants
 
-Read `.machine_readable/MUST.contractile` before making changes.
+Read the contractiles in `.machine_readable/contractiles/` (start with
+`must/`) and the divergent invariants in
+`.machine_readable/bot_directives/methodology.a2ml` before making changes.
 Key invariants that must never be violated:
 
-{{MUST_INVARIANTS}}
+* Adapters must not depend on one another; `Marid` must not unconditionally
+  load every adapter (`PROJECT_BRIEF.md` §3).
+* No replacement universal IDL — native schemas stay native.
+* No arbitrary Julia evaluation from network messages; no Julia object
+  deserialization from untrusted clients.
+* Mocks never prove interoperability — every integration needs a real
+  interop or database integration test.
 
 == LLM/AI Agent Development
 
@@ -100,5 +134,5 @@ Or read `0-AI-MANIFEST.a2ml` and `.claude/CLAUDE.md` directly.
 == Get Help
 
 * **Architecture**: link:EXPLAINME.adoc[EXPLAINME.adoc]
-* **Wiki**: https://github.com/hyperpolymath/rsr-template-repo/wiki
+* **Wiki**: https://github.com/hyperpolymath/marid/wiki
 * **Report issue**: `just help-me`

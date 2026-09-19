@@ -1,16 +1,14 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# STATE.a2ml — Project state checkpoint (META-TEMPLATE)
-#
-# This is the STATE file for rsr-template-repo itself.
-# When consumed by a new project, replace {{PLACEHOLDER}} tokens
-# and customize sections below for the target project.
+# STATE.a2ml — Project state checkpoint for Marid.
+# Rewritten at mint (2026-09-18): the template's milestones described the
+# TEMPLATE's evolution, not this project's. Current plan: PROJECT_BRIEF.md §9.
 
 [metadata]
-project = "rsr-template-repo"
+project = "marid"
 version = "0.2.0"
-last-updated = "2026-02-28"
+last-updated = "2026-09-18"
 # status: active | paused | archived | planned
 #   planned — the repo is RESERVED but has not started (minted as a placeholder;
 #             equivalent to CLADE [status] phase = "reserved"). It is NOT
@@ -21,36 +19,35 @@ last-updated = "2026-02-28"
 status = "active"
 
 [project-context]
-name = "rsr-template-repo"
-purpose = "Canonical RSR-compliant repository template providing scaffolding for all hyperpolymath projects — including CI/CD, AI manifests, ABI/FFI standards, container ecosystem, and governance infrastructure."
-completion-percentage = 95
+name = "marid"
+purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
+completion-percentage = 5
 
 [position]
-phase = "maintenance"      # design | implementation | testing | maintenance | archived
-maturity = "production"    # experimental | alpha | beta | production | lts
+phase = "design"         # design | implementation | testing | maintenance | archived
+maturity = "experimental"  # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
+# Gates from PROJECT_BRIEF.md §9. Completion is honest: nothing is implemented.
 milestones = [
-  { name = "Phase 0: Core scaffolding (justfile, CI/CD, machine-readable)", completion = 100 },
-  { name = "Phase 1: ABI/FFI standard (Idris2/Zig templates)", completion = 100 },
-  { name = "Phase 1b: AI Gatekeeper Protocol (0-AI-MANIFEST.a2ml)", completion = 100 },
-  { name = "Phase 1c: TOPOLOGY.md standard and guide", completion = 100 },
-  { name = "Phase 1d: Maintenance gate (axes, checklist, approach)", completion = 100 },
-  { name = "Phase 1e: Trustfile / contractiles", completion = 100 },
-  { name = "Phase 2: Container ecosystem templates (stapeln)", completion = 100 },
-  { name = "Phase 3: Multi-forge sync hardening", completion = 0 },
-  { name = "Phase 4: Guix reproducible shells", completion = 50 },
+  { name = "Gate 0: feasibility and licensing audit", completion = 0 },
+  { name = "Gate 1: interoperability spikes", completion = 0 },
+  { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 0 },
+  { name = "Gate 3: independent packages", completion = 0 },
+  { name = "Gate 4: assembly and browser integrations", completion = 0 },
+  { name = "Gate 5: release review", completion = 0 },
 ]
 
 [blockers-and-issues]
-# No active blockers
+# No active blockers — Gate 0 (feasibility audit) is the current work, not yet started.
 
 [critical-next-actions]
 actions = [
-  "Container templates complete — test with `just container-init`",
-  "Validate container templates across wolfi-base and static Chainguard images",
-  "Harden multi-forge sync for GitLab/Bitbucket mirroring edge cases",
-  "Expand Guix development shell templates",
+  "Run the Gate 0 kickoff (docs/agent-launch.adoc §1): feasibility, dependency, and licensing discovery only.",
+  "Produce docs/audits/feasibility.adoc + licensing.adoc with sources and dates checked.",
+  "Produce initial docs/marid-architecture.adoc, marid-compatibility.adoc, marid-roadmap.adoc.",
+  "Break implementation into small, reviewable issues with acceptance tests.",
+  "Stop for approval before any new runtime, substantial generator, or non-Julia bridge.",
 ]
 
 [maintenance-status]
@@ -61,11 +58,5 @@ open-warnings = 0
 open-failures = 0
 
 [ecosystem]
-part-of = ["RSR Framework", "stapeln ecosystem"]
-depends-on = ["stapeln", "selur-compose", "cerro-torre", "svalinn", "vordr", "k9-svc"]
-
-# ---------------------------------------------------------------------------
-# NOTE FOR CONSUMERS: When using this template to create a new repo, reset
-# the fields above to your project's values and replace all {{PLACEHOLDER}}
-# tokens. The milestones above describe the TEMPLATE's evolution, not yours.
-# ---------------------------------------------------------------------------
+part-of = ["hyperpolymath estate"]
+depends-on = ["Julia General registry (package dependencies, from Gate 2)", "ArangoDB test instance (release TBD at Gate 0)"]

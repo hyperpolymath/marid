@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# REUSE.toml — repository license mapping for Marid (starter; Gate 2 owns the
+# full "license mapping" deliverable, PROJECT_BRIEF.md §9).
+#
+# Per-file SPDX-License-Identifier headers are authoritative; this file states
+# the defaults so that files without headers are still correctly licensed.
+# Third-party material, when vendored, must be listed in THIRD_PARTY_NOTICES.md
+# and mapped here. See PROJECT_BRIEF.md §1 (Licensing).
+#
+# Unmapped on purpose: LICENSES/*.txt (verbatim third-party license texts;
+# REUSE treats LICENSES/ as the license-text directory) and the root LICENSE
+# (verbatim MPL-2.0 text).
+#
+# REUSE specification: https://reuse.software/spec/
+
+version = 1
+
+[[annotations]]
+path = [
+  "**/*.jl",
+  "**/*.js",
+  "**/*.ts",
+  "**/*.tsx",
+  "**/*.jsx",
+  "**/*.vue",
+  "**/*.rs",
+  "**/*.zig",
+  "**/*.idr",
+  "**/*.ipkg",
+  "**/*.scm",
+  "**/*.ncl",
+  "**/*.k9",
+  "**/*.sh",
+  "**/*.just",
+  "**/*.nix",
+  "**/*.c",
+  "**/*.h",
+  "**/*.toml",
+  "**/*.json",
+  "**/*.yml",
+  "**/*.yaml",
+  "**/*.a2ml",
+  "**/Justfile",
+  "Justfile",
+  ".tool-versions",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Jonathan D.A. Jewell (hyperpolymath)"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = [
+  "**/*.adoc",
+  "**/*.md",
+  "CITATION.cff",
+  "docs/**/*.txt",
+  "www/**/*.txt",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Jonathan D.A. Jewell (hyperpolymath)"
+SPDX-License-Identifier = "CC-BY-SA-4.0"

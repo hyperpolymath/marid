@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// Estate file mapping: this is the brief's docs/architecture.md, carried as
+// AsciiDoc per the estate rule (general docs under docs/ are .adoc).
+= Marid architecture
+
+The Marid system architecture: package boundaries, dependency rules, and the
+shared contracts that must be established before extensive implementation
+(`PROJECT_BRIEF.md` §3–§4).
+
+Status: Gate 0 stub. The initial version is written by the Gate 0 audit
+(alongside `docs/audits/feasibility.adoc`), and the shared context and
+lifecycle contracts are established at Gate 2. Until then, the brief is
+authoritative and this file is a checklist, not a design.
+
+== Checklist: contracts to establish (§4)
+
+* Execution context — verified principal, tenant scope, deadline,
+  cancellation, trace/request IDs.
+* Application services — ordinary Julia interfaces, not functions that
+  require HTTP request objects.
+* Authorization — enforcement at service/resolver boundaries, not solely
+  HTTP middleware.
+* Streaming — bounded buffering, slow-consumer behavior, cancellation,
+  disconnect cleanup, ownership.
+* Errors — stable domain errors with protocol-specific mappings.
+* Resource budgets — message sizes, nesting, query cost, concurrency,
+  execution duration.
+* Lifecycle — explicit application instances, startup, readiness,
+  draining, shutdown.
+* Contract evolution — stable identifiers, native schemas, compatibility
+  rules, pinned generators.
+* Data ownership — ownership/lifetime rules for borrowed buffers and
+  decoded values.
+* Retries — explicit retryability and idempotency policy; no "exactly
+  once" claims.
+* Observability — structured logs, operation-level metrics, trace
+  propagation; no mandatory external telemetry.
+* Persistence — explicit transaction and cursor ownership, optimistic
+  concurrency, pagination.
+
+== Non-negotiables (§4)
+
+No arbitrary Julia evaluation from network messages. No Julia object
+deserialization from untrusted clients as a shortcut for a wire protocol.
+No global singleton holding user-specific authentication or tenant state.
+No automatic retries of writes unless their safety is established.
+Cancellation must end expensive work, not just the waiting.
+
+== Native schemas (§4)
+
+OpenAPI/JSON Schema for HTTP APIs, GraphQL SDL, `.proto`, `.capnp`, `.bop`.
+The contract registry (`contracts/`) records identifiers, versions,
+fingerprints, and bindings; it never becomes a replacement universal IDL.
+Type translations (large integers, timestamps, binary data, null versus
+omitted, defaults) must be documented per protocol pair.

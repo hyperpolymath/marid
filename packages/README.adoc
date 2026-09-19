@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= packages — Julia packages
+
+The six Julia packages of the Marid monorepo
+(`PROJECT_BRIEF.md` §2–§3).
+
+[cols="1,3"]
+|===
+| Package | Role
+
+| `Marid/` | Small core: local routing, middleware, lifecycle, application
+context, contract bindings, HTTP/JSON, live-update integration.
+| `MaridArango/` | ArangoDB client: documents, edges, bound AQL queries,
+cursors, revision-aware updates, transactions.
+| `MaridGRPC/` | Native-protocol gRPC: unary calls and server streaming,
+metadata, deadlines, cancellation, status/trailers.
+| `MaridGraphQL/` | GraphQL: queries and mutations, schema validation,
+variables, resolver context, partial errors, batching hooks, resource limits.
+| `MaridCapnProto/` | Cap'n Proto message encoding/decoding and
+schema-toolchain integration.
+| `MaridBebop/` | Pinned Bebop v3 schema/compiler/runtime integration.
+|===
+
+Dependency rules (`PROJECT_BRIEF.md` §3):
+
+* `Marid` must not unconditionally load every adapter.
+* Adapter packages must work without a running `Marid` application.
+* Adapters must not depend on one another.
+* `Marid`-specific bindings use optional integration modules or Julia
+  package extensions where appropriate.
+
+Status: Gate 0 skeleton. Each package directory gains its own `Project.toml`
+(independent environment), `src/`, and `test/` at Gate 2
+(`PROJECT_BRIEF.md` §9). There is intentionally no `Project.toml` at the
+repository root.

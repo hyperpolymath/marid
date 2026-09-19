@@ -5,6 +5,15 @@
 :toclevels: 3
 :sectnums:
 
+[NOTE]
+====
+Minted 2026-09-18: this repository has already been instantiated from
+`rsr-template-repo` (julia-library archetype). Agents working *on* Marid
+should start with `PROJECT_BRIEF.md`, `AGENTS.md`, and
+`docs/onboarding/QUICKSTART-DEV.adoc` instead. The remainder of this guide
+documents how the instantiation was performed, for provenance.
+====
+
 This guide is for an **AI agent** instantiating this template into a new
 repository. A human following it will not be misled, but the ordering and the
 warnings are written for an agent working non-interactively.
@@ -30,7 +39,7 @@ local checkouts across this estate are routinely stale or carry sweep debris.
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/rsr-template-repo.git my-project
+git clone https://github.com/hyperpolymath/marid.git my-project
 cd my-project
 rm -rf .git && git init
 ----

@@ -70,8 +70,8 @@ verify-template:
     fi
 
     # Check for template defaults still present
-    if grep -q 'rsr-template-repo' Justfile 2>/dev/null; then
-        echo "⚠ Justfile still references 'rsr-template-repo' — update project name"
+    if grep -q 'marid' Justfile 2>/dev/null; then
+        echo "⚠ Justfile still references 'marid' — update project name"
         FOUND=1
     fi
 

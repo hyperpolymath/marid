@@ -47,7 +47,7 @@ that it WAS the template, and would have reported its code analysis into the
 TEMPLATE's SonarCloud project.
 ____
 
-The ordinary mint path rewrites `{{OWNER}}`, `{{REPO}}` and friends. Those
+The ordinary mint path rewrites `hyperpolymath`, `marid` and friends. Those
 tokens *are* consumed widely — 56 files in this repository, including the
 README badge block, `CITATION.cff`, `.github/CODEOWNERS`,
 `.github/settings.yml` and the three AI-assistant rule files. The problem is
@@ -189,7 +189,7 @@ Both `Justfile:24` and `.machine_readable/contractiles/Justfile:24` declare
 both files.
 
 *Severity is lower than it appears.* Across every `Justfile` and `*.just` in
-that repository there are *zero* `{{OWNER}}` or `{{REPO}}` interpolations, so
+that repository there are *zero* `hyperpolymath` or `marid` interpolations, so
 neither variable is consumed by any recipe. This is a wrong self-description
 with no runtime effect — worth fixing because a template propagates its own
 mistakes, not because anything currently misbehaves.

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # migrate-wellknown-to-www.sh — conflict-safe migration of a repository-root
-# .well-known/ tree into www/.well-known/ (rsr-template-repo#53).
+# .well-known/ tree into www/.well-known/ (marid#53).
 #
 # Stage 1 established the canonical location. Stage 5 (#119) sweeps it across
 # ~270 repositories, which changes what "conflict-safe" has to mean: a sweep

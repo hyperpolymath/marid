@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridBebop.jl — Bebop v3 integration (planned)
+
+Explicitly pinned Bebop v3 schema/compiler/runtime integration
+(`PROJECT_BRIEF.md` §2).
+
+Ready when: bidirectional interoperability with an independent
+implementation is demonstrated. A Bebop message sent over WebSocket must
+not be advertised as some other standard RPC protocol.
+
+Status: Gate 0 skeleton. `Project.toml`, `src/`, and `test/` land at Gate 2.
+Schema/compiler/runtime feasibility is audited at Gate 0.

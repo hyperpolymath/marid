@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= test — cross-protocol tests
+
+Marid's cross-protocol tests (`PROJECT_BRIEF.md` §3, §7–§8).
+
+Note the two test roots, which serve different purposes:
+
+* `test/` (this directory) — Marid program tests: interoperability and
+  cross-protocol suites, including `test/interop/`.
+* `tests/` (repository root) — RSR estate tests: shape, workflow, and
+  compliance tests for the repository scaffolding itself.
+
+Per-package unit tests live with their packages (`packages/*/test/`, from
+Gate 2).
+
+Status: Gate 0 skeleton. Gate 1 spikes are disposable proofs, not suites;
+the durable suites are built at Gates 3–4 with real interoperability and
+database integration tests. Mocks never prove interoperability
+(`PROJECT_BRIEF.md` §8).

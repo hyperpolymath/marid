@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell (hyperpolymath)
-= {{PROJECT_NAME}}
+= Marid
 :toc:
 :toc-placement: preamble
 
@@ -12,53 +12,61 @@ image:https://img.shields.io/badge/Provenance-Quantum--Safe-blueviolet[Quantum-S
 
 // ── Standard & quality gates ────────────────────────────────────────────────
 image:https://img.shields.io/badge/RSR-Rhodium_Standard-9C27B0[Rhodium Standard Repository,link="https://github.com/hyperpolymath/rhodium-standard-repositories"]
-image:https://www.bestpractices.dev/projects/{{OPENSSF_BP_ID}}/badge[OpenSSF Best Practices,link="https://www.bestpractices.dev/projects/{{OPENSSF_BP_ID}}"]
-image:https://api.scorecard.dev/projects/github.com/{{OWNER}}/{{REPO}}/badge[OpenSSF Scorecard,link="https://scorecard.dev/viewer/?uri=github.com/{{OWNER}}/{{REPO}}"]
-image:https://sonarcloud.io/api/project_badges/measure?project={{OWNER}}_{{REPO}}&metric=alert_status[SonarQube Quality Gate,link="https://sonarcloud.io/summary/new_code?id={{OWNER}}_{{REPO}}"]
-image:https://archive.softwareheritage.org/badge/origin/https://{{FORGE}}/{{OWNER}}/{{REPO}}/[Archived in Software Heritage,link="https://archive.softwareheritage.org/browse/origin/?origin_url=https://{{FORGE}}/{{OWNER}}/{{REPO}}"]
+image:https://api.scorecard.dev/projects/github.com/hyperpolymath/marid/badge[OpenSSF Scorecard,link="https://scorecard.dev/viewer/?uri=github.com/hyperpolymath/marid"]
+image:https://sonarcloud.io/api/project_badges/measure?project=hyperpolymath_marid&metric=alert_status[SonarQube Quality Gate,link="https://sonarcloud.io/summary/new_code?id=hyperpolymath_marid"]
+image:https://archive.softwareheritage.org/badge/origin/https://github.com/hyperpolymath/marid/[Archived in Software Heritage,link="https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/hyperpolymath/marid"]
 
 // ── Provenance & ecosystem ──────────────────────────────────────────────────
 image:https://img.shields.io/badge/Idris-Inside-5E5086?logo=idris&logoColor=white[Idris Inside,link="https://github.com/hyperpolymath/proven"]
 image:https://img.shields.io/badge/Zig-Zero--overhead-F7A41D?logo=zig&logoColor=black[Zig Zero-overhead FFI,link="https://github.com/hyperpolymath/typed-wasm"]
-image:https://api.thegreenwebfoundation.org/greencheckimage/{{FORGE}}[Green Web,link="https://www.thegreenwebfoundation.org/green-web-check/?url={{FORGE}}"]
+image:https://api.thegreenwebfoundation.org/greencheckimage/github.com[Green Web,link="https://www.thegreenwebfoundation.org/green-web-check/?url=github.com"]
 
-{{PROJECT_DESCRIPTION}}
-
-[IMPORTANT]
-====
-*This file is a template.* You are reading `README.adoc` from the *RSR template repo*
-(or a freshly-cloned copy of it). Run `just repo-init` to replace every `{{PLACEHOLDER}}`
-token with your project's details, then delete this admonition. Until you do, the
-`{{...}}` markers below are intentional placeholders, not content.
-====
+Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence.
 
 == What this is
 
-A new repository scaffolded from the *Rhodium Standard Repository (RSR)* template:
-a batteries-included starting point that ships with CI/CD, machine-readable project
-metadata, an AI-agent gatekeeper protocol, a formally-typed ABI/FFI seam
-(Idris2 + Zig), container and reproducible-build scaffolding, and governance
-infrastructure — all wired and passing the RSR validators on day one.
+*Marid* is a Julia-first framework for web applications, APIs, and reactive
+scientific dashboards: a small `Marid.jl` core assembling five independently
+usable protocol integrations (ArangoDB, gRPC, GraphQL, Cap'n Proto, Bebop),
+with a framework-independent browser client and thin React/Vue integrations —
+proved by one reference application. The full product definition, scope
+boundaries, contracts, and gated execution plan are the canonical
+link:PROJECT_BRIEF.md[project brief]; start there.
 
-Replace this section with a description of *your* project once initialised.
+[NOTE]
+====
+Status: Gate 0 (feasibility and licensing audit) not yet started. This
+repository currently holds the brief, the monorepo skeleton, and the RSR
+scaffolding — no Marid implementation exists yet. See
+link:docs/marid-roadmap.adoc[the roadmap] and
+link:docs/AFFIRMATION.adoc[the affirmation] for the honest state.
+====
+
+This repository is a *Rhodium Standard Repository (RSR)* monorepo: the Marid
+program paths (`PROJECT_BRIEF.md`, `packages/`, `web/`, `contracts/`,
+`fixtures/`, `examples/`, `test/`) are carried alongside machine-readable
+project metadata, an AI-agent gatekeeper protocol, CI/CD, and governance
+infrastructure.
 
 == Quick start
 
 [source,bash]
 ----
-# 1. Create a repo from this template (or clone it), then from the repo root:
-just repo-init                # interactive bootstrap: fills every {{PLACEHOLDER}}
+git clone https://github.com/hyperpolymath/marid.git
+cd marid
 
-# 2. See the available tasks:
-just                     # lists all phases (build, test, validate, audit, ...)
-
-# 3. Check the repo still satisfies the RSR shape:
+# Check the repo satisfies the RSR shape:
 just validate            # structure + metadata checks
+
+# Read the contract before anything else:
+#   PROJECT_BRIEF.md     # the product/engineering contract (§1–§9)
+#   AGENTS.md              # repository instructions for coding agents
+#   docs/agent-launch.adoc # the Gate 0 kickoff assignment
 ----
 
-`just repo-init` prompts for the project name, owner, author, licence contact, and the
-other values listed in `.machine_readable/ai/PLACEHOLDERS.adoc`, substitutes them
-across the tree, validates the result, and (if available) runs the `k9-svc` checks.
+Julia and Node toolchain versions are pinned at Gate 2 alongside the CI
+matrix (`PROJECT_BRIEF.md` §8–§9); until then there is nothing to
+instantiate — the repository root intentionally has no `Project.toml`.
 
 == AI-Assisted Installation
 
@@ -73,13 +81,19 @@ stdin instead.
 
 == What you get
 
+* *The Marid program* — link:PROJECT_BRIEF.md[brief], six-package skeleton
+  (`packages/`), browser-client skeleton (`web/`), contract registry
+  (`contracts/`), fixtures (`fixtures/`), reference-application skeleton
+  (`examples/relationship_explorer/`), and interop tests (`test/interop/`).
 * *Machine-readable metadata* (`.machine_readable/descriptiles/`) — `STATE`, `META`,
   `ECOSYSTEM`, `PLAYBOOK`, `AGENTIC`, `NEUROSYM`, `CLADE`, and `anchors/ANCHOR`,
   in deed, so tools and agents can read the project's state and boundaries.
-* *AI gatekeeper protocol* — `0-AI-MANIFEST.deed` is the universal entry point that
-  tells an AI agent how to work in this repo before it touches anything.
+* *AI gatekeeper protocol* — `0-AI-MANIFEST.a2ml` is the universal entry point that
+  tells an AI agent how to work in this repo before it touches anything, with
+  per-agent instructions in `AGENTS.md`.
 * *Typed ABI/FFI seam* — `src/interface/Abi/` (Idris2 type + layout proofs) over
-  `src/interface/ffi/` (Zig implementation), with generated C headers.
+  `src/interface/ffi/` (Zig implementation), with generated C headers. Retained
+  RSR spine, required by `just validate`; it is not Marid application code.
 * *CI/CD* — GitHub Actions for quality, security (CodeQL, Scorecard, secret
   scanning), multi-forge mirroring, and RSR anti-pattern enforcement.
 * *Supply-chain & reproducibility* — container layering (stapeln), Guix shells,
@@ -99,22 +113,33 @@ The short version:
 |===
 | Path | What lives there
 
-| `README.adoc`, `CLAUDE.md` | Start here - humans and AI agents respectively.
-| `src/`, `tests/`           | The code and its tests.
-| `docs/`                    | Human documentation, including the full map above.
-| `.machine_readable/`        | Manifests, contractiles and policies that tools read.
-| `build/`, `Justfile`       | Every task runs through `just`; phases live in `build/just/`.
-| `ci/`, `.github/`          | CI configuration; GitHub reads `.github/` and no other path.
+| `PROJECT_BRIEF.md`, `AGENTS.md` | The Marid contract and the agent instructions — start here.
+| `packages/`, `web/` | The six Julia packages and the browser client.
+| `contracts/`, `fixtures/` | Contract registry and interop fixtures.
+| `examples/`, `test/` | Reference application and cross-protocol tests.
+| `README.adoc`, `CLAUDE.md` | This file; the generated agent arrival pack.
+| `src/`, `tests/` | RSR spine seam and estate scaffolding tests.
+| `docs/` | Human documentation, including the full map above.
+| `.machine_readable/` | Manifests, contractiles and policies that tools read.
+| `build/`, `Justfile` | Every task runs through `just`; phases live in `build/just/`.
+| `ci/`, `.github/` | CI configuration; GitHub reads `.github/` and no other path.
 |===
 
 == Where to go next
 
+* link:PROJECT_BRIEF.md[The project brief] — the canonical contract (§1–§9).
+* link:AGENTS.md[AGENTS.md] — repository instructions for coding agents.
+* link:docs/agent-launch.adoc[Agent launch prompts] — the Gate 0 kickoff assignment.
+* link:docs/marid-architecture.adoc[Marid architecture] — contracts checklist (Gate 0 stub).
+* link:docs/marid-compatibility.adoc[Marid compatibility] — version/feature matrices (Gate 0 stub).
+* link:docs/marid-roadmap.adoc[Marid roadmap] — the six gates (Gate 0 stub).
+* link:docs/audits/README.adoc[docs/audits/] — feasibility evidence (Gate 0 output).
+* link:docs/adr/README.adoc[docs/adr/] — Marid architectural decisions.
 * link:docs/architecture/REPOSITORY-MAP.adoc[The repository map] — generated; what every directory is for.
 * link:docs/EXPLAINME.adoc[EXPLAINME] — the engineering deep-dive: how the pieces actually work.
 * link:docs/AFFIRMATION.adoc[AFFIRMATION] — the dated, signed honesty snapshot of the repo's true state.
 * link:docs/AUDIT.adoc[AUDIT] — the release audit gate.
 * link:docs/AI_INSTALLATION_GUIDE.adoc[AI installation guide] — for agents instantiating this template.
-* link:.machine_readable/ai/PLACEHOLDERS.adoc[PLACEHOLDERS] — the full placeholder reference.
 
 == Licence
 
