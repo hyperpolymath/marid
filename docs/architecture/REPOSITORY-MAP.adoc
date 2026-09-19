@@ -83,7 +83,7 @@ predecessors did.
 
 | `0-AI-MANIFEST.deed`
 | yes
-| -
+| universal AI entry point (migration name; standards#837)
 
 | `AGENTS.md`
 | yes
