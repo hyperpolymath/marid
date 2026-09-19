@@ -97,22 +97,19 @@ file. Bring a counter-example, a failing run, or a contradicting source.
 | `main`
 
 | Commit (HEAD)
-| `908a671eba80caf766937add61a2e9ae6c519878`
+| `74ea9a661663015bd90fabb61a71162fbe1f4813`
 
 | Permalink
-| https://github.com/hyperpolymath/marid/tree/908a671eba80caf766937add61a2e9ae6c519878
+| https://github.com/hyperpolymath/marid/tree/74ea9a661663015bd90fabb61a71162fbe1f4813
 
 | Verified (UTC)
-| `2026-09-19T01:02:30Z`
+| `2026-09-19T01:54:08Z`
 
 | Working-tree delta at verification
-| `docs/AFFIRMATION.adoc` (this file) modified: skeleton → completed text.
-  Re-verified with the filled file present — `just validate`, repo-map
-  determinism, and the full AsciiDoc render suite pass — so the file's own
-  content does not affect any result below.
+| `clean`
 
 | Toolchain
-| `just 1.40.0`, `git 2.47.3`, `nickel 1.17.0`, `asciidoctor 2.0.23`,
+| `just 1.40.0`, `git 2.47.3`, `nickel 1.17.0`, `asciidoctor 2.0.26`,
   `bash 5.2.37`, `python 3.13.14`, `curl 8.14.1` (GitHub REST evidence),
   GitHub-hosted `ubuntu-latest` (CI).
 
@@ -139,7 +136,7 @@ themselves is not.
 * `docs/EXPLAINME.adoc` — the mechanism.
 * `docs/AUDIT.adoc` — the standing conformance audit.
 * `0-AI-MANIFEST.a2ml` — machine-readable repo metadata.
-* Central Estate CI/CD Audit, run `35410828209` — *contradicts* the canon
+* Central Estate CI/CD Audit, run `35413738206` — *contradicts* the canon
   reading: its Required Files Gate fails while the canon profile gates pass.
   The live run wins as fact (it fails); the canon profile gates win as
   authority; the contradiction is open and the owner's ruling is pending
@@ -147,11 +144,12 @@ themselves is not.
 
 == The honest state (one breath)
 
-Marid is a freshly minted Gate 0 monorepo baseline — template machinery plus
-honestly labelled skeleton stubs for the Marid packages, web clients,
-contracts, fixtures, and the relationship-explorer reference app — whose local
-gates and CI pass except two pre-existing estate-level reds and a Pages build
-still in flight when this was written.
+Marid is a Gate 0 monorepo baseline — thirteen charter package stubs, an
+AffineScript-under-Bun web story, an IR-first contract registry, and a
+machine-readable surface whose six descriptiles also ship as an
+ABNF-validated repo-deed — whose local gates and CI pass except two
+pre-existing estate-level reds, with a Pages build still pending when this
+was written.
 
 === What is solid (and how we checked)
 
@@ -164,15 +162,19 @@ still in flight when this was written.
   `bash tests/shape/repo_map_determinism_test.sh` — `PASS: repository map is
   byte-identical across locales, and committed copy is current`
 | Every tracked AsciiDoc renders | affirmed |
-  `bash scripts/check-adoc-renders.sh .` — `PASS: all 179 tracked .adoc
+  `bash scripts/check-adoc-renders.sh .` — `PASS: all 188 tracked .adoc
   file(s) render clean`
 | Licence texts and per-file SPDX headers are present | affirmed |
-  `ls LICENSES/` shows `CC-BY-SA-4.0.txt` + `MPL-2.0.txt`; 92 `.adoc`
+  `ls LICENSES/` shows `CC-BY-SA-4.0.txt` + `MPL-2.0.txt`; 94 `.adoc`
   files carry `SPDX-License-Identifier`
 | CI at the anchor is green except the two named estate reds | affirmed |
-  GitHub REST, 26 runs: 25 completed, all green except audit run
-  `35410828209` and CodeQL run `35410828666` (see <<outstanding>>);
-  Pages run `35410827911` in flight, outcome unaffirmed
+  GitHub REST, 25 runs: 24 completed, all green except audit run
+  `35413738206` and CodeQL run `35413738709` (see <<outstanding>>);
+  DEED validation run `35413737642` green with the deed landed; Pages
+  run `35413737644` pending, outcome unaffirmed
+| Repo-deed is ABNF-valid | affirmed |
+  `python3 deed_lint.py marid_chora.deed` (pristine standards copy) —
+  `OK marid_chora.deed`
 | README aspirations beyond Gate 0 | aspiration | `README.adoc` — *not
   checked*, do not read as affirmed
 |===
@@ -186,11 +188,14 @@ affirmation from marketing.
   at Gate 0 there are no Marid unit tests by design (brief §5 starts
   executable gates at Gate 1). The estate suite passing means the skeleton
   is well-formed, not that Marid works.
-* "CI green" means the 23 completed runs other than the two estate reds.
-  The Pages outcome postdates this file and is unaffirmed.
-* The anchor sits two fix commits (`099a562`: map trim, `[canon]` 2.0.4,
-  audit pin; `b90d070`: Pages timeout) and five owner README trims above
-  the mint commit `b0c9ebc`. This file covers the anchor tree only.
+* "CI green" means the 22 completed runs other than the two estate reds.
+  Estate Rules is green again after the root-allow dual-surface fix; DEED
+  validation passed with `marid_chora.deed` in place; the Pages outcome
+  postdates this file and is unaffirmed.
+* The anchor sits five commits above the last affirmation: the owner's
+  root-manifest rename (`f7215e3`), the reconciliation (`a3f5200`), the
+  root-allow dual-surface fix (`fbf4723`), a map regen (`6d2ca91`), and
+  the deed landing itself. This file covers the anchor tree only.
 
 === Known-incomplete but honestly fenced
 
@@ -198,8 +203,8 @@ Gaps that fail *loudly* rather than silently. Name the guard that makes the
 failure loud — a gap with no guard belongs in <<outstanding>> instead.
 
 * Unimplemented components (packages, web clients, contracts, fixtures,
-  reference app) — fenced by: 14 component READMEs carry a `Status: Gate 0
-  skeleton` line naming the implementing gate, and zero `Project.toml` /
+  reference app) — fenced by: 22 component READMEs carry a `Status: Gate 0
+  skeleton` line naming the implementing phase, and zero `Project.toml` /
   zero `src/` dirs exist, so any Julia tooling fails closed ("not a
   project") instead of half-working.
 
@@ -210,18 +215,18 @@ Known gaps, trust boundaries, postulates, unwired modules and stale docs.
 *Silence is not affirmation* — name what you have not verified, and name
 anything this session *refuted*.
 
-* Pages cold-build outcome unobserved: run `35410827911` was in flight at
-  writing with the 60-minute fix (`b90d070`); earlier cold builds were
-  cancelled by the old 20-minute timeout before the cabal cache could save
-  (proof: run `35409714397` build log, `1612: The operation was canceled`
-  mid-pandoc). Check the deployment before citing the site.
-* Estate audit red: run `35410828209` fails Required Files (demands root
+* Pages build still unproven: run `35413737644` was pending at writing;
+  the previous cold build (run `35410827911`) failed at the Setup Pages
+  step before the cabal build started, so the 60-minute fix (`b90d070`)
+  has not yet had a completed run. Check the deployment before citing
+  the site.
+* Estate audit red: run `35413738206` fails Required Files (demands root
   `GOVERNANCE` / `ARCHITECTURE` / `MAINTAINERS`), contradicting the canon
   profile gates (accept `docs/` + `.github/` forms) and `root-allow.txt`
   (forbids root additions). Template `main` fails the same gate (run
   `35366237363`, 2026-09-18). Left red for the owner's ruling; the
   recommended fix is in the checker, not this repo.
-* CodeQL `startup_failure`, run `35410828666` — identical on the
+* CodeQL `startup_failure`, run `35413738709` — identical on the
   template's last five runs (`34953137485`, `34952690152`,
   `34952076985`, `34952060100`, `34952023994`): pre-existing estate
   condition, not a Marid finding.
@@ -231,11 +236,21 @@ anything this session *refuted*.
 * `docs/legal/EXHIBIT-B-QUANTUM-SAFE.txt` (template provenance
   machinery) remains though the owner scrubbed Provenance claims from
   `README.adoc`; removal is the owner's call.
+* Dual-surface deed: `marid_chora.deed` is translator-emitted and
+  ABNF-valid; the `.a2ml` sources remain until retire-the-checker day.
+  The `minted-from` / `registry` extension is owner-ruled (2026-09-19)
+  and filed on standards#837 for tableing. Still open: `STATE.a2ml`
+  (family-3 ruling), source-deletion timing, and the extension-only
+  `0-AI-MANIFEST.deed` content (no mapping spec exists for that family).
 * Refuted this session: (a) "the audit failure is a Marid defect" —
   refuted by the template failing identically; (b) "the Pages
   cancellations are flakiness" — refuted by the timeout log proof;
   (c) "the `f9e173a` audit pin is resolvable" — refuted by
-  NOT-ANCESTOR (squash orphan; repinned to `222b1d9`).
+  NOT-ANCESTOR (squash orphan; repinned to `222b1d9`); (d) "renaming
+  `.a2ml` to `.deed` migrates the format" — refuted by the grammar
+  ("a file using `=` is not a deed"); (e) "the campaign translator
+  handles any minted repo" — refuted by fail-closed on the
+  template-built seen-set (extended under owner ruling, filed upstream).
 
 [IMPORTANT]
 ====
@@ -250,14 +265,14 @@ to prevent — mark it refuted and say what refuted it.
 ----
 git clone https://github.com/hyperpolymath/marid
 cd marid
-git checkout 908a671eba80caf766937add61a2e9ae6c519878
+git checkout 74ea9a661663015bd90fabb61a71162fbe1f4813
 just validate
 # expect: All validations passed!
 bash tests/shape/repo_map_determinism_test.sh
 # expect: PASS: repository map is byte-identical across locales,
 #         and committed copy is current
 bash scripts/check-adoc-renders.sh .
-# expect: PASS: all 179 tracked .adoc file(s) render clean
+# expect: PASS: all 188 tracked .adoc file(s) render clean
 ----
 
 == One-line characterisation (quote this)
@@ -273,7 +288,7 @@ hidden.
 
 * *Engineering party (AI):* Arena.ai Agent Mode — the exact backing-model
   identifier is not disclosed to this session — ran the checks recorded
-  here at `2026-09-19T01:02:30Z` and stands behind the wording above as a
+  here at `2026-09-19T01:54:08Z` and stands behind the wording above as a
   faithful report of those runs.
 * *Owner / maintainer:* Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk> — _signs by committing
   this file with `-S`; the git commit signature over this content, at the
@@ -281,7 +296,7 @@ hidden.
 
 [source,bash]
 ----
-git commit -S -s docs/AFFIRMATION.adoc -m "docs: affirm state at 908a671eba80caf766937add61a2e9ae6c519878"
+git commit -S -s docs/AFFIRMATION.adoc -m "docs: affirm state at 74ea9a661663015bd90fabb61a71162fbe1f4813"
 git log --show-signature -1
 ----
 
