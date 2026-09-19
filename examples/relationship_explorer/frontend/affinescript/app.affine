@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// Relationship Explorer frontend in AffineScript (JaffaScript face)
+
+import { MaridClient } from "@marid/client";
+
+export record TaxonView {
+    id: string,
+    name: string,
+    rank: string
+}
+
+export linear interface AppController {
+    consume loadTaxa(): Promise<TaxonView[]>;
+    consume runCladisticAnalysis(): Promise<void>;
+}

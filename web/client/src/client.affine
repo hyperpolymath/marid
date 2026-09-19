@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// AffineScript client module for Marid (JaffaScript face)
+
+export record ProblemDetails {
+    type: string,
+    title: string,
+    status: u16,
+    detail: string,
+    instance: string?
+}
+
+export record EventEnvelope<T> {
+    specversion: string,
+    id: string,
+    source: string,
+    type: string,
+    time: string,
+    topic: string,
+    sequence: u64,
+    data: T
+}
+
+export linear interface Subscription {
+    consume cancel(): void;
+}
+
+export record ClientConfig {
+    baseUrl: string,
+    credentials: string?,
+    defaultTimeoutMs: u32
+}

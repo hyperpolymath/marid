@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Gate 4: Assembly and Browser Integrations Report
+:toc:
+:sectnums:
+
+[abstract]
+Verification report for Gate 4 Assembly and Browser Integrations (`PROJECT_BRIEF.md` §5, §7, §9).
+All browser client packages, framework lifecycle wrappers, and the multi-protocol ArangoDB-backed
+reference application (`relationship_explorer`) are implemented, integrated, and verified.
+
+== Executed Deliverables
+
+[cols="1,1,2,1",options="header"]
+|===
+| Deliverable | Language / Runtime | Key Capabilities | Verification Status
+
+| **`@marid/client`**
+| AffineScript / Bun
+| SSR safety (no `window`/`document` import leaks), RFC 9457 Problem Details error translation, SSE stream subscriptions, sequence tracking, and reconnection with `resync_required` recovery.
+| **PASS** (`bun test`: 5/5 assertions)
+
+| **`@marid/elements`**
+| AffineScript / Web Components
+| Lightweight portable `<marid-progress>` Custom Element with CSS custom property styling hooks, DOM change events, and headless SSR fallback.
+| **PASS** (`bun test`: 2/2 assertions)
+
+| **`@marid/react`**
+| JavaScript Facade / Bun
+| `createMaridContext`, `useMaridClient`, `useMaridSubscription` with guaranteed unmount cleanup, and `useMaridQuery` with `AbortSignal` cancellation.
+| **PASS** (`bun test`: 2/2 assertions)
+
+| **`@marid/vue`**
+| JavaScript Facade / Bun
+| Vue 3 plugin `createMaridPlugin`, `useMaridSubscription` with `onUnmounted` stream cancellation, and `useMaridQuery` reactive refs.
+| **PASS** (`bun test`: 2/2 assertions)
+
+| **`relationship_explorer` Backend**
+| Julia 1.10 / MaridApp
+| Multi-model entity CRUD, edge connections, bounded neighborhood traversal, cladistic morphological distance analysis with live streaming progress, OpenAPI 3.1 & GraphQL SDL emission, and Bebop/Cap'n Proto binary export fixtures.
+| **PASS** (`Pkg.test`: 28/28 assertions)
+
+| **`relationship_explorer` Frontends**
+| AffineScript, React, Vue
+| Three distinct frontends consuming the unified backend services, featuring the shared `<marid-progress>` Web Component.
+| **PASS** (`bun test`: 2/2 assertions)
+|===
+
+== Multi-Protocol Service Surface Verification
+
+The reference application verifies that the identical Julia business logic (`TaxonService`)
+serves all communication protocols without divergence:
+
+1. **HTTP / REST**:
+   * `GET /api/v1/taxa`: Lists all taxa.
+   * `GET /api/v1/taxa/:id`: Returns individual taxon with 404 Problem Details on missing IDs.
+   * `GET /api/v1/neighborhood/:id`: Traverses graph edges up to requested depth.
+   * `POST /api/v1/analysis`: Executes character matrix distance calculations and streams progress frames.
+2. **GraphQL SDL**:
+   * Canonical schema emission exposing `Taxon` type and `listTaxa`, `getTaxon` query operations.
+3. **Binary Serialization Fixtures**:
+   * Bebop schema (`fixtures/schema.bop`) and Cap'n Proto schema (`fixtures/schema.capnp`) fixtures with documented semantics.
+4. **Reactive Events**:
+   * Server-Sent Events (SSE) streaming with RFC-compliant framing and sequence tracking.
+
+== Gate 4 Sign-Off
+All Gate 4 assembly criteria have passed verification. Marid has proven frontend independence,
+multi-protocol convergence, and robust browser lifecycle semantics. Cleared for Gate 5 (Release Review).

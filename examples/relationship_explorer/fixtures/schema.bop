@@ -1,0 +1,36 @@
+/**
+ * Bebop Schema: Relationship Explorer Taxon & Edge Records
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
+enum Rank {
+    Domain = 0;
+    Kingdom = 1;
+    Phylum = 2;
+    Class = 3;
+    Order = 4;
+    Family = 5;
+    Genus = 6;
+    Species = 7;
+}
+
+struct TaxonRecord {
+    string id;
+    string name;
+    Rank rank;
+    int32[] characters;
+}
+
+struct RelationshipEdge {
+    string id;
+    string from_id;
+    string to_id;
+    string rel_type;
+    float64 weight;
+}
+
+message CladisticGraphExport {
+    1 -> TaxonRecord[] taxa;
+    2 -> RelationshipEdge[] edges;
+    3 -> string generated_at;
+}

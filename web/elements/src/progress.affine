@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+// AffineScript Web Component definitions
+
+export record ProgressState {
+    value: f32,
+    max: f32,
+    status: string,
+    indeterminate: bool
+}
+
+export linear interface ProgressElementView {
+    consume render(state: ProgressState): void;
+}

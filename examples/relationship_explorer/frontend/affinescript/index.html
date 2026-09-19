@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk> -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marid Relationship Explorer — AffineScript Face</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; background: #f8fafc; color: #0f172a; }
+    .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    h1, h2 { color: #1e293b; }
+    button { background: #0284c7; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-weight: 500; }
+    button:hover { background: #0369a1; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .node-pill { background: #e0f2fe; color: #0369a1; padding: 0.4rem 0.8rem; border-radius: 9999px; display: inline-block; font-size: 0.9rem; margin: 0.2rem; }
+    pre { background: #f1f5f9; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+  </style>
+  <script type="module" src="../../web/elements/src/index.js"></script>
+</head>
+<body>
+  <h1>Marid Relationship Explorer (AffineScript Face)</h1>
+  <p>Exploring multi-model primate phylogenetic clades backed by ArangoDB and Cladistics.jl.</p>
+
+  <div class="card">
+    <h2>Phylogenetic Cladistics Analysis</h2>
+    <marid-progress id="analysis-progress" value="0" max="100" status="Ready to analyze"></marid-progress>
+    <div style="margin-top: 1rem;">
+      <button id="run-btn">Run Cladistic Analysis</button>
+    </div>
+    <div id="analysis-result" style="margin-top: 1rem;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Taxa in Neighborhood</h2>
+    <div id="taxa-list" class="grid"></div>
+  </div>
+
+  <script type="module">
+    import { MaridClient } from "../../web/client/src/index.js";
+
+    const client = new MaridClient({ baseUrl: window.location.origin });
+    const progressEl = document.getElementById("analysis-progress");
+    const runBtn = document.getElementById("run-btn");
+    const resultEl = document.getElementById("analysis-result");
+    const taxaListEl = document.getElementById("taxa-list");
+
+    runBtn.addEventListener("click", async () => {
+      progressEl.status = "Starting analysis...";
+      progressEl.value = 10;
+      
+      try {
+        const stream = await client.fetchJson("/api/v1/analysis", { method: "POST" });
+        progressEl.value = 100;
+        progressEl.status = "Complete";
+        resultEl.innerHTML = `<strong>Result:</strong> <pre>${JSON.stringify(stream, null, 2)}</pre>`;
+      } catch (e) {
+        progressEl.status = "Error: " + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
