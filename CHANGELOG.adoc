@@ -29,3 +29,20 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
   `docs/marid-roadmap.adoc` (Gate 0 stubs), `docs/audits/`,
   `docs/adr/`, and `docs/agent-launch.adoc` (Gate 0 kickoff and
   bounded-task prompts).
+
+==== Fixed
+
+* Regenerated `docs/architecture/REPOSITORY-MAP.adoc` after staging: the
+  generator reads tracked files, so a map generated pre-staging omits new
+  paths and CI reports it stale.
+* `scripts/gen-repo-map.sh`: quote-safe annotation trim. The `| xargs`
+  trim interpreted quotes, so an annotation containing an apostrophe
+  ("Cap'n Proto") rendered empty; `sed` trims without interpreting.
+* `.machine_readable/rsr-profile.a2ml`: added the `[canon]` binding
+  (2.0.4, verified against live `canon.lock`). `just repo-init` records
+  the canon only in `PROVENANCE.a2ml`, but Canon lockstep reads the
+  profile, so minted repos fail lockstep without this block.
+* `.github/workflows/main-estate-audit.yml`: repinned cicd-suite
+  `f9e173a` → `222b1d9` (main). PR#17 merged 2026-09-17 and the squash
+  orphaned its head commit (NOT-ANCESTOR), failing this call and the
+  governance action-pin check. Per the pin note's own instruction.

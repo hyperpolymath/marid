@@ -9,3 +9,14 @@ version = "1.0.0"
 spec = "rsr-criteria-v2"
 declares-against = "2.0.0-draft"
 preset = "julia-library"
+
+[canon]
+# Binding added post-mint 2026-09-19: `just repo-init` records the canon in
+# PROVENANCE.a2ml, but the Canon lockstep gate reads it from THIS file, so a
+# minted profile without this block fails lockstep. Values pinned from the
+# template tip at mint (db1eaf1) and verified byte-equal against live
+# hyperpolymath/standards canon.lock on 2026-09-19.
+version         = "2.0.4"
+criteria_sha256 = "37cb5f679b414f6ee99c6bb62c460fd5349ff7d50cc1dab25b1e1a8e8d3c7bb9"
+gates_sha256    = "b65ce75438c42d01bedf0325b9a97f1a575064866158b4340d7427fca911dd1b"
+lockstep_since  = "2026-09-19"

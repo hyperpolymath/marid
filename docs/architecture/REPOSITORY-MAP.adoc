@@ -85,6 +85,10 @@ predecessors did.
 | yes
 | universal AI entry point
 
+| `AGENTS.md`
+| yes
+| repository instructions for coding agents (brief launch text + RSR notes)
+
 | `CHANGELOG.adoc`
 | yes
 | AsciiDoc is the estate-standard documentation format
@@ -117,17 +121,25 @@ predecessors did.
 | yes
 | REUSE licence texts, dual-licence model (code MPL-2.0 / docs CC-BY-SA-4.0)
 
+| `PROJECT_BRIEF.md`
+| yes
+| canonical product/engineering contract (brief §1–§9)
+
 | `README.adoc`
 | yes
 | -
 
+| `REUSE.toml`
+| yes
+| repository license mapping (starter; Gate 2 finalises)
+
+| `THIRD_PARTY_NOTICES.md`
+| yes
+| third-party material register (brief §1 licensing)
+
 | `abi.ipkg`
 | optional
 | Idris2 package for the ABI seam; only where the abi capability is declared
-
-| `archetypes`
-| optional
-| template-only variation seam (ADR-0003); `just repo-init` removes it from minted repos
 
 | `benches/`
 | optional
@@ -140,6 +152,10 @@ predecessors did.
 | `ci/`
 | yes
 | .gitlab-ci.yml + .pre-commit-config.yaml; ci/README.adoc records the out-of-band GitLab project setting these require
+
+| `contracts/`
+| yes
+| contract registry: identifiers, versions, fingerprints, bindings (brief §4)
 
 | `coordination.k9.ncl`
 | yes
@@ -157,6 +173,10 @@ predecessors did.
 | optional
 | optional feature packs
 
+| `fixtures/`
+| yes
+| interop fixtures, incl. Cap'n Proto/Bebop import/export (brief §7)
+
 | `guix.scm`
 | optional
 | `guix build -f guix.scm` requires it at root; only where reproducible-build is declared
@@ -164,6 +184,10 @@ predecessors did.
 | `mise.toml`
 | yes
 | pinned toolchains
+
+| `packages/`
+| yes
+| Julia packages: Marid + five integrations (brief §2–§3)
 
 | `scripts/`
 | yes
@@ -181,6 +205,10 @@ predecessors did.
 | yes
 | -
 
+| `test/`
+| yes
+| cross-protocol interop tests (brief §7); RSR estate tests live in tests/
+
 | `tests/`
 | yes
 | -
@@ -188,6 +216,10 @@ predecessors did.
 | `verification/`
 | optional
 | proofs; only where formal-proofs is declared
+
+| `web/`
+| yes
+| browser client: framework-independent TS + React/Vue/elements (brief §5)
 
 | `www/`
 | yes
@@ -206,6 +238,9 @@ your own repo - but do not read their emptiness as neglect here.
 [cols="1"]
 |===
 | `.machine_readable/scripts/verification/`
+| `contracts/`
+| `docs/adr/`
+| `docs/audits/`
 | `docs/governance/audit/`
 | `docs/governance/audit/compliance/`
 | `docs/governance/audit/effects/`
@@ -237,8 +272,17 @@ your own repo - but do not read their emptiness as neglect here.
 | `docs/whitepapers/outreach/`
 | `docs/wikis/`
 | `examples/`
+| `examples/relationship_explorer/`
 | `features/boj-server/`
 | `features/panic-attacker/`
+| `fixtures/`
+| `packages/`
+| `packages/Marid/`
+| `packages/MaridArango/`
+| `packages/MaridBebop/`
+| `packages/MaridCapnProto/`
+| `packages/MaridGRPC/`
+| `packages/MaridGraphQL/`
 | `src/aspects/`
 | `src/aspects/integrity/`
 | `src/aspects/observability/`
@@ -250,6 +294,8 @@ your own repo - but do not read their emptiness as neglect here.
 | `src/errors/`
 | `src/interface/generated/`
 | `src/interface/generated/abi/`
+| `test/`
+| `test/interop/`
 | `tests/fuzz/`
 | `verification/benchmarks/`
 | `verification/coverage/`
@@ -258,6 +304,11 @@ your own repo - but do not read their emptiness as neglect here.
 | `verification/simulations/`
 | `verification/tests/`
 | `verification/traceability/`
+| `web/`
+| `web/client/`
+| `web/elements/`
+| `web/react/`
+| `web/vue/`
 |===
 
 == Where things are enforced
