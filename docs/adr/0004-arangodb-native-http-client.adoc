@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0004: Native Julia HTTP Client for ArangoDB
+:status: accepted
+:date: 2026-09-19
+
+== Context
+Marid targets ArangoDB as its flagship multi-model persistence backend (documents, edges, and graphs). There is currently no active, supported ArangoDB client in the Julia General Registry. The framework needs a robust, high-performance database layer that does not force graph and document capabilities through a relational ORM abstraction.
+
+== Decision
+Build **`ArangoDB.jl`** as an independent, standalone Julia package (`packages/ArangoDB/`) communicating with ArangoDB's official HTTP/REST API (port 8529) via `HTTP.jl` connection pools and `JSON3.jl` serialization:
+1. **Standalone Scope**: Usable as a general Julia library without installing `MaridCore`.
+2. **Direct Capabilities**: Exposes document CRUD, edge collections, bound AQL queries (`POST /_api/cursor`), cursor pagination/cleanup, and stream transactions.
+3. **Storage Seam Integration**: Plugs into `MaridStorage` via a Julia package extension (`Weakrefs`), keeping the storage abstraction cleanly separated from the concrete client.
+4. **No ORM**: Documents and graph results are returned as typed structs or zero-allocation JSON views; no heavy ActiveRecord-style ORM is introduced.
+
+== Alternatives Considered
+1. **C/C++ Driver Wrapper**: Wrapping an external C++ client via FFI. Rejected: Adds complex build-time toolchain requirements and memory management seams; ArangoDB's native interface is JSON/HTTP, which Julia handles natively at wire speed.
+2. **Relational ORM Abstraction**: Forcing ArangoDB into a SQL-like table abstraction. Rejected: Completely destroys ArangoDB's primary value proposition (graph traversals and schemaless document trees).
+
+== Consequences
+* **Positive**: Lightweight, pure Julia implementation with zero external C library dependencies; full fidelity for graph traversals and AQL optimizations.
+* **Trade-off**: Requires implementing and maintaining HTTP wire parsing, cursor batching, and conflict handling in Julia.
+* **Expensive to Retrofit**: Wrapping an ORM around documents makes graph algorithms (`Cladistics.jl`) unnatural and inefficient.

@@ -1,37 +1,140 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-// Estate file mapping: this is the brief's docs/compatibility.md, carried as
-// AsciiDoc per the estate rule (general docs under docs/ are .adoc).
-= Marid compatibility
+= Marid Compatibility Matrix & Type Translation Guide
+:toc:
+:sectnums:
 
-Supported versions, feature matrices, and compatibility rules for every
-Marid integration (`PROJECT_BRIEF.md` §2, §5, §8).
+[abstract]
+Supported versions, feature matrices, transport selections, and cross-language type
+translations for the Marid framework (`PROJECT_BRIEF.md` §2, §4, §5, §8). Approved at Gate 0.
 
-Status: Gate 0 stub. Populated from the Gate 0 feasibility audit
-(`docs/audits/feasibility.adoc`): exact runtime versions, supported
-streaming modes, transport selections, and the ArangoDB release under test.
-Nothing here may promise what the audit has not verified.
+== Supported Toolchains & Runtimes
 
-== Checklist: what this document must contain
+[cols="1,1,2",options="header"]
+|===
+| Component | Supported Version | Notes
 
-* Per-package supported-version and feature matrix (§8: a package is ready
-  only when this exists).
-* Exact gRPC streaming modes supported — no more, no less (§2 scope
-  boundaries).
-* GraphQL subscription transport selection (§2: subscriptions require a
-  separately identified transport).
-* Browser-facing gRPC approach: gRPC-Web, Connect, or gateway (§5: native
-  gRPC alone is insufficient).
-* Browser compatibility rules: SSR safety, subscription cleanup on unmount,
-  reconnect/resynchronize behavior, rolling-deployment tolerance (§5).
-* Type translations: large integers, timestamps, binary data, null versus
-  omitted values, default values (§4).
-* Explicit per-package lists of unsupported features (§8).
+| **Julia Runtime**
+| **v1.10 LTS** and **v1.11 Current**
+| Primary backend application and integration package execution.
 
-== Compatibility rules (standing)
+| **Browser Runtime**
+| **Bun v1.1+**
+| Package management and execution environment for `web/` packages. Node, npm, and Deno are ejected.
 
-* Older browser bundles remain compatible during rolling server deployments.
-* Contract evolution follows stable identifiers and pinned generators; see
-  `contracts/`.
-* Interoperability is proved by independent implementations, never by mocks
-  (§8).
+| **Browser Client Language**
+| **AffineScript v0.2+ (JaffaScript face)**
+| Compiles `.affine` to typed WebAssembly via `@hyperpolymath/affinescript`. TypeScript is forbidden by estate policy.
+
+| **Database Target**
+| **ArangoDB 3.12 Community Edition**
+| Multi-model graph, edge, and document store running under official Docker/Podman images.
+|===
+
+== Per-Package Feature & Compatibility Matrix
+
+[cols="1,2,2,2",options="header"]
+|===
+| Package | Supported Features | Unsupported Features | Verification Evidence
+
+| **`MaridIR`**
+| Service, method, and field definitions; streaming mode indicators; type references; validation rules.
+| Dynamic runtime reflection over unverified strings; code execution.
+| Golden IR snapshot tests; round-trip serialization.
+
+| **`MaridCodec`**
+| Content negotiation (Accept, q-values, Vary); JSON3 serialization; CBOR/MsgPack; Cap'n Proto & Bebop extensions.
+| Unbounded memory allocation during deserialization; arbitrary Julia object serialization (`serialize`).
+| Property tests with Malformed input fuzzing; zero-allocation benchmarks.
+
+| **`MaridOpenAPI`**
+| OpenAPI 3.1 JSON/YAML generation; JSON Schema 2020-12 emission from IR; parameter schemas.
+| OpenAPI 2.0 (Swagger) legacy formats; non-standard vendor extensions.
+| Schema validation via official OpenAPI 3.1 schema linters.
+
+| **`MaridRPC`**
+| JSON-RPC 2.0 specifications; Model Context Protocol (MCP) tool/resource bindings; SSE notification hooks.
+| Stateful transport lock-in; unversioned RPC endpoints.
+| Interoperability tests with independent JSON-RPC and MCP clients.
+
+| **`MaridGraphQL`**
+| IR to GraphQL SDL emission; introspection query engine; Query and Mutation resolvers; partial error rendering.
+| Subscriptions over raw TCP (subscriptions use SSE/WebSocket in Phase 2); unconstrained deep recursive queries.
+| Apollo Client & GraphiQL introspection compliance suite.
+
+| **`MaridTransport`**
+| HTTP/1.1 via `HTTP.jl`; Server-Sent Events (SSE); WebSocket RFC 6455 upgrade; chunked transfer encoding; HTTP trailers.
+| Native HTTP/2 framing (deferred to Phase 8).
+| HTTP conformance tests; wrk load benchmarks.
+
+| **`MaridCore`**
+| Radix/trie router; tuple routing keys; middleware chaining; `CallContext` lifecycle; graceful shutdown and request draining.
+| Blocking route resolution; dynamic code loading inside request handlers; global state singletons.
+| Router property tests (0 allocations on route match); concurrent cancellation benchmarks.
+
+| **`ArangoDB`**
+| Document CRUD (`_key`, `_id`, `_rev`); Edge collections; AQL bound cursor queries; Stream Transactions; batching.
+| ArangoDB internal Agency clustering protocols (Marid is not an Agency client); Foxx microservices.
+| Test suite against live ArangoDB 3.12 container; cursor expiration and retry tests.
+
+| **`MaridStorage`**
+| Unified storage seam; In-memory driver; SQLite backend; DuckDB backend; ArangoDB extension via package weakrefs.
+| Distributed global locking; arbitrary SQL-to-AQL query transpilations.
+| Storage contract test suite executed identically against all backends.
+|===
+
+== Protocol Boundaries & Transport Selection
+
+1. **gRPC Protocol Scope**:
+   - **Phase 1–7 Scope**: Native gRPC is deferred. Standard RPC interactions use `MaridRPC` (JSON-RPC 2.0 / MCP over HTTP/SSE).
+   - **Phase 8 Scope**: Unary RPC and Server Streaming over HTTP/2 using `libnghttp2` FFI. Client-streaming and Bidirectional streaming are strictly gated on HTTP/2 flow-control validation.
+   - **Browser-facing gRPC**: Must use gRPC-Web or Connect protocol gateway. Native gRPC over raw HTTP/2 is not supported directly in web browsers.
+2. **GraphQL Subscriptions**:
+   - Transport is decoupled from schema: subscriptions operate over Server-Sent Events (SSE) as primary, with WebSocket upgrades for bidirectional feeds.
+3. **Cap'n Proto & Bebop Boundaries**:
+   - Both are message serialization codecs within `MaridCodec`. Neither is treated as a replacement for standard network RPC protocols.
+
+== Cross-Protocol Type Translation Contract
+
+To prevent silent data corruption or precision loss across Julia, JavaScript/AffineScript, GraphQL, and binary protocols, all adapters adhere to these conversion rules:
+
+[cols="1,1,1,1,2",options="header"]
+|===
+| Logical Type | Julia Type | JSON / GraphQL | Binary (Bebop/Capnp) | Translation & Overflow Rule
+
+| **64-bit Signed Int**
+| `Int64`
+| String or `BigInt` in JSON; `String` in GraphQL
+| `int64`
+| Integers exceeding $2^{53} - 1$ must serialize as strings in JSON to prevent JavaScript precision truncation.
+
+| **64-bit Unsigned Int**
+| `UInt64`
+| String in JSON; `String` in GraphQL
+| `uint64`
+| Serialized as base-10 strings in browser-facing endpoints.
+
+| **Timestamp**
+| `Dates.DateTime`
+| ISO 8601 UTC String (`YYYY-MM-DDTHH:MM:SS.sssZ`)
+| `int64` (epoch millis or nanos)
+| Millisecond precision standard; always normalized to UTC.
+
+| **Binary Data**
+| `Vector{UInt8}`
+| Base64-encoded string
+| `byte[]` / `Data`
+| RFC 4648 Base64 encoding for text transports.
+
+| **Null vs. Omitted**
+| `Union{Nothing, T}` vs. `Missing`
+| `null` vs. key absent
+| Optional field presence tag
+| `Nothing` maps to explicit `null`; `Missing` / absent field indicates omitted value.
+
+| **Decimal / Currency**
+| `FixedPoint` or `String`
+| String
+| Custom struct
+| Floating-point types (`Float64`) are forbidden for monetary or exact scientific values.
+|===

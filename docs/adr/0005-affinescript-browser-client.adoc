@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0005: AffineScript Browser Client under Bun Runtime
+:status: accepted
+:date: 2026-09-19
+
+== Context
+Frontend web applications require client-side SDKs for API calls, live event subscriptions (SSE/WS), and reactive state synchronization. Estate policy (`ANCHOR.a2ml`, ruled 2026-08-25) explicitly places TypeScript in the forbidden category (`forbidden = ["TypeScript"]`) for new application code and selects Bun as the unified runtime, ejecting Node, npm, yarn, pnpm, and Deno.
+
+== Decision
+Marid's browser packages (`web/`) are implemented in **AffineScript** (using the JaffaScript surface face, compiling `.affine` source files to typed WebAssembly via `@hyperpolymath/affinescript`) and managed via **Bun**:
+1. **Core SDK (`@marid/client`)**: Written in AffineScript; exposes standard web interfaces (`Promise`, `AbortSignal`, `AsyncIterable`, reactive subscriptions).
+2. **Framework Integrations (`@marid/react`, `@marid/vue`)**: Provide thin lifecycle wrappers that ensure subscriptions are cleaned up on unmount and reconnection detects missed updates. Thin plain JavaScript facades provide idiomatic React/Vue ergonomics where needed.
+3. **Web Components (`@marid/elements`)**: Framework-independent custom elements for reactive progress indicators and connection status indicators.
+
+== Alternatives Considered
+1. **TypeScript Client SDK**: Standard industry approach. Rejected: Violates estate-wide policy and `ANCHOR.a2ml` invariants.
+2. **Pure WebAssembly / Rust Client**: Heavy binary payload for simple browser API interactions. Rejected: Hinders seamless integration with standard React and Vue applications.
+
+== Consequences
+* **Positive**: Enforces memory and affine resource safety at the browser edge; leverages Bun's high-speed package management and execution.
+* **Trade-off**: Relies on `@hyperpolymath/affinescript` compiler tooling. Upstream compiler stability must be verified during Gate 2.
+* **Expensive to Retrofit**: Committing to TypeScript would create estate policy violations that require rewriting all client-facing packages later.

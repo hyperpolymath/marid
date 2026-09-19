@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0003: Protocol Adapter Seams & Symmetric Streaming Handlers
+:status: accepted
+:date: 2026-09-19
+
+== Context
+Web frameworks typically couple application handlers to HTTP request and response objects (e.g. `req::HTTP.Request, res::HTTP.Response`). When adding support for WebSockets, gRPC, or messaging queues, handlers must either be rewritten or wrapped in awkward mock HTTP objects, breaking streaming and flow control.
+
+== Decision
+Marid defines application services as protocol-agnostic, streaming-symmetric Julia functions:
+`handler(ctx::CallContext, input::Stream{I})::Stream{O}`
+The framework defines explicit **seams** that isolate protocol mechanics from domain logic:
+1. **`MaridTransport`**: Converts incoming wire frames (HTTP/1.1, WebSocket, SSE) into raw byte streams and establishes the request lifecycle.
+2. **`MaridCodec`**: Negotiates content types (`Accept`, `Content-Type`) and deserializes byte streams into typed Julia input streams (`Stream{I}`) and vice versa.
+3. **`CallContext`**: Propagates verified principal, tenant, deadlines, cancellation signals, and distributed trace context across service invocations.
+
+Application services have zero dependency on HTTP or transport types.
+
+== Alternatives Considered
+1. **HTTP-Centric Handler Signature**: Standard `handle(req) -> resp` pattern. Rejected: Incompatible with gRPC streaming, WebSocket duplex communication, and background worker execution.
+2. **Macro-Generated Wrapper Boilerplate**: Annotating arbitrary functions with macros that generate HTTP handlers. Rejected: Obscures data flow and hinders static analysis and unit testing.
+
+== Consequences
+* **Positive**: Handlers are 100% reusable across HTTP/JSON, GraphQL, JSON-RPC, and gRPC without duplicating business logic.
+* **Trade-off**: Requires developers to learn the streaming-symmetric interface even for simple unary request-response endpoints (unary is handled as a 1-element stream).
+* **Expensive to Retrofit**: Coupling handlers to raw HTTP objects early makes supporting multi-protocol APIs prohibitively expensive later.

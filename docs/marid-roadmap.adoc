@@ -1,54 +1,130 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-// Estate file mapping: this is the brief's docs/roadmap.md, carried as
-// AsciiDoc per the estate rule (general docs under docs/ are .adoc).
-= Marid roadmap
+= Marid Roadmap & Issue Breakdown
+:toc:
+:sectnums:
 
-The Marid execution plan: six gates from feasibility audit to release
-review (`PROJECT_BRIEF.md` §9).
+[abstract]
+The Marid execution roadmap and reviewable issue breakdown (`PROJECT_BRIEF.md` §9;
+`docs/MARID-FRAMEWORK.adoc`). Translates the framework gates and charter phases into
+independently verifiable work units with explicit acceptance tests.
 
-Status: Gate 0 stub. Gate 0 breaks implementation into small, reviewable
-issues (goal, scope and non-goals, dependencies, acceptance tests, affected
-files/packages, blockers); those issues become this roadmap's working
-content. Until then, the brief's §9 is authoritative.
+== The Six Program Gates
 
-== The gates (summary)
+[cols="1,1,2,2",options="header"]
+|===
+| Gate | Phase Coverage | Objective | Deliverables & Evidence
 
-* *Gate 0 — Feasibility and licensing audit.* Inspect the Julia ecosystem
-  and native runtimes; verify versions, features, licenses, generated-code
-  terms; select the ArangoDB test release; check package names. Produce the
-  evidence-backed matrix and stop for approval before any new runtime,
-  substantial generator, or non-Julia bridge.
-* *Gate 1 — Interoperability spikes.* Disposable, minimal proofs: standard
-  gRPC client, Cap'n Proto and Bebop bidirectional interop, standard
-  GraphQL client, Julia client against real ArangoDB. Do not freeze the
-  shared API until these results are understood.
-* *Gate 2 — Foundation.* Package skeletons and independent environments,
-  license mapping, CI and test tooling, shared context and lifecycle
-  contracts, ADRs, browser-event contract.
-* *Gate 3 — Independent packages.* Implement the charter packages
-  (Phases 1–3 first, then 4–8 per the roadmap gates) against their
-  acceptance criteria; parallel work once contracts and runtime choices
-  are approved.
-* *Gate 4 — Assembly and browser integrations.* Thin Marid bindings,
-  framework-independent client, React/Vue wrappers, reference application,
-  real-browser and cross-protocol tests.
-* *Gate 5 — Release review.* Support matrix, security and failure behavior,
-  licensing, documentation, reproducibility, package registration and
-  release order. Public registration, publishing, deployment, and paid
-  services require explicit approval.
+| **Gate 0**
+| Phase 0 + All Feasibility
+| Feasibility and licensing discovery; eliminate unknown risks before implementation.
+| `feasibility.adoc`, `licensing.adoc`, reconciled architecture and compatibility specs, ADRs.
 
-== Gate → phase mapping
+| **Gate 1**
+| Entry to Phases 1–3
+| Prove high-risk integration assumptions using disposable minimal spikes.
+| Disposable spikes: ArangoDB HTTP wire client, GraphQL SDL parsing, Bebop serialization check.
 
-The gates are acceptance checkpoints; the charter phases
-(`docs/MARID-FRAMEWORK.adoc` roadmap) are build order. Gate 0 covers
-Phase 0 plus feasibility for all phases; Gate 1 de-risks Phases 1–3
-entry; Gate 2 sets up Phases 1–2; Gate 3 implements Phases 1–3, then
-4–8 per the roadmap gates; Gate 4 assembles plus the Phase 5 frontend;
-Gate 5 reviews the whole program. Full table: `PROJECT_BRIEF.md` §9.
+| **Gate 2**
+| Setup for Phases 1–2
+| Foundation, skeletons, toolchain pins, and shared contracts.
+| Julia LTS/Current CI matrix, Bun & AffineScript pins, `Project.toml` manifests, `CallContext` contract.
 
-== Current position
+| **Gate 3**
+| Phases 1–3 (Core & Storage)
+| Implement independent Julia integration packages.
+| `MaridIR`, `MaridCodec`, `MaridOpenAPI`, `MaridRPC`, `MaridGraphQL`, `MaridTransport`, `MaridCore`, `ArangoDB`, `MaridStorage`.
 
-Gate 0 not yet started. Repository minted 2026-09-18
-(`docs/AFFIRMATION.adoc`, `.machine_readable/descriptiles/STATE.a2ml`).
-The Gate 0 assignment is `docs/agent-launch.adoc`.
+| **Gate 4**
+| Assembly & Phase 5 (Frontend)
+| Browser clients, framework integrations, and the canonical reference application.
+| `@marid/client`, `@marid/react`, `@marid/vue`, `@marid/elements`, `relationship_explorer` reference app.
+
+| **Gate 5**
+| Release Review (Full Program)
+| Final quality, performance, and security audit; release readiness.
+| Full test pass, zero skipped tests, SonarQube green gate, verified reproducible installation.
+|===
+
+== Reviewable Issue Breakdown
+
+=== Issue MARID-001: Gate 1 — Disposable ArangoDB HTTP Wire Spike
+* **Goal**: Prove that pure Julia (`HTTP.jl` + `JSON3.jl`) can communicate with an ArangoDB 3.12 container, create a collection, insert a document, and execute an AQL cursor query with cursor cleanup.
+* **Scope**: Standalone test script without `MaridCore` dependencies.
+* **Non-Goals**: Full error mapping, connection pooling, multi-statement transactions.
+* **Dependencies**: Docker/Podman running `arangodb:3.12`.
+* **Acceptance Tests**:
+  - Script connects to `http://localhost:8529/_api/version` and verifies version `3.12.*`.
+  - Script executes an AQL query via `POST /_api/cursor` and fetches all results using cursor iteration.
+  - Script deletes the cursor explicitly via `DELETE /_api/cursor/{id}`.
+* **Files Affected**: `test/spikes/arango_spike.jl`.
+* **Blockers**: None.
+
+=== Issue MARID-002: Gate 1 — Disposable GraphQL SDL Introspection Spike
+* **Goal**: Validate that `GraphQLite.jl` can parse and validate an emitted GraphQL SDL schema text and execute an introspection query against it.
+* **Scope**: Single-file spike testing schema generation and AST validation.
+* **Non-Goals**: Full runtime resolver pipelines or subscription streaming.
+* **Dependencies**: `GraphQLite.jl`.
+* **Acceptance Tests**:
+  - Validates that generated SDL containing custom types, queries, and mutations passes validation without syntax errors.
+  - Executes a standard `__schema` introspection query and receives a valid JSON structure.
+* **Files Affected**: `test/spikes/graphql_spike.jl`.
+* **Blockers**: None.
+
+=== Issue MARID-003: Gate 2 — Monorepo Skeletons & Toolchain Pinning
+* **Goal**: Establish independent `Project.toml` files for all Phase 1–3 packages, configure CI matrices for Julia 1.10 LTS and 1.11 Current, and wire DCO and dependency-review checks.
+* **Scope**: Package manifests, CI workflows, and toolchain configurations.
+* **Non-Goals**: Functional implementation of package APIs.
+* **Dependencies**: Julia 1.10, Julia 1.11, Bun 1.1.
+* **Acceptance Tests**:
+  - `just validate` passes without errors.
+  - GitHub Actions runs `Project.toml` validation across all 9 initial packages.
+* **Files Affected**: `packages/*/Project.toml`, `.github/workflows/julia-ci.yml`, `.github/workflows/dco.yml`.
+* **Blockers**: None.
+
+=== Issue MARID-004: Gate 2 — CallContext & Streaming Seam Contracts
+* **Goal**: Formalize `CallContext`, `MaridError`, and the streaming handler abstraction `Stream{I} -> Stream{O}` in `MaridCore`.
+* **Scope**: Core contracts, immutable structs, cancellation event propagation, and domain error hierarchies.
+* **Non-Goals**: Protocol-specific encoders or HTTP server binding.
+* **Dependencies**: Standard Julia `Base` and `Dates`.
+* **Acceptance Tests**:
+  - Unit tests prove `CallContext` is immutable and carries deadlines and cancellation signals.
+  - Cancellation signal cancels downstream worker channels within < 10ms.
+* **Files Affected**: `packages/MaridCore/src/context.jl`, `packages/MaridCore/src/errors.jl`.
+* **Blockers**: None.
+
+=== Issue MARID-005: Gate 3 — MaridIR Service Descriptors
+* **Goal**: Implement `MaridIR.jl` as the single source of truth for services, RPC methods, fields, and streaming signatures.
+* **Scope**: Pure data structs, validation logic, and immutability invariants.
+* **Non-Goals**: Code generation (handled by emitters).
+* **Dependencies**: None (zero external dependencies).
+* **Acceptance Tests**:
+  - Constructing valid service descriptors passes validation.
+  - Malformed descriptors (duplicate endpoints, missing types) throw descriptive errors.
+  - 100% test coverage with zero allocations on descriptor reading.
+* **Files Affected**: `packages/MaridIR/src/*`, `packages/MaridIR/test/*`.
+* **Blockers**: None.
+
+=== Issue MARID-006: Gate 3 — ArangoDB Standalone HTTP Client
+* **Goal**: Implement `ArangoDB.jl` supporting documents, edges, bound AQL queries, cursors, and revision-aware updates.
+* **Scope**: Native Julia HTTP client talking directly to ArangoDB REST API.
+* **Non-Goals**: Relational ORM mapping; clustering Agency management.
+* **Dependencies**: `HTTP.jl`, `JSON3.jl`.
+* **Acceptance Tests**:
+  - Integration tests against ArangoDB 3.12 container.
+  - Cursor pagination, batch size limits, and explicit cleanup tested.
+  - Conflict detection (`ERROR_ARANGO_CONFLICT`) verified on concurrent updates.
+* **Files Affected**: `packages/ArangoDB/src/*`, `packages/ArangoDB/test/*`.
+* **Blockers**: None.
+
+=== Issue MARID-007: Gate 4 — Reference Application: Relationship Explorer
+* **Goal**: Deliver the end-to-end reference application backed by ArangoDB and `Cladistics.jl`, exposing services over HTTP/JSON and GraphQL.
+* **Scope**: Full application exercising entity creation, edge connections, neighborhood traversal, and phylogenetic tree reconstruction with progress updates.
+* **Non-Goals**: Full commercial UI; plain JS, React, and Vue reference frontends.
+* **Dependencies**: `MaridCore`, `ArangoDB`, `MaridGraphQL`, `MaridTransport`, `Cladistics.jl`.
+* **Acceptance Tests**:
+  - Entities and edges persisted in ArangoDB.
+  - Long-running Fitch parsimony analysis executes in background Julia task with progress pushed via SSE.
+  - Frontends display live graph neighborhood and tree updates.
+* **Files Affected**: `examples/relationship_explorer/*`, `test/interop/*`.
+* **Blockers**: None.

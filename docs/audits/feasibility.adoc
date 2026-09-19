@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Feasibility Audit: Gate 0
+:toc:
+:sectnums:
+
+[abstract]
+Gate 0 evidence-backed feasibility evaluation for the Marid program (`PROJECT_BRIEF.md` §9).
+Audited on 2026-09-19 against Julia General Registry, upstream repositories, and official
+runtime specifications. Every claim distinguishes between pure Julia implementations,
+external runtime adapters, missing capabilities, and project blockers.
+
+== Executive Summary
+
+The Marid framework commitments require native protocol interoperability, a pure local
+routing data plane, an IR-first design, and standalone integration packages. This audit
+verifies the viability of Julia packages and external runtimes for ArangoDB, gRPC/HTTP/2,
+GraphQL, Cap'n Proto, Bebop, and the AffineScript/Bun browser environment.
+
+The core conclusion: **Phase 1–3 deliverables are highly feasible with focused, bounded implementation work in Julia**. High-risk runtime engineering (such as implementing a custom HTTP/2 multiplexing server in Julia) is successfully avoided by adhering to the Phase 8 deferral of native gRPC in favor of libnghttp2 bindings / gRPC-Web, and scoping Cap'n Proto and Bebop as serialization codecs within `MaridCodec`.
+
+== Evidence-Backed Integration Matrix
+
+[cols="1,2,2,1,2,1",options="header"]
+|===
+| Integration | Existing Implementation | Missing Capabilities | License | Recommendation | Blocker
+
+| **ArangoDB HTTP Client**
+| None in Julia General Registry (`Arango` / `ArangoDB` 404). Official HTTP REST API is mature and JSON-based.
+| Julia client wrapping document, edge, AQL cursor, and transaction endpoints.
+| ArangoDB Server: Apache-2.0; Julia client: MPL-2.0
+| **Build new Julia package (`ArangoDB.jl`)** using `HTTP.jl` and `JSON3.jl`. Zero C-FFI required; pure Julia HTTP wire protocol.
+| None. Target ArangoDB 3.12 Community Edition.
+
+| **HTTP/1.1 Transport Seam**
+| `JuliaWeb/HTTP.jl` v1.10+ (actively maintained, updated Sept 2026).
+| Clean streaming seam decoupling `CallContext` from raw HTTP request/response objects.
+| MIT
+| **Reuse `HTTP.jl`** inside `MaridTransport.jl`. Implement streaming symmetric handlers (`Stream{I} -> Stream{O}`).
+| None.
+
+| **gRPC & HTTP/2**
+| `JuliaIO/gRPCServer.jl` v0.1.0 (uses `Nghttp2Wrapper` and experimental `PureHTTP2`). No stable production HTTP/2 server in pure Julia.
+| Full HTTP/2 multiplexing, robust client/bidirectional streaming, flow control.
+| MIT (`gRPCServer.jl`, `Nghttp2Wrapper.jl`, `libnghttp2`)
+| **Defer native gRPC to Phase 8**. Use `Nghttp2Wrapper` (libnghttp2 C-binding) or accept gRPC-Web gateway for initial browser needs. Launch with `MaridRPC` (JSON-RPC 2.0 / MCP over HTTP/SSE).
+| Pure Julia HTTP/2 is a blocker for standalone native gRPC; libnghttp2 FFI resolves it for Phase 8.
+
+| **GraphQL**
+| `JuliaGraphQL/GraphQLite.jl` (v0.1.x, updated 2024); `neomatrixcode/Diana.jl` (v0.2.x, stale since 2022).
+| Pure IR-to-SDL emitter; AST execution runtime with field-level resolvers and context propagation.
+| MIT (`GraphQLite.jl`, `Diana.jl`)
+| **Reuse `GraphQLite.jl` for AST parsing/validation**; build pure Julia IR-to-SDL emitter in `MaridGraphQL.jl`. Defer complex subscription websockets to post-Core.
+| None for SDL emission & query/mutation execution.
+
+| **Cap'n Proto**
+| `OndrejSlamecka/Capnp.jl` v0.1.2 (MIT, pure Julia reader/writer). Official C++ `capnp` CLI compiler.
+| Pipelined RPC (two-party capabilities), dynamic schema generation from IR.
+| MIT
+| **Scope Cap'n Proto as serialization codec only** (`MaridCodec` extension). RPC capabilities are an explicit non-goal.
+| None for message serialization.
+
+| **Bebop**
+| `hyperpolymath/bebop-ffi` (Zig FFI bindings); official `bebopc` compiler (Apache-2.0). No native Julia runtime in General Registry.
+| Julia code generator for Bebop v3 schemas; native binary unpacker.
+| Apache-2.0 (`bebopc`), MPL-2.0 (`bebop-ffi`)
+| **Implement Bebop v3 wire codec as `MaridCodec` extension**. Wire format is simple length-prefixed little-endian binary. Schema generated from `MaridIR`.
+| None for message encoding/decoding.
+
+| **Browser Client**
+| `@hyperpolymath/affinescript` v0.2 under Bun runtime.
+| Ecosystem maturity: v0.2 is experimental; TypeScript is rejected by estate policy (`ANCHOR.a2ml`).
+| MPL-2.0
+| **Build `@marid/client` in AffineScript (JaffaScript face)** compiling to typed WASM. Provide thin plain JavaScript interop facades for React/Vue.
+| Upstream compiler stability monitored during Gate 2; fallback is audited plain JS facades.
+|===
+
+== Detailed Component Feasibility
+
+=== 1. ArangoDB HTTP Client (`ArangoDB.jl`)
+* **Status**: Clean-room implementation required; no conflicting packages exist in the Julia General Registry.
+* **Architecture**: Standalone package (`packages/ArangoDB/`) with zero dependencies on `MaridCore`.
+* **Transport & Serialization**: Uses `HTTP.jl` connection pools and `JSON3.jl` zero-allocation JSON parsing.
+* **Required Endpoints**:
+  - `POST /_api/cursor`: AQL query execution, batch sizing, cursor continuation, and cleanup.
+  - `POST /_api/document/{collection}`: Document creation with `returnNew` and `overwriteMode`.
+  - `GET /_api/document/{collection}/{key}`: Document retrieval with `If-Match` / `_rev` validation.
+  - `PUT /_api/document/{collection}/{key}`: Revision-aware updates.
+  - `POST /_api/transaction`: Multi-document ACID transactions with stream IDs.
+* **Test Database Target**: Official Docker container `arangodb:3.12` (Community Edition). Test suites will verify cursor timeout cleanup, conflict error codes (`1200 ERROR_ARANGO_CONFLICT`), and retry policies.
+
+=== 2. gRPC and HTTP/2 Strategy
+* **Status**: Native pure-Julia gRPC is deferred to Phase 8 per framework charter alignment.
+* **Ecosystem Reality**: `HTTP.jl` remains an HTTP/1.1 engine. `PureHTTP2.jl` lacks production stress-testing, session flow-control windowing, and frame interleaving. `Nghttp2Wrapper.jl` wraps the battle-tested C library `libnghttp2`.
+* **Decision**: 
+  - Phase 1–3 will deploy **`MaridRPC.jl`** (JSON-RPC 2.0 and Anthropic Model Context Protocol [MCP] over HTTP/SSE), providing high-value RPC interoperability without HTTP/2 complexity.
+  - Phase 8 will introduce native gRPC via `Nghttp2Wrapper` FFI or Connect protocol over HTTP/1.1.
+
+=== 3. GraphQL SDL & Execution (`MaridGraphQL.jl`)
+* **Status**: Hybrid approach.
+* **Phase 1 Scope**:
+  1. **IR-to-SDL Emitter**: Pure Julia function mapping `MaridIR.ServiceDescriptor` to canonical GraphQL SDL schema text.
+  2. **Introspection Engine**: Responds to standard `__schema` and `__type` queries.
+  3. **Execution Runtime**: Resolver pipeline mapping GraphQL AST queries to Julia domain services, passing `CallContext` and resolving partial errors according to the GraphQL June 2018 specification.
+* **Upstream Dependencies**: `GraphQLite.jl` for AST parsing and schema validation rules.
+
+=== 4. Cap'n Proto and Bebop Serialization
+* **Status**: Codec extensions, not standalone RPC engines.
+* **Cap'n Proto**: Handled via `OndrejSlamecka/Capnp.jl` or a dedicated pointer-arithmetic `ByteBuf` unpacker in `MaridCodec.jl`. RPC capability pipelining is confirmed as a non-goal.
+* **Bebop**: Wire specification is compact little-endian records with byte-length prefixes. `MaridCodec` will implement direct buffer read/write methods generated from `MaridIR`.
+
+=== 5. Browser Client and Runtime
+* **Runtime**: Bun (pinned via `mise.toml`). Node/npm/pnpm/yarn and Deno remain ejected.
+* **Language**: AffineScript (JaffaScript face, compiling to typed WebAssembly).
+* **Architecture**: The core SDK (`@marid/client`) exposes standard Web APIs (`Promise`, `AbortSignal`, `AsyncIterable`). Plain JavaScript facades provide ergonomic bindings for `@marid/react` and `@marid/vue`.
+
+== Package Registry Check
+The following package names were checked against the Julia General Registry:
+* `Marid`: Available (unregistered).
+* `MaridIR`: Available (unregistered).
+* `MaridCodec`: Available (unregistered).
+* `MaridCore`: Available (unregistered).
+* `MaridTransport`: Available (unregistered).
+* `MaridOpenAPI`: Available (unregistered).
+* `MaridGraphQL`: Available (unregistered).
+* `MaridRPC`: Available (unregistered).
+* `MaridStorage`: Available (unregistered).
+* `MaridControl`: Available (unregistered).
+* `MaridLive`: Available (unregistered).
+* `MaridCRDT`: Available (unregistered).
+* `MaridRaft`: Available (unregistered).
+* `ArangoDB`: Available (unregistered).
+
+== Gate 0 Recommendation
+**PROCEED TO GATE 1 SPIKES.** No unmanageable external runtimes or proprietary protocols are required. All Phase 1–3 packages can be implemented in native Julia and AffineScript under standard open licenses.

@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0001: IR-First Architecture & Contract Generation
+:status: accepted
+:date: 2026-09-19
+
+== Context
+Building a multi-protocol web framework that supports REST/JSON, GraphQL, gRPC, and binary formats (Cap'n Proto, Bebop) easily degenerates into schema drift. If developers must maintain OpenAPI specs, GraphQL SDL, and Protobuf files separately in parallel, contracts inevitably diverge, leading to runtime failures and fragile client SDKs.
+
+== Decision
+Marid adopts an **IR-first architecture** (`packages/MaridIR/`). `MaridIR` is a pure data representation of services, methods, types, and streaming semantics in Julia. All external contract artifacts (OpenAPI 3.1 JSON, GraphQL SDL, Protobuf `.proto`, Bebop `.bop`, and JSON Schema 2020-12) are programmatically emitted from this single source of truth. The IR itself is never transmitted over the wire and does not act as a runtime wire format.
+
+== Alternatives Considered
+1. **GraphQL as the Universal IDL**: Use GraphQL SDL to define all services, generating REST and gRPC from it. Rejected: GraphQL SDL lacks first-class semantics for binary framing, streaming flow-control, and gRPC status trailers.
+2. **Protobuf as the Universal IDL**: Define all services in `.proto` files. Rejected: Forces a heavyweight external compiler dependency (`protoc`) and impedes idiomatic Julia type definitions.
+3. **Hand-Maintained Schemas**: Maintain separate schema files per protocol. Rejected: Guarantees drift and high maintenance overhead.
+
+== Consequences
+* **Positive**: Zero contract drift across protocols. Schema changes in `MaridIR` automatically propagate to all emitted contracts and client SDKs.
+* **Trade-off**: `MaridIR` must be expressive enough to capture the union of protocol capabilities without becoming a bloated universal IDL.
+* **Expensive to Retrofit**: Retrofitting an IR onto hand-written schemas after adapters are built would require rewriting all endpoint definitions across the framework.
