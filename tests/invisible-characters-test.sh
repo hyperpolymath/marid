@@ -33,11 +33,11 @@ printf 'invalid:\377 then nbsp:\302\240\n' > "$fixtures/invalid-utf8.md"
 printf 'newline name:\302\240\n' > "$fixtures/with
 newline.md"
 
-# Estate-shaped files that the extension filter did not cover until 2026-09-02:
-# .a2ml carries repo IDENTITY (uuid, forge, lineage), and the recipe files are
+# Estate-shaped files that the extension filter did not cover:
+# .deed carries repo identity, and the recipe files are
 # extensionless. An invisible character in either is exactly the kind of damage
-# this scanner exists to find, and both were silently skipped.
-printf 'uuid\302\240= "x"\n' > "$fixtures/IDENTITY.a2ml"
+# this scanner exists to find.
+printf 'uuid\302\240= "x"\n' > "$fixtures/IDENTITY.deed"
 printf 'test:\n\techo\302\240hi\n' > "$fixtures/Justfile"
 
 "$scanner" "$fixtures" "$results" "$blocking_results"
