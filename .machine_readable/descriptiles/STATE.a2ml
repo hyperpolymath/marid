@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 0 (Feasibility and Licensing Audit) completed on 2026-09-19.
+# Gate 1 (Interoperability Spikes) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
@@ -17,7 +17,7 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 15
+completion-percentage = 30
 
 [position]
 phase = "design"         # design | implementation | testing | maintenance | archived
@@ -27,7 +27,7 @@ maturity = "experimental"  # experimental | alpha | beta | production | lts
 # Gates from PROJECT_BRIEF.md §9. Completion is honest.
 milestones = [
   { name = "Gate 0: feasibility and licensing audit", completion = 100 },
-  { name = "Gate 1: interoperability spikes", completion = 0 },
+  { name = "Gate 1: interoperability spikes", completion = 100 },
   { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 0 },
   { name = "Gate 3: independent packages", completion = 0 },
   { name = "Gate 4: assembly and browser integrations", completion = 0 },
@@ -35,12 +35,12 @@ milestones = [
 ]
 
 [blockers-and-issues]
-# Gate 0 complete. No active blockers for Gate 1 spikes.
+# Gate 0 and Gate 1 complete. No active blockers for Gate 2 foundation.
 
 [critical-next-actions]
 actions = [
-  "Execute Gate 1 interoperability spikes (test/spikes/arango_spike.jl, test/spikes/graphql_spike.jl).",
-  "Prepare Gate 2 package skeletons and toolchain pinning.",
+  "Execute Gate 2 foundation: Package skeletons, Project.toml manifests, and toolchain pins.",
+  "Formalize CallContext and streaming handler seams.",
   "Wire DCO sign-off gate in GitHub Actions.",
 ]
 

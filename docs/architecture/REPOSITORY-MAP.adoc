@@ -239,8 +239,6 @@ your own repo - but do not read their emptiness as neglect here.
 |===
 | `.machine_readable/scripts/verification/`
 | `contracts/`
-| `docs/adr/`
-| `docs/audits/`
 | `docs/governance/audit/`
 | `docs/governance/audit/compliance/`
 | `docs/governance/audit/effects/`
