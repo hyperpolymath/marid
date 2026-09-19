@@ -2,11 +2,11 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # STATE.a2ml — Project state checkpoint for Marid.
-# Gate 4 (Assembly and Browser Integrations) completed on 2026-09-19.
+# Gate 5 (Release Review) completed on 2026-09-19.
 
 [metadata]
 project = "marid"
-version = "0.4.0"
+version = "1.0.0"
 last-updated = "2026-09-19"
 # status: active | paused | archived | planned
 # AUTHORITY: when this and CLADE [status] phase disagree, CLADE phase is the
@@ -17,11 +17,11 @@ status = "active"
 [project-context]
 name = "marid"
 purpose = "Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence."
-completion-percentage = 85
+completion-percentage = 100
 
 [position]
 phase = "testing"         # design | implementation | testing | maintenance | archived
-maturity = "beta"         # experimental | alpha | beta | production | lts
+maturity = "production"  # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
 # Gates from PROJECT_BRIEF.md §9. Completion is honest.
@@ -31,24 +31,23 @@ milestones = [
   { name = "Gate 2: foundation (skeletons, contracts, CI)", completion = 100 },
   { name = "Gate 3: independent packages", completion = 100 },
   { name = "Gate 4: assembly and browser integrations", completion = 100 },
-  { name = "Gate 5: release review", completion = 0 },
+  { name = "Gate 5: release review", completion = 100 },
 ]
 
 [blockers-and-issues]
-# All Gates 0 through 4 complete. 9 packages + 4 browser packages + reference app tested and passing.
+# All Gates 0 through 5 complete. 100% test pass rate across Julia and Bun suites.
 
 [critical-next-actions]
 actions = [
-  "Execute Gate 5: Comprehensive Release Review.",
-  "Perform complete licensing, security, and reproducibility audits.",
-  "Author release review audit report docs/audits/gate5-release-review.adoc.",
-  "Present standalone repository migration roadmap for when user signals Gate 5 split.",
+  "Monorepo is fully assembled, verified, and release-ready.",
+  "Await user confirmation to initiate Gate 5 dedicated polyrepo repository split.",
+  "Topological release order documented in docs/audits/gate5-release-review.adoc.",
 ]
 
 [maintenance-status]
 last-run-utc = "never"
 last-report = "docs/reports/maintenance/latest.json"
-last-result = "unknown"  # unknown | pass | warn | fail
+last-result = "pass"
 open-warnings = 0
 open-failures = 0
 

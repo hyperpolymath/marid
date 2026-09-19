@@ -268,8 +268,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `docs/whitepapers/industry/`
 | `docs/whitepapers/outreach/`
 | `docs/wikis/`
-| `examples/`
-| `examples/relationship_explorer/`
 | `features/boj-server/`
 | `features/panic-attacker/`
 | `fixtures/`
@@ -297,11 +295,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `verification/simulations/`
 | `verification/tests/`
 | `verification/traceability/`
-| `web/`
-| `web/client/`
-| `web/elements/`
-| `web/react/`
-| `web/vue/`
 |===
 
 == Where things are enforced
