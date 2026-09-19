@@ -39,9 +39,9 @@ milestones = [
 
 [critical-next-actions]
 actions = [
-  "Monorepo structure actively maintained across all 13 packages and 4 browser packages.",
-  "Await explicit user instruction before splitting away into dedicated repositories.",
-  "Continue expansion to Phase 8 gRPC/HTTP2 bindings when ready.",
+  "Monorepo meta-repository actively maintained across all 13 packages and 4 browser packages.",
+  "Standalone polyrepo split executed: all 18 standalone repositories materialized in /home/user/ with linear Git history and 100% passing tests.",
+  "Continue expansion to Phase 8 gRPC/HTTP2 bindings and capability gateway edge deployments when ready.",
 ]
 
 [maintenance-status]
