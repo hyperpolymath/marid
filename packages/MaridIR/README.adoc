@@ -53,3 +53,14 @@ m_get = MethodDescriptor("getTaxon", "String", "Taxon", streaming=Unary, route_p
 svc = ServiceDescriptor("TaxonomyAPI", "1.0.0", [taxon_type], [m_get])
 validate_service(svc) # returns true
 ----
+
+== Native HTTP capability specs
+
+`emit_capability_spec(service; global_verbs=["GET"])` emits dependency-free,
+deterministic DSL v1 YAML for `http-capability-gateway`. Global verbs are an
+explicit PUBLIC fallback on every path, not a strict allowlist. See
+link:../../docs/deployment/docker-compose.adoc[the generation, annotation and sidecar contract]
+and link:../../docs/adr/0007-native-capability-spec.adoc[ADR-0007].
+
+CLI: `scripts/marid generate capability-spec service.jl --global-verbs GET`.
+A service file is trusted Julia whose final expression returns a ServiceDescriptor.

@@ -78,3 +78,5 @@ using MaridIR
         @test occursin("rpc Chat (stream TaxonMessage) returns (stream TaxonMessage);", proto_txt)
     end
 end
+
+include("capability.jl")

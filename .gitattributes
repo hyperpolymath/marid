@@ -115,3 +115,6 @@ package-lock.json text eol=lf -diff linguist-generated=true
 **/*.res   linguist-detectable=false
 *.nix      text eol=lf
 flake.lock text eol=lf -diff linguist-generated=true
+
+# Unified-diff context must preserve upstream whitespace; source is checked in the paired repo.
+test/interop/gateway-strict.patch -whitespace

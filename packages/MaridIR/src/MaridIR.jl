@@ -190,5 +190,6 @@ function to_dict(svc::ServiceDescriptor)::Dict{String, Any}
 end
 
 include("proto.jl")
+include("capability.jl")
 
 end # module MaridIR

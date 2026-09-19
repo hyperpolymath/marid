@@ -7,6 +7,7 @@
 set -euo pipefail
 
 MARID_VERSION="1.0.0"
+MARID_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 show_help() {
     cat <<EOF
@@ -17,6 +18,10 @@ Commands:
   generate proto <path>     Emit Protocol Buffers v3 schema (.proto) from service
   generate openapi <path>   Emit OpenAPI 3.1 specification (JSON) from service
   generate graphql <path>   Emit GraphQL SDL schema from service
+  generate capability-spec <path> --global-verbs GET
+                           Emit native gateway DSL v1 YAML (explicit global exposure)
+  generate capability-spec <path> --deny-by-default
+                           Emit strict YAML for the paired patched gateway
   routes <path>             Inspect and display route table of a MaridApp
   check                     Run full estate verification suite across Julia and Bun
   version, --version, -v    Display Marid framework version
@@ -39,6 +44,19 @@ case "${1:-help}" in
         if [[ -z "$TARGET" || -z "$FILE" ]]; then
             echo "Error: 'generate' requires <target> and <path> (e.g. marid generate proto service.jl)" >&2
             exit 1
+        fi
+        if [[ "$TARGET" == "capability-spec" ]]; then
+            if [[ $# -eq 4 && "${4:-}" == "--deny-by-default" ]]; then
+                exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "" strict
+            fi
+            if [[ $# -ne 5 || "${4:-}" != "--global-verbs" || -z "${5:-}" ]]; then
+                echo "Error: use generate capability-spec service.jl --global-verbs GET" >&2
+                echo "Global verbs are public on ALL paths; no deny-by-default support upstream." >&2
+                exit 1
+            fi
+            exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$5" legacy
         fi
         julia -e "
             using Pkg

@@ -1,0 +1,167 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Marid with an HTTP capability governance sidecar
+:toc:
+
+Code samples and companion `compose.yaml` are MPL-2.0.
+
+== Status and trust boundary
+
+*Experimental bounded unary HTTP*, not production acceptance. Ordered local work
+now provides a real IR-driven Julia HTTP/JSON service and a separately delivered
+gateway correction. Neither repository has been committed, pushed or deployed.
+The gateway baseline is `19b343c1e9b7c61668c60887369783d12a486f41`; strict mode
+requires the paired `test/interop/gateway-strict.patch`. Unmodified upstream does
+not support empty globals. Do not mistake local patch support for upstream support.
+
+....
+client -> evaluated TLS ingress -> gateway:4000 -> marid:8080
+                                    YAML          private backend network
+....
+
+Only the gateway publishes a host port. Ingress must block gateway-owned management
+URLs; the application still owns authentication and object-level authorization.
+A verb/exposure/capability spec does not implement those responsibilities.
+
+== Generate a native policy from the actual IR
+
+A descriptor is executable trusted Julia; never run an untrusted descriptor file.
+The final expression must return `MaridIR.ServiceDescriptor`. Only explicit HTTP
+bindings are emitted; protocol adapters are not invented by policy generation.
+
+[source,bash]
+----
+# From Marid root, using the paired patched gateway only:
+scripts/marid generate capability-spec examples/http_json/service.jl \
+  --deny-by-default > docs/deployment/policy.yaml.tmp && \
+  mv docs/deployment/policy.yaml.tmp docs/deployment/policy.yaml
+----
+
+Write a temporary file and rename only after success. Direct redirection over a
+live policy can truncate it on generator failure. Diagnostics go to stderr.
+Strict native DSL v1 has `global_verbs: []`; unknown application paths deny.
+A matched path owns its verb allowlist; omitted verbs cannot inherit globals.
+Exact paths take precedence, while multiple distinct matching regex patterns deny.
+
+Equivalent API:
+
+[source,julia]
+----
+using MaridIR
+svc = include("examples/http_json/service.jl")
+yaml = emit_capability_spec(svc; gateway_profile=:strict, global_verbs=String[])
+----
+
+Legacy compatibility remains explicit: `--global-verbs GET` or
+`emit_capability_spec(svc; global_verbs=["GET"])`. On old upstream that is a public
+fallback even on matched paths with missing verbs. On the patched gateway it is
+public only on unmatched paths. Neither legacy behavior is deny-by-default. The
+CLI warns and never silently opts callers into either security model.
+
+=== Mapping and limits
+
+* Allowed methods: GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS. HEAD/OPTIONS are not inferred.
+* Identical paths merge verbs, require identical governance metadata and sort deterministically.
+* Literal characters are escaped; `:id` is one segment; terminal `/*` is one or more
+  segments. Patterns use `\A` / `\z` anchors.
+* Canonical paths only: no repeated/trailing slash, percent encoding, query, fragment
+  or `{id}`. Real unary routing also rejects noncanonical paths rather than widening
+  access through normalization behind governance.
+* Overlapping IR routes are rejected. The gateway patch denies regex ambiguity at
+  lookup; it is not a general regex intersection prover or a reason to relax emission.
+* Service annotations default and method annotations override `gateway.exposure`
+  (`public`, `authenticated`, `internal`) and `gateway.capability` (nonempty label).
+  Unknown `gateway.*` keys and malformed values reject. Exposure defaults to public.
+* Capability strings are metadata, not signed tokens. Application `auth` annotations
+  are not guessed or converted into authenticated identities.
+* Gateway-owned GET `/health`, `/ready`, `/metrics`, `/api/v1/minikaran` bypass
+  application policy. Generator collision checks do not secure those management URLs.
+
+== Reproduce the local socket acceptance
+
+Use Julia 1.10.10, Bun 1.4.2, Elixir 1.19.4 and OTP 27 with development headers.
+After checking out the pinned gateway baseline, apply the paired patch with
+`git apply --check` then `git apply`. Install Hex/Rebar and `mix deps.get` in that
+checkout. The patch includes necessary baseline compile/startup repairs, not just
+a changed reference model.
+
+[source,bash]
+----
+julia --startup-file=no scripts/bootstrap.jl examples/http_json
+julia --startup-file=no --project=examples/http_json examples/http_json/test/runtests.jl
+bash test/interop/capability_cli.sh
+elixir test/interop/capability_gateway.exs ../http-capability-gateway
+bash test/interop/run_http_gateway.sh ../http-capability-gateway
+----
+
+The one-shot runner starts the actual gateway application and Julia service,
+generates policy from the same IR, exercises real HTTP, stops the backend, checks
+502 and local denials, then cleans up. Ports 18080/18088 must be free. The launcher
+sets no trusted proxies and strips forged trust headers; increased test rate limits
+avoid conflating policy tests with quotas. Audit traffic goes to an isolated unused
+loopback port, not the Julia service. This is not persistent-audit acceptance.
+
+Local result: seven Bun tests / 47 assertions pass across the two processes, in
+addition to 38 direct HTTP/JSON assertions and native policy/compiler tests. The
+separate gateway `ProxyWireTest` verifies upstream query/header/body bytes, repeated
+Set-Cookie, no redirect following, no automatic retries, 503 preservation, and no
+forwarding of an oversized request. See the evidence ledger for counts and failures.
+
+== Compose wiring (configuration validated; engine not run)
+
+Set `MARID_APP_IMAGE` and `HTTP_CAPABILITY_GATEWAY_IMAGE` to reviewed immutable image
+digests. There are deliberately no invented registry defaults. The app image must
+load the real listener on `0.0.0.0:8080`; the gateway image must include the paired
+patch, evaluated trust configuration and `wget` for this health check.
+
+[source,yaml]
+----
+include::compose.yaml[]
+----
+
+[source,bash]
+----
+: "${MARID_APP_IMAGE:?Set a tested application image digest}"
+: "${HTTP_CAPABILITY_GATEWAY_IMAGE:?Set a reviewed patched gateway image digest}"
+docker compose -f docs/deployment/compose.yaml config --quiet
+# Only after image/runtime review and the release gates below:
+# docker compose -f docs/deployment/compose.yaml up -d
+----
+
+Runtime variables are `POLICY_PATH`, `BACKEND_URL`, `PORT`, `TRUST_LEVEL_SOURCE`.
+Header mode is not authentication: configure `strip_trust_header: true` and
+`trusted_proxies: []` in the reviewed gateway image, or explicitly authorize only
+an independently evaluated ingress. These are Elixir application settings, not
+invented Compose environment switches. Upstream otherwise trusts loopback headers.
+Do not route untrusted traffic through a header-trusted ingress without stripping
+and independently replacing identity. mTLS has not been accepted in this exercise.
+
+The read-only policy mount rejects absent host files. The backend network is
+`internal: true`; no database/app host ports, host networking or container socket.
+`depends_on` is ordering, not readiness. Gateway `/ready` reports policy readiness,
+not backend/database health. Provide a real application readiness probe separately.
+
+The upstream Containerfile/config sequencing still requires repair: production
+configuration reads POLICY_PATH at compile time and the initial dependency step
+loads config before its tree is copied. Consuming an image reference is not proof
+that its build works. No Docker/Podman daemon is available in this evaluation.
+
+== Remaining blockers — do not deploy on these results alone
+
+* Full gateway suite remains red: 12 properties / 263 tests, 15 failures at seed 1.
+  All 15 reproduce on the same baseline with only two necessary plugin compilation
+  repairs. Baseline has 19 failures; fewer failures is not a green release gate.
+* Resolver reports existing Cowboy, Cowlib and Mint security advisories. Upgrade
+  and re-evaluate before deployment. Inactive WebhookHardener/XmlRpcShield plugins
+  still warn about unsupported APIs; syntax repairs do not validate their security.
+* Proxy buffers responses without a general memory quota. Dynamic Connection
+  header tokens, general streaming, cancellation, TLS and backend request-ID
+  continuity still need dedicated review. SSE/WS/gRPC/trailers are not supported claims.
+* Real containers, management isolation, direct-port bypass, image provenance,
+  absent/malformed policy readiness, certificate/ingress identity, resource benchmarks,
+  graceful termination and restart/rollback need a passing acceptance matrix.
+* Main policy handles now bind their regex companions and retired handles deny,
+  but safe reader retirement, reload races, dynamic table atom lifetime and production
+  hot reload remain unaccepted. Deploy immutable app/gateway/policy revisions together.
+
+Persistence and browser/protocol acceptance stay behind these gates. No charter
+requirement is waived by the successful local unary slice.

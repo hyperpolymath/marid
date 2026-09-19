@@ -109,6 +109,10 @@ predecessors did.
 | optional
 | pointer to CLAUDE.md for repos without AGENTS.md yet
 
+| `GOVERNANCE.adoc`
+| yes
+| symlink to docs/GOVERNANCE.adoc, not a second policy
+
 | `Justfile`
 | yes
 | thin; delegates phases to build/just/*.just
@@ -120,6 +124,10 @@ predecessors did.
 | `LICENSES/`
 | yes
 | REUSE licence texts, dual-licence model (code MPL-2.0 / docs CC-BY-SA-4.0)
+
+| `MAINTAINERS.adoc`
+| yes
+| symlink to docs/MAINTAINERS.adoc, not a duplicate roster
 
 | `PROJECT_BRIEF.md`
 | yes
@@ -270,7 +278,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `docs/wikis/`
 | `features/boj-server/`
 | `features/panic-attacker/`
-| `fixtures/`
 | `src/aspects/`
 | `src/aspects/integrity/`
 | `src/aspects/observability/`
@@ -282,7 +289,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `src/errors/`
 | `src/interface/generated/`
 | `src/interface/generated/abi/`
-| `test/interop/`
 | `tests/fuzz/`
 | `verification/benchmarks/`
 | `verification/coverage/`
