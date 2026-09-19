@@ -119,7 +119,7 @@ The short version:
 | Path | What lives there
 
 | `PROJECT_BRIEF.md`, `AGENTS.md` | The Marid contract and the agent instructions — start here.
-| `packages/`, `web/` | The six Julia packages and the browser client.
+| `packages/`, `web/` | The thirteen Julia packages and the browser client.
 | `contracts/`, `fixtures/` | Contract registry and interop fixtures.
 | `examples/`, `test/` | Reference application and cross-protocol tests.
 | `README.adoc`, `CLAUDE.md` | This file; the generated agent arrival pack.

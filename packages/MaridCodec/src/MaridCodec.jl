@@ -56,8 +56,7 @@ function negotiate_content_type(accept::String, supported::Vector{String})::Stri
         matches = filter(r -> r[1] in (lowercase(candidate), "$type/*", "*/*"), ranges)
         isempty(matches) && continue
         specificity = maximum(r[3] for r in matches)
-        # First equal-specificity range wins; it is never overridden by a wildcard.
-        q = first(r[2] for r in matches if r[3] == specificity)
+        q = maximum(r[2] for r in matches if r[3] == specificity)
         if q > best_q
             best_q = q
             winner = candidate

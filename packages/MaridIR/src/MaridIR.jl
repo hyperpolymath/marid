@@ -146,6 +146,9 @@ function validate_service(svc::ServiceDescriptor)::Bool
         !(m.output_type in all_known) && error("Unknown output type '$(m.output_type)' in method '$(m.name)'")
         
         if !isempty(m.route_path)
+            startswith(m.route_path, "/") || error("Route must start with /: $(m.route_path)")
+            (occursin("//", m.route_path) || (m.route_path != "/" && endswith(m.route_path, "/"))) &&
+                error("Use canonical routes (no repeated/trailing slash): $(m.route_path)")
             key = (uppercase(m.http_method), m.route_path)
             key in route_paths && error("Route path collision: $(m.http_method) $(m.route_path)")
             push!(route_paths, key)

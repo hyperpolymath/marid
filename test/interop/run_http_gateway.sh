@@ -11,11 +11,13 @@ backend_pid= gateway_pid=
 cleanup() {
   code=$?
   trap - EXIT
+  set +e
   for pid in "$backend_pid" "$gateway_pid"; do
     if [[ -n "$pid" ]]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi
   done
   if [[ "$code" != 0 ]]; then
-    cat "$work"/http-backend.log "$work"/http-gateway.log 2>/dev/null || true
+    cat "$work"/http-backend.log 2>/dev/null || true
+    cat "$work"/http-gateway.log 2>/dev/null || true
   fi
   echo "HTTP/gateway evidence: $work (exit $code)"
   exit "$code"

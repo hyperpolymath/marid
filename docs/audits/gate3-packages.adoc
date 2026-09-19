@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
+= Gate 3: Independent Packages Implementation Report
+:toc:
+:sectnums:
+
 [WARNING]
 ====
 Historical implementation report, not current gate acceptance. Its readiness
 claims are superseded by link:evidence-ledger.adoc[the evidence ledger].
 Mock/unit coverage must not be interpreted as independent interoperability.
 ====
-= Gate 3: Independent Packages Implementation Report
-:toc:
-:sectnums:
 
 [abstract]
 Verification report for Gate 3 independent packages implementation (`PROJECT_BRIEF.md` §8–§9;

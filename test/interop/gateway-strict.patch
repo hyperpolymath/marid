@@ -211,22 +211,52 @@ index 8deaf70..e10e935 100644
      end
    end
  
-@@ -65,12 +83,20 @@ defp in_blocked_range?(ip, blocked) do
+@@ -65,12 +83,54 @@ defp in_blocked_range?(ip, blocked) do
    defp in_cidr?(ip, cidr) do
-     with {:ok, net, mask} <- :inet.parse_cidr_address(cidr),
+-    with {:ok, net, mask} <- :inet.parse_cidr_address(cidr),
++    with {:ok, net, prefix} <- parse_cidr(cidr),
           {:ok, net_int} <- to_int(net),
 -         {:ok, ip_int} <- to_int(ip),
 -         do: (ip_int &&& mask) == (net_int &&& mask),
 -         else: _ -> false
-+         {:ok, ip_int} <- to_int(ip) do
++         {:ok, ip_int} <- to_int(ip),
++         {:ok, mask} <- cidr_mask(prefix, net) do
 +      (ip_int &&& mask) == (net_int &&& mask)
 +    else
 +      _ -> false
 +    end
-   end
- 
--  defp to_int({a, b, c, d}), do: {:ok, (a <<< 24) ||| (b <<< 16) ||| (c <<< 8) ||| d}
--  defp to_int({a, b, c, d, e, f, g, h}), do: {:ok, (a <<< 120) ||| (b <<< 112) ||| (c <<< 104) ||| (d <<< 96) ||| (e <<< 88) ||| (f <<< 80) ||| (g <<< 72) ||| h}
++  end
++
++  defp parse_cidr(cidr) do
++    case String.split(cidr, "/") do
++      [addr_str, prefix_str] ->
++        with {:ok, addr} <- :inet.parse_address(String.to_charlist(addr_str)),
++             {prefix, ""} <- Integer.parse(prefix_str),
++             true <- valid_prefix?(prefix, addr) do
++          {:ok, addr, prefix}
++        else
++          _ -> :error
++        end
++      _ -> :error
++    end
++  end
++
++  defp valid_prefix?(prefix, {_, _, _, _}) when prefix >= 0 and prefix <= 32, do: true
++  defp valid_prefix?(prefix, {_, _, _, _, _, _, _, _}) when prefix >= 0 and prefix <= 128, do: true
++  defp valid_prefix?(_, _), do: false
++
++  defp cidr_mask(0, {_, _, _, _}), do: {:ok, 0}
++  defp cidr_mask(prefix, {_, _, _, _}) do
++    mask = ((0xFFFFFFFF <<< (32 - prefix)) &&& 0xFFFFFFFF)
++    {:ok, mask}
++  end
++  defp cidr_mask(0, {_, _, _, _, _, _, _, _}), do: {:ok, 0}
++  defp cidr_mask(prefix, {_, _, _, _, _, _, _, _}) do
++    max = (1 <<< 128) - 1
++    mask = (max <<< (128 - prefix)) &&& max
++    {:ok, mask}
++  end
++
 +  defp to_int({a, b, c, d}), do: {:ok, a <<< 24 ||| b <<< 16 ||| c <<< 8 ||| d}
 +
 +  defp to_int({a, b, c, d, e, f, g, h}),
@@ -649,7 +679,7 @@ index b953667..838cca2 100644
      end
    end
  
-@@ -214,8 +224,14 @@ defp make_backend_request(method, url, headers, body) do
+@@ -214,8 +224,55 @@ defp make_backend_request(method, url, headers, body) do
        url: url,
        headers: headers,
        body: body,
@@ -662,11 +692,54 @@ index b953667..838cca2 100644
 +      # Never follow a backend redirect across the configured boundary.
 +      redirect: false,
 +      # Preserve wire bytes; no JSON decoding or implicit decompression.
-+      raw: true
++      raw: true,
++      # Stream response chunks, count bytes, cancel once max_response_body_bytes exceeded
++      into: fn
++        {:data, data}, {req, resp} ->
++          max = Application.get_env(:http_capability_gateway, :max_response_body_bytes, 1_048_576)
++          bytes = Map.get(resp.private, :bytes, 0) + byte_size(data)
++          if bytes > max do
++            {:halt, {req, Map.put(resp, :private, Map.put(resp.private, :response_too_large, true))}}
++          else
++            acc = Map.get(resp.private, :acc_body, <<>>) <> data
++            private = resp.private |> Map.put(:bytes, bytes) |> Map.put(:acc_body, acc)
++            {:cont, {req, %{resp | private: private}}}
++          end
++        _, acc ->
++          {:cont, acc}
++      end
      ]
  
      case Req.request(options) do
-@@ -235,15 +251,17 @@ defp send_backend_response(conn, backend_response) do
++      {:ok, %Req.Response{private: %{response_too_large: true}}} ->
++        {:error, :response_too_large}
++      {:ok, %Req.Response{private: %{acc_body: acc_body, bytes: bytes}} = resp} ->
++        max = Application.get_env(:http_capability_gateway, :max_response_body_bytes, 1_048_576)
++        if bytes > max do
++          {:error, :response_too_large}
++        else
++          {:ok, %{resp | body: acc_body}}
++        end
++      {:ok, %Req.Response{private: %{bytes: bytes}} = resp} when is_integer(bytes) ->
++        # Fallback: if we have bytes but no acc_body, still check
++        max = Application.get_env(:http_capability_gateway, :max_response_body_bytes, 1_048_576)
++        if bytes > max do
++          {:error, :response_too_large}
++        else
++          {:ok, resp}
++        end
++      {:ok, %Req.Response{} = response} ->
++        {:ok, response}
++
++      {:error, %Req.TransportError{reason: reason}} ->
++        {:error, reason}
++
++      {:error, reason} ->
++        {:error, reason}
++    end
++  end
++
+@@ -235,15 +292,17 @@ defp send_backend_response(conn, backend_response) do
      # Set response status
      conn = Plug.Conn.put_status(conn, backend_response.status)
  
@@ -977,6 +1050,14 @@ index 0000000..7a0530d
 +      "/unavailable" ->
 +        send_resp(conn, 503, "not retried")
 +
++      "/large-chunked" ->
++        conn = put_resp_content_type(conn, "application/octet-stream")
++        conn = send_chunked(conn, 200)
++        {:ok, conn} = chunk(conn, String.duplicate("a", 600))
++        {:ok, conn} = chunk(conn, String.duplicate("b", 600))
++        {:ok, conn} = chunk(conn, String.duplicate("c", 600))
++        conn
++
 +      _ ->
 +        conn = put_resp_content_type(conn, "application/json")
 +
@@ -1003,7 +1084,7 @@ index 0000000..7a0530d
 +      Plug.Cowboy.http(HttpCapabilityGateway.ProxyWireBackend, [owner: self()], port: 0, ref: ref)
 +
 +    previous =
-+      for key <- [:backend_url, :max_request_body_bytes],
++      for key <- [:backend_url, :max_request_body_bytes, :max_response_body_bytes],
 +          do: {key, Application.get_env(:http_capability_gateway, key)}
 +
 +    Application.put_env(
@@ -1013,6 +1094,7 @@ index 0000000..7a0530d
 +    )
 +
 +    Application.put_env(:http_capability_gateway, :max_request_body_bytes, 1024)
++    Application.put_env(:http_capability_gateway, :max_response_body_bytes, 1024)
 +
 +    on_exit(fn ->
 +      Plug.Cowboy.shutdown(ref)
@@ -1070,6 +1152,12 @@ index 0000000..7a0530d
 +
 +    assert response.status == 413
 +    refute_receive {:wire_request, _, _, _, _}
++  end
++
++  test "oversized chunked backend response is bounded and returns 502" do
++    response = conn(:get, "/large-chunked") |> Proxy.forward(%{exposure: "public"})
++    assert response.status == 502
++    assert_receive {:wire_request, "/large-chunked", _, _, _}
 +  end
 +end
 diff --git a/test/strict_policy_test.exs b/test/strict_policy_test.exs
