@@ -37,14 +37,21 @@ mkdir -p "$(dirname "$OUT")"
 mapfile -t ENTRIES < <(git ls-files | awk -F/ '{print $1}' | sort -u)
 
 # name -> annotation, harvested from the allowlist's own comments.
+#
+# Quote-safe trim (leading/trailing strip + internal squeeze). This was
+# `| xargs`, but xargs interprets quotes: an annotation containing an
+# apostrophe (e.g. "Cap'n Proto") made xargs exit 1, and `|| true` then kept
+# the annotation silently EMPTY in the map. sed trims bytes without
+# interpreting them, so annotations render verbatim.
+trim() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\+/ /g'; }
 declare -A NOTE=() OPTIONAL=()
 while IFS= read -r line; do
     [[ "$line" =~ ^[[:space:]]*# ]] && continue
     [[ -z "${line// }" ]] && continue
-    raw="${line%%#*}"; raw="$(echo "$raw" | xargs || true)"
+    raw="${line%%#*}"; raw="$(printf '%s' "$raw" | trim)"
     [ -z "$raw" ] && continue
     comment="${line#*#}"; [ "$comment" = "$line" ] && comment=""
-    comment="$(echo "$comment" | xargs || true)"
+    comment="$(printf '%s' "$comment" | trim)"
     key="${raw%/}"
     if [[ "$key" == '?'* ]]; then key="${key#\?}"; OPTIONAL["$key"]=1; fi
     NOTE["$key"]="$comment"
