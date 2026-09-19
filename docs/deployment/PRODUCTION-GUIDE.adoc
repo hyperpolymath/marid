@@ -1,0 +1,139 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Marid Production Deployment & Operations Guide
+:toc:
+:sectnums:
+
+[abstract]
+Operational deployment guide for running Marid applications in production (`PROJECT_BRIEF.md` §2 Phase 8).
+Covers reverse proxy configurations (Caddy, Envoy, Nginx) for HTTP/2 and gRPC-Web, containerization,
+zero-downtime rolling upgrades, health probes, and ArangoDB clustering topology.
+
+== 1. Recommended Deployment Architecture
+
+Marid services run as lightweight, high-throughput Julia processes behind a dedicated reverse proxy
+or ingress controller that terminates TLS and negotiates HTTP/2:
+
+```
+[ Browser Clients ]           [ Backend Microservices ]
+        │                                  │
+        │ HTTP/1.1 / SSE / gRPC-Web        │ gRPC (HTTP/2) / JSON-RPC
+        ▼                                  ▼
+┌────────────────────────────────────────────────────────┐
+│         Ingress / Edge Proxy (Envoy / Caddy)           │
+│   • TLS Termination (ALPN: h2, http/1.1)               │
+│   • gRPC-Web to Native gRPC Translation Filter        │
+│   • Static Asset Cache (Cache-Control: immutable)      │
+└────────────────────────────────────────────────────────┘
+                           │
+                 HTTP/2 or HTTP/1.1 (Cleartext / mTLS)
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│                   Marid Core Node                      │
+│   • Radix Trie Router (MaridCore)                      │
+│   • Bounded Streaming Channels (Stream{T})             │
+│   • Control-Plane-Down Isolation (MaridControl)        │
+└────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│         ArangoDB 3.12 Multi-Model Cluster             │
+│   • Document & Graph Collections                       │
+│   • AQL Cursor Streaming                               │
+└────────────────────────────────────────────────────────┘
+```
+
+== 2. Reverse Proxy Configurations
+
+=== Envoy (Recommended for Full gRPC and gRPC-Web Support)
+
+Envoy provides built-in native support for the `envoy.filters.http.grpc_web` filter, allowing browser
+clients using `@marid/client` or Connect to seamlessly query backend gRPC services:
+
+[source,yaml]
+----
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address: { address: 0.0.0.0, port_value: 443 }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          http_filters:
+          - name: envoy.filters.http.grpc_web
+          - name: envoy.filters.http.cors
+          - name: envoy.filters.http.router
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: marid_service
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/api/" }
+                route: { cluster: marid_backend, timeout: 30s }
+              - match: { prefix: "/events" }
+                route: { cluster: marid_backend, timeout: 0s } # SSE streaming requires 0 timeout
+              - match: { prefix: "/" }
+                route: { cluster: marid_backend }
+  clusters:
+  - name: marid_backend
+    connect_timeout: 0.25s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: marid_backend
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: 127.0.0.1, port_value: 8080 }
+----
+
+=== Caddy (Recommended for Zero-Config Automatic HTTPS)
+
+[source,caddyfile]
+----
+api.example.com {
+    # Reverse proxy with SSE streaming support
+    reverse_proxy 127.0.0.1:8080 {
+        flush_interval -1 # Disable response buffering for Server-Sent Events
+        transport http {
+            versions h2c 1.1
+        }
+    }
+
+    # Static assets with long-term immutable caching
+    handle_path /static/* {
+        root * /var/www/static
+        file_server
+        header Cache-Control "public, max-age=31536000, immutable"
+    }
+}
+----
+
+== 3. Health Probes & Lifecycle Semantics
+
+Production orchestration systems (Kubernetes, Nomad, Podman) rely on standardized health endpoints:
+
+1. **Liveness Probe (`GET /healthz`)**:
+   * Evaluates process responsiveness.
+   * Returns `200 OK` if the event loop is unstalled.
+2. **Readiness Probe (`GET /readyz`)**:
+   * Evaluates downstream connectivity to ArangoDB.
+   * Returns `200 OK` when the node can accept traffic; `503 Service Unavailable` during startup or graceful draining.
+3. **Graceful Shutdown**:
+   * On receiving `SIGTERM`, Marid enters draining mode (`is_draining = true`).
+   * Readiness probe immediately returns `503` so upstream proxies cease routing new requests.
+   * In-flight bounded streams (`Stream{T}`) are permitted up to 30 seconds to flush buffers before task termination.
+
+== 4. ArangoDB Production Tuning
+
+* **Connection Pooling**: Keep persistent HTTP connections open using persistent client sockets (`keep-alive`).
+* **Batch Cursors**: Tune `batch_size` (e.g. 1000 items) for large AQL queries to prevent memory spikes in Julia worker tasks.
+* **Revision Matching**: Always include `check_rev=true` in concurrent update requests to leverage optimistic concurrency control and avoid lost updates.

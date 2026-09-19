@@ -271,10 +271,6 @@ your own repo - but do not read their emptiness as neglect here.
 | `features/boj-server/`
 | `features/panic-attacker/`
 | `fixtures/`
-| `packages/MaridCRDT/`
-| `packages/MaridControl/`
-| `packages/MaridLive/`
-| `packages/MaridRaft/`
 | `src/aspects/`
 | `src/aspects/integrity/`
 | `src/aspects/observability/`

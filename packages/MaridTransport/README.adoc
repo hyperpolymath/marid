@@ -1,11 +1,51 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridTransport.jl — transport seam (planned)
+= MaridTransport.jl — Transport Seam & Wire Framing
+:toc:
+:sectnums:
 
-The Transport seam: HTTP/1.1 via HTTP.jl, SSE, WebSocket upgrade, and
-chunked/trailers support (`docs/MARID-FRAMEWORK.adoc`, core set).
+The transport abstraction layer for Marid: HTTP/1.1 status lines, Server-Sent Events (SSE),
+gRPC length-delimited binary framing, gRPC-Web trailer framing, and Connect protocol streams
+(`PROJECT_BRIEF.md` §2 Phase 8; `docs/MARID-FRAMEWORK.adoc`).
 
-HTTP/2 — and therefore native gRPC — lands at Phase 8 via a libnghttp2
-binding, or not at all (gRPC-Web only). No sooner.
+Status: **Implemented & Verified (Phase 8)**.
 
-Status: Gate 0 skeleton. Implemented at Phase 2 (brief §9).
+== Public API
+
+* **HTTP & SSE**:
+  * `parse_http_status_line(line)`: parses HTTP status lines.
+  * `format_sse_event(; data, event, id)`: encodes W3C Server-Sent Event stream blocks.
+* **gRPC & gRPC-Web**:
+  * `frame_grpc_message(bytes; compressed, flag)`: prepends 5-byte big-endian header.
+  * `unframe_grpc_messages(bytes)`: parses arbitrary streams of length-prefixed messages.
+  * `format_grpc_web_trailers(status, message)`: encodes gRPC-Web trailer frame with flag `0x80`.
+  * `grpc_status_code(symbol)`: maps error symbols (`:OK`, `:NOT_FOUND`, `:DEADLINE_EXCEEDED`, etc.) to canonical gRPC status codes.
+
+== Feature Matrix
+
+[cols="1,1,2",options="header"]
+|===
+| Feature | Status | Verification Evidence
+
+| W3C Server-Sent Events | Supported | Verified with multi-line payloads and ID tracking.
+| gRPC Length-Delimited Framing | Supported | 5-byte header encoding and zero-truncation stream unframing tested.
+| gRPC-Web Trailer Frames | Supported | Frame flag 0x80 trailer block serialization verified.
+| Connect Protocol EndStream | Supported | Flag 0x02 streaming termination frame support.
+|===
+
+== Runnable Example
+
+[source,julia]
+----
+using MaridTransport
+
+# 1. Frame gRPC message
+payload = UInt8[0x08, 0x01] # Proto payload
+frame = frame_grpc_message(payload)
+@assert length(frame) == 7 # 1 byte flag + 4 bytes length + 2 bytes payload
+
+# 2. Frame gRPC-Web trailer
+trailers = format_grpc_web_trailers(grpc_status_code(:OK), "OK")
+parsed = unframe_grpc_messages(trailers)
+@assert parsed[1].flag == GRPC_FLAG_WEB_TRAILER
+----
