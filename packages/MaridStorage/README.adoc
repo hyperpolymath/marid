@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= MaridStorage.jl — storage seam (planned)
+
+The Storage seam — `get`, `put`, `delete`, `query`, `transaction`,
+`cursor`, `watch`, `Capabilities` — with SQLite, DuckDB, and in-memory
+implementations; the Arango implementation arrives as an extension over
+ArangoDB.jl (`docs/MARID-FRAMEWORK.adoc`, storage set).
+
+Status: Gate 0 skeleton. Implemented at Phase 3, SQLite / DuckDB /
+in-memory first (brief §9).

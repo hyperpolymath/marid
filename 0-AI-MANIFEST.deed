@@ -13,7 +13,7 @@ purpose = "Julia-first framework for web applications, APIs, and reactive scient
 
 [ai-allocation]
 agents = [
-  { name = "CLAUDE", role = "repo-local implementation, CI/CD, Julia packages, TypeScript browser client" },
+  { name = "CLAUDE", role = "repo-local implementation, CI/CD, Julia packages, AffineScript browser client" },
   { name = "CHATGPT", role = "prose, papers, publication review, standards docs, outreach drafts, letters" },
   { name = "GEMINI", role = "estate audits, cross-repo sweeps, long-context triage, pattern detection" },
   { name = "VIBE", role = "UI/frontend, PanLL panels,  components, theming, rapid prototyping" },
@@ -27,7 +27,7 @@ rules = [
 
 [work-allocation]
 items = [
-  { agent = "CLAUDE", task = "repo-local implementation, CI/CD, Julia packages, TypeScript browser client" },
+  { agent = "CLAUDE", task = "repo-local implementation, CI/CD, Julia packages, AffineScript browser client" },
   { agent = "CHATGPT", task = "prose, papers, publication review, standards docs, outreach drafts, letters" },
   { agent = "GEMINI", task = "estate audits, cross-repo sweeps, long-context triage, pattern detection" },
   { agent = "VIBE", task = "UI/frontend, PanLL panels,  components, theming, rapid prototyping" },

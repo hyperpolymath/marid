@@ -3,26 +3,25 @@
 # 13 tools that do not exist in the registry, so mise emitted ~25 lines of
 # warnings on every shell entry while installing none of them.
 #
-# MARID (2026-09-18): Julia (+ Node for web/) toolchain pins land at Gate 2,
-# pinned to the same versions the CI matrix uses (PROJECT_BRIEF.md §8-§9).
-# Until the Gate 0 audit selects versions, this file keeps the inherited
-# template entries; do not read `latest` as a Marid version decision.
+# MARID (2026-09-19): Bun is the runtime and package manager; Node, npm,
+# yarn, pnpm, and Deno are ejected (deno per owner ruling 2026-08-26).
+# The browser language is AffineScript (JaffaScript face), consumed as
+# `@hyperpolymath/affinescript` under Bun — no OCaml toolchain needed
+# (the CLI downloads a pinned, SHA-256-verified native binary).
+# Julia + Bun + affinescript-cli pins land at Gate 2, pinned to the same
+# versions the CI matrix uses (PROJECT_BRIEF.md §8-§9). Until the Gate 0
+# audit selects versions, `latest` is a placeholder, not a Marid decision.
 
 [tools]
-# Language runtimes
-node = "latest"
+# Language runtimes (Bun only for JS; AffineScript arrives via its CLI package)
+bun = "latest"
 python = "latest"
 rust = "latest"
 go = "latest"
 zig = "latest"
 java = "latest"
-bun = "latest"
-deno = "latest"   # was `denojs` — not a registry name
 
-# Package managers / task runner
-npm = "latest"
-yarn = "latest"
-pnpm = "latest"
+# Package managers / task runner (Bun is the package manager; npm/yarn/pnpm ejected)
 just = "latest"   # the estate's task runner (Justfile)
 
 # Formatting & linting
@@ -61,6 +60,10 @@ ninja = "latest"
 #     `task@latest` still fails. Appearing in `mise registry` output is NOT
 #     sufficient to conclude a name resolves — check with `mise ls-remote`.
 #     `just` is listed above instead.
+#
+#   Ejected 2026-09-19 (Marid migrates to Bun; AffineScript replaces TS):
+#     node, npm, yarn, pnpm -> Bun is the runtime and package manager
+#     deno  -> removed per owner ruling 2026-08-26 (bun is the way)
 # ---------------------------------------------------------------------------
 
 [env]

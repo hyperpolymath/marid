@@ -7,6 +7,14 @@ project brief" through "9. Execution plan"). This file is the canonical
 product/engineering contract for the Marid program. Do not edit its
 requirements without owner approval; record estate-specific file mappings
 (docs .md -> .adoc, RSR root shape) in AGENTS.md instead.
+
+Amendment 2026-09-19 (owner-directed): the Marid framework charter
+(docs/MARID-FRAMEWORK.adoc) is integrated. §1 gains the charter
+principles, §2 is replaced by the charter's thirteen-package graph, §3–§9
+are reconciled (IR-first, Bun runtime, AffineScript browser language,
+gate→phase mapping). The charter governs build order; this brief governs
+acceptance. Where they appear to disagree, docs/FRAMEWORK-ALIGNMENT.adoc
+records the reconciliation.
 -->
 
 # Marid project brief
@@ -14,6 +22,8 @@ requirements without owner approval; record estate-specific file mappings
 ## 1. Product definition
 
 Marid.jl is a Julia-first framework for web applications, APIs, and reactive scientific dashboards, with interoperable protocols and frontend independence.
+
+Marid.jl is a clean-room reimplementation inspired by Genie.jl, with no shared code or API cloning. Its differentiators are: one service descriptor (IR), many protocol bindings, a pure local routing data plane with an optional consensus-backed control plane, and pluggable storage with ArangoDB as the flagship backend.
 
 ### Design commitments
 
@@ -24,40 +34,84 @@ Marid.jl is a Julia-first framework for web applications, APIs, and reactive sci
 - Distributed routing is an optional control-plane feature, not part of every request's execution.
 - ArangoDB is the initial external database target. We are not building a database engine.
 - Native protocol interoperability matters more than merely having packages with the right names.
+- Control plane / data plane split: route lookup is a pure function over an immutable, locally cached snapshot. It never blocks, never touches the network.
+- IR-first: every schema artifact is emitted from MaridIR. Nothing is hand-maintained in parallel.
+- Seams before features: streaming-symmetric handlers, Transport, Codec, unified errors, and CallContext exist before any protocol adapter is written.
+- Small packages, not a monolith: each concern ships independently and is independently useful.
+- Standards over integrations: emit the standard artifacts; document the sidecar pattern for SSR; never chase framework-specific APIs.
+- The HTML-first path (HTMX/Turbo/Datastar-style fragments) is first-class.
+- Security comes from existing libraries. No hand-rolled crypto, sessions, or password hashing.
+- Boring correctness over novel research in anything consensus-related.
 
 ### Licensing
 
 - Original source, tests, examples, browser code, and authored tooling: MPL-2.0.
 - Documentation prose and original documentation artwork: CC-BY-SA-4.0.
+- Code samples in docs: MPL-2.0, stated explicitly.
 - Third-party material retains its required licenses and notices.
 - Explicit policies cover documentation snippets, docstrings, IDL files, generated code, and generator templates.
 - Use the standard license texts, not a modified "MPL variant."
+- Contributions: DCO sign-off, not CLA.
+- Clean-room discipline: Genie.jl is MIT; study behavior, copy nothing.
 
 Names, package registry availability, and relevant trademarks must be checked before public release.
 
 ## 2. Launch deliverables
 
-There are five integration packages plus the Marid core. We should not pretend the core disappears from the workload.
+Thirteen small packages in four waves, per the framework charter. We should not pretend any wave disappears from the workload.
+
+### Launch set — Phase 1 (these make Marid possible)
 
 | Package | Initial supported scope | Evidence required before calling it ready |
 |---|---|---|
-| MaridArango.jl | Native Julia HTTP client; documents, edges, bound AQL queries, cursors, revision-aware updates, transaction operations | Tests against an actual supported ArangoDB release; cursor cleanup, conflicts, failures, and retry behavior tested |
-| MaridGRPC.jl | Native-protocol unary calls and server streaming; metadata, deadlines, cancellation, status/trailers | An independent standard gRPC client successfully exercises these features |
-| MaridGraphQL.jl | Queries and mutations; schema validation, variables, resolver context, partial errors, batching hooks, resource limits | Standard GraphQL clients work; authorization, malformed queries, limits, and partial failures are tested |
-| MaridCapnProto.jl | Cap'n Proto message encoding/decoding and schema-toolchain integration | Bidirectional interoperability with an independent implementation |
-| MaridBebop.jl | Explicitly pinned Bebop v3 schema/compiler/runtime integration | Bidirectional interoperability with an independent implementation |
-| Marid.jl | Local routing, middleware, lifecycle, application context, contract bindings, HTTP/JSON, live-update integration | Reference application uses the integrations without duplicating business logic |
+| MaridIR.jl | ServiceDescriptor, MethodDescriptor, TypeRef, Streaming, annotations. Pure data + validation; no dependencies | First emitter proves the IR; IR freezes; golden tests pass |
+| MaridCodec.jl | Codec seam, content negotiation (Accept, q=, Vary), JSON via JSON3, ext-based MsgPack/CBOR | Negotiation matrix tested; JSON round-trips; extension seam exercised |
+| MaridOpenAPI.jl | IR → OpenAPI 3.1 + JSON Schema 2020-12 emitters | Emitted specs validate with independent tooling |
+| MaridRPC.jl | JSON-RPC 2.0 + MCP adapter over the IR, SSE transport hook | Independent JSON-RPC/MCP clients interoperate |
+| MaridGraphQL.jl | IR → GraphQL SDL + introspection first; resolver runtime later | Standard GraphQL clients work against SDL/introspection; then queries, mutations, variables, partial errors, limits tested |
+
+### Core — Phase 2
+
+| Package | Initial supported scope | Evidence required before calling it ready |
+|---|---|---|
+| MaridTransport.jl | Transport seam; HTTP/1.1 impl (HTTP.jl), SSE, WebSocket upgrade, chunked/trailers | REST MVP serves from the IR; benchmark baseline recorded |
+| MaridCore.jl | Router (trie, tuple key), middleware (f(call, next)), CallContext, server assembly | Router proven pure/non-blocking; middleware and lifecycle exercised by the reference app |
+
+### Storage — Phase 3
+
+| Package | Initial supported scope | Evidence required before calling it ready |
+|---|---|---|
+| ArangoDB.jl | HTTP-based Arango client: auth, pooling, cursors, AQL, transactions, retries, changefeeds | Tests against a real ArangoDB container; cursor cleanup, conflicts, failures, retry behavior tested |
+| MaridStorage.jl | Storage seam + SQLite/DuckDB/in-memory impls; Arango impl as extension | SQLite/DuckDB/memory backends tested first; Arango extension tested against the container |
+
+### Later — Phases 4–7
+
+| Package | Initial supported scope | Evidence required before calling it ready |
+|---|---|---|
+| MaridControl.jl | Snapshot/atomic-swap, log abstraction, etcd/Consul backend, changefeed invalidation | Node serves with control plane down; swap is race-tested |
+| MaridLive.jl | HTMX/Turbo/Datastar helpers over SSE/WS | Helpers exercised in real browsers against the reference app |
+| MaridCRDT.jl | LWW-Register, OR-Set, G/PN-Counter, presence | Property tests + partition simulator pass |
+| MaridRaft.jl | Own Raft (elections, log, compaction, membership) — only if etcd proves insufficient | Jepsen-style testing budget approved and executed |
+
+### Further out — Phase 8
+
+gRPC (HTTP/2 via libnghttp2 binding), CLI, generators, deployment docs. Gate: HTTP/2 conformance suite passes. If no production HTTP/2 server exists in Julia, accept gRPC-Web only.
 
 ### Important scope boundaries
 
 For the initial release:
 
-- Cap'n Proto message support is not native Cap'n Proto RPC support.
-- gRPC support must identify exactly which streaming modes work.
-- GraphQL subscriptions require a separately identified transport implementation.
+- Cap'n Proto message support (a MaridCodec extension) is not native Cap'n Proto RPC support. Cap'n Proto RPC (capabilities, promise pipelining) is a documented non-goal.
+- Bebop v3 schema/runtime integration (a MaridCodec extension) enters via the IR, with an explicitly pinned schema/compiler/runtime.
+- gRPC support must identify exactly which streaming modes work, once Phase 8 lands.
+- GraphQL subscriptions require a separately identified transport implementation (SSE, then WebSocket).
 - A Bebop or Cap'n Proto message sent over WebSocket must not be advertised as some other standard RPC protocol.
 - A thin Julia wrapper around an audited external runtime is different from an entirely Julia implementation. Document that distinction.
 - If adequate Julia tooling does not exist, the agent must report that before silently turning an adapter task into a runtime/compiler project.
+
+### Non-goals (enforced in README and PR review)
+
+Stipple-style reactive UI · Genie Builder-style visual editor · Genie API compatibility · Cap'n Proto RPC · SOAP/WSDL · HTTP/2 Push · SSR/Streaming SSR/RSC implemented in Julia · hand-rolled crypto · own Raft before everything else is stable · a Julia-native DBMS.
 
 ## 3. Repository and dependency structure
 
@@ -71,18 +125,27 @@ marid/
 ├── REUSE.toml
 ├── THIRD_PARTY_NOTICES.md
 ├── docs/
+│   ├── MARID-FRAMEWORK.adoc
+│   ├── FRAMEWORK-ALIGNMENT.adoc
 │   ├── architecture.md
 │   ├── compatibility.md
 │   ├── roadmap.md
 │   ├── audits/
 │   └── adr/
 ├── packages/
-│   ├── Marid/
-│   ├── MaridArango/
-│   ├── MaridGRPC/
+│   ├── MaridIR/
+│   ├── MaridCodec/
+│   ├── MaridOpenAPI/
+│   ├── MaridRPC/
 │   ├── MaridGraphQL/
-│   ├── MaridCapnProto/
-│   └── MaridBebop/
+│   ├── MaridTransport/
+│   ├── MaridCore/
+│   ├── ArangoDB/
+│   ├── MaridStorage/
+│   ├── MaridControl/
+│   ├── MaridLive/
+│   ├── MaridCRDT/
+│   └── MaridRaft/
 ├── web/
 │   ├── client/
 │   ├── react/
@@ -99,7 +162,8 @@ marid/
 
 ### Dependency rules
 
-- Marid must not unconditionally load every adapter.
+- MaridIR must not depend on anything. Every emitter depends on MaridIR, never the reverse.
+- MaridCore must not unconditionally load every adapter.
 - Adapter packages must work without a running Marid application.
 - Adapters must not depend on one another.
 - Marid-specific bindings should use optional integration modules or Julia package extensions where appropriate.
@@ -121,7 +185,20 @@ React / Vue / other frontends / RPC clients
                  ArangoDB
 ```
 
-Cap'n Proto and Bebop provide message/schema capabilities where explicitly supported. They are not universal replacements for each protocol's native contract.
+The request path in full (see the charter diagram):
+
+```text
+Request ──▶ Transport ──▶ MaridCore router ──▶ Middleware ──▶ Handler
+        (reads immutable local snapshot)   (CallContext)   (Stream{I} → Stream{O})
+                                                        │         ▲
+                                                        ▼         │ atomic swap
+                                              Codec pipeline  ControlPlane
+                                                        │
+                                                        ▼
+                                                  Storage seam
+```
+
+Cap'n Proto and Bebop provide message/schema capabilities where explicitly supported, as MaridCodec extensions. They are not universal replacements for each protocol's native contract.
 
 ## 4. Establish these contracts before extensive implementation
 
@@ -150,6 +227,8 @@ Additional requirements:
 - No global singleton holding user-specific authentication or tenant state.
 - No automatic retries of writes unless their safety is established.
 
+The charter's seams-before-features rule orders this work: streaming-symmetric handlers, the Transport seam, the Codec seam, unified errors, and CallContext exist before any protocol adapter is written.
+
 ### Preserve native schemas
 
 Use:
@@ -160,7 +239,7 @@ Use:
 - `.capnp` for Cap'n Proto.
 - `.bop` for Bebop.
 
-Marid may maintain a contract registry containing identifiers, versions, fingerprints, and implementation bindings. It should not invent a replacement universal IDL.
+MaridIR is the contract registry's executable form: every native artifact above is emitted from the IR, and native schemas stay native at every boundary. The IR emits artifacts but is never a wire format. Marid maintains a contract registry containing identifiers, versions, fingerprints, and implementation bindings. It does not invent a replacement universal IDL.
 
 Document translations for large integers, timestamps, binary data, null versus omitted values, and default values. Julia, JavaScript, GraphQL, and binary schemas do not have identical type semantics.
 
@@ -176,6 +255,10 @@ Document translations for large integers, timestamps, binary data, null versus o
 - Same-origin deployment as the simple default.
 - Explicit cross-origin authentication and credential policies.
 
+### Browser language and runtime
+
+The browser language is AffineScript (JaffaScript face, `.affine` sources compiled to typed WebAssembly via `@hyperpolymath/affinescript`). The runtime and package manager is Bun. TypeScript is ejected for new application code; plain JavaScript appears only in narrow interop facades where the React/Vue ecosystem requires it.
+
 ### Browser packages
 
 | Package | Purpose |
@@ -185,14 +268,14 @@ Document translations for large integers, timestamps, binary data, null versus o
 | `@marid/vue` | Thin Vue integration and lifecycle cleanup |
 | `@marid/elements` | Small portable Web Components demonstrator; not a new comprehensive widget library |
 
-The TypeScript client should expose familiar interfaces:
+The AffineScript client should expose familiar interfaces:
 
 - Promises.
 - AbortSignal.
 - Async iterables where useful.
 - Snapshot/subscription interfaces for reactive state.
 
-Existing GraphQL and generated API clients should also work directly. Do not force every client through a universal Marid SDK.
+IR codegen targets AffineScript; generated clients reach the React/Vue/Svelte ecosystems through narrow JavaScript interop facades. Existing GraphQL and generated API clients should also work directly. Do not force every client through a universal Marid SDK.
 
 ### Compatibility requirements
 
@@ -205,7 +288,11 @@ Existing GraphQL and generated API clients should also work directly. Do not for
 
 For reusable controls, use Custom Elements, properties, DOM events, and explicit styling hooks. Provide framework wrappers only where they improve ergonomics.
 
+SSR / RSC follow the sidecar pattern only, documented as recipes (Next.js/Nuxt → Marid API). Never reimplemented in Julia.
+
 Browser-facing gRPC requires a separately selected gRPC-Web, Connect, or gateway approach. Native gRPC support alone is insufficient.
+
+Static/SPA hosting: serve dist/, SPA fallback, MIME + precompressed variants, immutable caching. Documented Vite/Next/Nuxt dev-proxy recipes.
 
 ## 6. Routing, reactive state, and persistence boundaries
 
@@ -219,7 +306,9 @@ Start with:
 - Local activation of complete revisions.
 - A route-store interface with a local implementation.
 
-Later, Raft may distribute authoritative configuration.
+Route lookup is a pure function over the snapshot: it never blocks and never touches the network. Consensus, config, and schema live only in the control plane (MaridControl.jl); nodes serve traffic with the control plane down, and Arango is never on the route-lookup path.
+
+Later, Raft may distribute authoritative configuration — after everything else is stable, and only if the etcd backend proves insufficient.
 
 Raft must not be used to replicate handler functions, ordinary requests, or live connections. Nodes must advertise which handlers and contract versions they actually have installed.
 
@@ -271,13 +360,13 @@ Expose the same application services through:
 
 - HTTP/JSON.
 - GraphQL.
-- gRPC.
+- gRPC (once Phase 8 lands).
 
 Provide Cap'n Proto and Bebop import/export fixtures or endpoints with explicitly documented semantics.
 
 Build three frontends against those services:
 
-- Plain JavaScript.
+- AffineScript (JaffaScript face).
 - React.
 - Vue.
 
@@ -311,6 +400,8 @@ Also measure:
 
 Never report skipped or unexecuted tests as passing.
 
+Phase gates add their own evidence: golden tests (Phase 1), benchmark baseline (Phase 2), real-container integration tests (Phase 3), race-tested swap with control-plane-down serving (Phase 4), human-reviewed security checklist (Phase 5), property tests + partition simulator (Phase 6), approved Jepsen-style budget (Phase 7), HTTP/2 conformance suite (Phase 8).
+
 ## 9. Execution plan
 
 ### Gate 0 — Feasibility and licensing audit
@@ -322,6 +413,7 @@ Before production implementation:
 - Audit HTTP/2 and gRPC feasibility specifically.
 - Audit Cap'n Proto and Bebop compiler/runtime feasibility.
 - Audit GraphQL execution support—not just schema parsing.
+- Audit AffineScript (JaffaScript face) readiness and the `@hyperpolymath/affinescript` release under Bun; approve the runtime choice or a fallback before Gate 4.
 - Select an ArangoDB version for testing.
 - Check proposed package names.
 
@@ -361,12 +453,13 @@ Create:
 - Shared context and lifecycle contracts.
 - Architectural decision records.
 - Browser-event contract.
+- Toolchain pins: Julia versions for the CI matrix, Bun, and `@hyperpolymath/affinescript`.
 
 Scaffolding alone does not constitute protocol support.
 
 ### Gate 3 — Independent packages
 
-Implement the five packages against their acceptance criteria.
+Implement the charter packages against their acceptance criteria (Phases 1–3 first; later phases follow the roadmap gates).
 
 Parallel work is appropriate once the shared contracts and runtime choices have been approved.
 
@@ -392,3 +485,16 @@ Review:
 - Package registration and release order.
 
 Public registration, publishing, deployment, and use of paid services require explicit approval.
+
+### Gate → phase mapping
+
+The gates are acceptance checkpoints; the charter phases are build order. They cross like this:
+
+| Gate | Covers phases | Notes |
+|---|---|---|
+| Gate 0 | Phase 0 + feasibility for all phases | Charter landed; audit matrix produced; runtime choices approved |
+| Gate 1 | Phase 1–3 entry | Spikes de-risk gRPC, Cap'n Proto, Bebop, GraphQL execution, ArangoDB |
+| Gate 2 | Phase 1–2 setup | Skeletons, contracts, pins (Julia, Bun, affinescript-cli) |
+| Gate 3 | Phases 1–3, then 4–8 per roadmap | Packages implemented against §8 + phase gates |
+| Gate 4 | Assembly + Phase 5 frontend | Client, wrappers, reference app, MaridLive |
+| Gate 5 | Release review | Whole program, all phases |

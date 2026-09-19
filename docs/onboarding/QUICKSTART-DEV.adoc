@@ -7,15 +7,16 @@
 
 == Tech Stack
 
-Julia for the backend packages (`packages/`), TypeScript/Node for the
+Julia for the backend packages (`packages/`), AffineScript (JaffaScript
+face, `.affine` sources compiled to typed WebAssembly) under Bun for the
 browser client (`web/`).
 
 [NOTE]
 ====
-Exact toolchain versions — the Julia versions for the CI matrix and the
-Node version for `web/` — are pinned at Gate 2 (`PROJECT_BRIEF.md`
-§8–§9). The Gate 0 feasibility audit selects the ArangoDB release under
-test (`docs/audits/feasibility.adoc`).
+Exact toolchain versions — the Julia versions for the CI matrix, Bun,
+and `@hyperpolymath/affinescript` for `web/` — are pinned at Gate 2
+(`PROJECT_BRIEF.md` §8–§9). The Gate 0 feasibility audit selects the
+ArangoDB release under test (`docs/audits/feasibility.adoc`).
 ====
 
 == Set Up Development Environment

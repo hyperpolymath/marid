@@ -30,6 +30,37 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
   `docs/adr/`, and `docs/agent-launch.adoc` (Gate 0 kickoff and
   bounded-task prompts).
 
+==== Changed
+
+* Framework charter integrated: `docs/MARID-FRAMEWORK.adoc` transcribes
+  the owner's charter (mission, principles, package graph, architecture,
+  protocol matrix, frontend/storage stories, licensing, non-goals, gated
+  roadmap); `docs/FRAMEWORK-ALIGNMENT.adoc` verifies the Gate 0 base
+  against it; `PROJECT_BRIEF.md` §1–§3, §5, §7–§9 reconciled
+  (amendment 2026-09-19).
+* Package graph replaced: the brief's original six (`Marid`,
+  `MaridArango`, `MaridGRPC`, `MaridGraphQL`, `MaridCapnProto`,
+  `MaridBebop`) superseded by the charter's thirteen (`MaridIR`,
+  `MaridCodec`, `MaridOpenAPI`, `MaridRPC`, `MaridGraphQL`,
+  `MaridTransport`, `MaridCore`, `ArangoDB`, `MaridStorage`,
+  `MaridControl`, `MaridLive`, `MaridCRDT`, `MaridRaft`); stubs only,
+  no implementation. Supersession map in the alignment doc.
+* Browser language is AffineScript (JaffaScript face, `.affine`
+  sources → typed WebAssembly via `@hyperpolymath/affinescript`);
+  TypeScript ejected from `ANCHOR.a2ml` (now forbidden), the brief,
+  `web/` stubs, quickstart, and agent rules, per estate ruling
+  (`LANGUAGE-POLICY.adoc` §1.2, 2026-08-25).
+* Runtime migrated to Bun: `node`, `npm`, `yarn`, `pnpm`, and `deno`
+  ejected from `mise.toml` (deno per owner ruling 2026-08-26);
+  `contracts/` reconciled IR-first; reference-app frontends are
+  AffineScript, React, Vue.
+
+==== Removed
+
+* `packages/MaridGRPC/`, `packages/MaridCapnProto/`,
+  `packages/MaridBebop/` stubs (gRPC is Phase 8 transport work;
+  Cap'n Proto/Bebop message support becomes `MaridCodec` extensions).
+
 ==== Fixed
 
 * Regenerated `docs/architecture/REPOSITORY-MAP.adoc` after staging: the

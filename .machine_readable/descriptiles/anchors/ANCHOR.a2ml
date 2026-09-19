@@ -36,10 +36,11 @@ owns = [
 [implementation-policy]
 # Marid application languages first; the RSR spine languages (Rust mint tools,
 # Scheme checks, Nickel contracts, Idris2/Zig seam) are retained, not primary.
-# The template forbade Node.js/npm — reversed deliberately: web/ is TypeScript
-# and requires Node (PROJECT_BRIEF.md §5).
-allowed = ["Julia", "TypeScript", "JavaScript", "Shell", "Just", "AsciiDoc", "Markdown", "Rust", "Scheme", "Nickel", "Idris2", "Zig"]
-forbidden = []
+# web/ is AffineScript (JaffaScript face) under Bun (PROJECT_BRIEF.md §5;
+# LANGUAGE-POLICY.adoc §1.2, ruled 2026-08-25). TypeScript is ejected for
+# new application code; JavaScript remains for narrow interop facades.
+allowed = ["Julia", "AffineScript", "JavaScript", "Shell", "Just", "AsciiDoc", "Markdown", "Rust", "Scheme", "Nickel", "Idris2", "Zig"]
+forbidden = ["TypeScript"]
 
 [golden-path]
 smoke-test-command = [

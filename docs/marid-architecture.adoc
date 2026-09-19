@@ -54,3 +54,13 @@ The contract registry (`contracts/`) records identifiers, versions,
 fingerprints, and bindings; it never becomes a replacement universal IDL.
 Type translations (large integers, timestamps, binary data, null versus
 omitted, defaults) must be documented per protocol pair.
+
+== Framework charter
+
+The build order, package graph, and gated roadmap live in
+`docs/MARID-FRAMEWORK.adoc` (the Phase 0 charter); the Gate 0
+verification against it is `docs/FRAMEWORK-ALIGNMENT.adoc`. The
+charter's control-plane/data-plane split, IR-first rule, and
+seams-before-features ordering govern this architecture: the router
+never blocks, every schema artifact is emitted from MaridIR, and the
+Transport/Codec seams exist before any protocol adapter.

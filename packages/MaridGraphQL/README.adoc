@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= MaridGraphQL.jl — GraphQL execution (planned)
+= MaridGraphQL.jl — GraphQL SDL and runtime (planned)
 
-Queries and mutations: schema validation, variables, resolver context,
-partial errors, batching hooks, resource limits (`PROJECT_BRIEF.md` §2).
+IR → GraphQL SDL plus introspection first; the resolver runtime
+(queries, mutations, validation, variables, resolver context, partial
+errors, batching hooks, resource limits) follows, over MaridIR
+(`docs/MARID-FRAMEWORK.adoc`, launch set). Subscriptions ride SSE,
+then WebSocket.
 
-Ready when: standard GraphQL clients work, and authorization, malformed
-queries, limits, and partial failures are tested. Subscriptions require a
-separately identified transport implementation.
-
-Status: Gate 0 skeleton. `Project.toml`, `src/`, and `test/` land at Gate 2.
-GraphQL execution support (not just schema parsing) is audited at Gate 0.
+Status: Gate 0 skeleton. Implemented at Phase 1 (brief §9).

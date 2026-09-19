@@ -3,7 +3,8 @@
 = @marid/vue (planned)
 
 Thin Vue integration over `@marid/client`: ergonomics and lifecycle
-cleanup. Unmounting a component cleans up its subscriptions
+cleanup, consuming the compiled client through a narrow JavaScript
+interop facade. Unmounting a component cleans up its subscriptions
 (`PROJECT_BRIEF.md` §5).
 
 Status: Gate 0 skeleton. Implemented at Gate 4.

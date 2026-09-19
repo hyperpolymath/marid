@@ -81,9 +81,9 @@ predecessors did.
 | yes
 | -
 
-| `0-AI-MANIFEST.a2ml`
+| `0-AI-MANIFEST.deed`
 | yes
-| universal AI entry point
+| -
 
 | `AGENTS.md`
 | yes
@@ -187,7 +187,7 @@ predecessors did.
 
 | `packages/`
 | yes
-| Julia packages: Marid + five integrations (brief §2–§3)
+| Julia packages: thirteen charter packages (brief §2–§3)
 
 | `scripts/`
 | yes
@@ -277,12 +277,19 @@ your own repo - but do not read their emptiness as neglect here.
 | `features/panic-attacker/`
 | `fixtures/`
 | `packages/`
-| `packages/Marid/`
-| `packages/MaridArango/`
-| `packages/MaridBebop/`
-| `packages/MaridCapnProto/`
-| `packages/MaridGRPC/`
+| `packages/ArangoDB/`
+| `packages/MaridCRDT/`
+| `packages/MaridCodec/`
+| `packages/MaridControl/`
+| `packages/MaridCore/`
 | `packages/MaridGraphQL/`
+| `packages/MaridIR/`
+| `packages/MaridLive/`
+| `packages/MaridOpenAPI/`
+| `packages/MaridRPC/`
+| `packages/MaridRaft/`
+| `packages/MaridStorage/`
+| `packages/MaridTransport/`
 | `src/aspects/`
 | `src/aspects/integrity/`
 | `src/aspects/observability/`

@@ -91,7 +91,7 @@ PROJECT_BRIEF.md           # canonical product/engineering contract (brief §1�
 AGENTS.md                  # repository instructions for coding agents (brief launch text + RSR notes)
 THIRD_PARTY_NOTICES.md     # third-party material register (brief §1 licensing)
 REUSE.toml                 # repository license mapping (starter; Gate 2 finalises)
-packages/                  # Julia packages: Marid + five integrations (brief §2–§3)
+packages/                  # Julia packages: thirteen charter packages (brief §2–§3)
 web/                       # browser client: framework-independent TS + React/Vue/elements (brief §5)
 contracts/                 # contract registry: identifiers, versions, fingerprints, bindings (brief §4)
 fixtures/                  # interop fixtures, incl. Cap'n Proto/Bebop import/export (brief §7)

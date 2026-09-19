@@ -53,3 +53,10 @@ do not change the brief's requirements.
   `just validate`. It is not Marid application code.
 - Gate kickoff prompts (Gate 0 assignment, bounded-task prompt, worker
   division) live in `docs/agent-launch.adoc`.
+- Sandbox repair (agent sandbox only, never CI): a fresh session may
+  lose worktree files under `build/` and `verification/coverage/`
+  (snapshot-excluded names), the executable bit on scripts, and
+  session tools. Repair before any `just` recipe: `git checkout --
+  build/ verification/coverage/`; restore `+x` on every file `git
+  ls-files -s` records as `100755`; reinstall `just` 1.40.0 (`apt-get
+  install just`) and `nickel` 1.17.0 (nickel-lang release binary).
