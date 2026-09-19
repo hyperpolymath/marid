@@ -83,7 +83,7 @@ predecessors did.
 
 | `0-AI-MANIFEST.deed`
 | yes
-| universal AI entry point (migration name; standards#837)
+| universal AI entry point (standards#837)
 
 | `AGENTS.md`
 | yes
@@ -99,7 +99,7 @@ predecessors did.
 
 | `CLAUDE.md`
 | yes
-| generated arrival pack; the generator, pre-commit and Claude Code all read it from the ROOT (do not hand-edit; edit the a2ml source)
+| generated arrival pack; the generator, pre-commit and Claude Code all read it from the ROOT
 
 | `CONTRIBUTING.adoc`
 | optional
@@ -245,6 +245,9 @@ your own repo - but do not read their emptiness as neglect here.
 
 [cols="1"]
 |===
+| `.machine_readable/ai/`
+| `.machine_readable/bot_directives/`
+| `.machine_readable/descriptiles/anchors/`
 | `.machine_readable/scripts/verification/`
 | `docs/governance/audit/`
 | `docs/governance/audit/compliance/`
@@ -282,16 +285,13 @@ your own repo - but do not read their emptiness as neglect here.
 | `src/aspects/integrity/`
 | `src/aspects/observability/`
 | `src/aspects/security/`
-| `src/bridges/`
 | `src/contracts/`
-| `src/core/`
 | `src/definitions/`
 | `src/errors/`
 | `src/interface/generated/`
 | `src/interface/generated/abi/`
 | `tests/fuzz/`
 | `verification/benchmarks/`
-| `verification/coverage/`
 | `verification/fuzzing/`
 | `verification/safety_case/`
 | `verification/simulations/`

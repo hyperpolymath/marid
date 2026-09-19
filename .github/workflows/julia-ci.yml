@@ -71,9 +71,11 @@ jobs:
           version: '1.10.10'
       - name: Verify CLI Capability Spec Generation
         run: |
-          ./scripts/marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl /tmp/rel_spec.yaml
-          grep "RelationshipExplorerAPI" /tmp/rel_spec.yaml
-          grep "dsl_version: \"1\"" /tmp/rel_spec.yaml
+          ./scripts/marid generate capability-spec fixtures/capability/service.jl \
+            --deny-by-default --out /tmp/rel_spec.yaml
+          cmp /tmp/rel_spec.yaml fixtures/capability/policy-strict.yaml
+          grep -q "^  name: 'CapabilityExample'" /tmp/rel_spec.yaml
+          grep -q "dsl_version: '1'" /tmp/rel_spec.yaml
       - name: Run Framework Benchmarks
         run: |
           bash benches/marid_bench.sh json
