@@ -5,9 +5,16 @@ version: 'v0.0.2'
 workflows:
     '.github/workflows/build-notification.yml':
         - 'actions/checkout@v7.0.1'
+    '.github/workflows/capability-spec.yml':
+        - 'actions/checkout@v4.4.0'
+        - 'erlef/setup-beam@v1.24.1'
+        - 'julia-actions/setup-julia@v2.7.0'
+        - 'oven-sh/setup-bun@v2.2.0'
     '.github/workflows/codeql.yml':
         - 'actions/checkout@v7.0.1'
         - 'github/codeql-action@b96794f015dfd88f77b49b1c93e0fa7110f94c63'
+    '.github/workflows/dco.yml':
+        - 'actions/checkout@v7.0.1'
     '.github/workflows/deed-validate.yml':
         - 'actions/checkout@v7.0.1'
         - 'hyperpolymath/deed-ecosystem@main'
@@ -35,6 +42,9 @@ workflows:
     '.github/workflows/guix-policy.yml':
         - 'actions/checkout@v7.0.1'
     '.github/workflows/hypatia-scan.yml': []
+    '.github/workflows/julia-ci.yml':
+        - 'actions/checkout@v7.0.1'
+        - 'julia-actions/setup-julia@v2.7.0'
     '.github/workflows/k9-validate.yml':
         - 'actions/checkout@v7.0.1'
         - 'hyperpolymath/k9-ecosystem@main'
@@ -263,7 +273,7 @@ dependencies:
 
     'hyperpolymath/deed-ecosystem@main':
         ref: 'main'
-        commit: 'sha1-44f9c9fc42901a55e0f489a40eabf4173e550d1d'
+        commit: 'sha1-ed83d6927e8fb21431e403dbf6d7a4af96772746'
         owner_id: 6759885
         repo_id: 1275649586
 
@@ -275,7 +285,7 @@ dependencies:
 
     'hyperpolymath/k9-ecosystem@main':
         ref: 'main'
-        commit: 'sha1-2155aa26a21758f2ba119f61bc7e0e1981c106fb'
+        commit: 'sha1-c1a34884054fabf0e9de81dbf68f4ba7874e85f1'
         owner_id: 6759885
         repo_id: 1275650185
 
