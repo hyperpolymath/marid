@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= ADR-0007: Emit native HTTP Verb Governance Specs from MaridIR
+
+Status: implemented locally for review, 2026-09-19. No deployment approved.
+
+== Context
+
+The owner requested `emit_capability_spec` in MaridIR and the CLI, plus a
+front-facing `http-capability-gateway` Compose sidecar. The charter requires
+IR-first artifacts and independent packages. MaridIR must remain dependency-free.
+
+The inspected gateway (`19b343c1e9b7c61668c60887369783d12a486f41`) consumes native
+DSL v1 YAML, not the historical v0 service/verbs/exposure document. Its validator
+rejects empty global verb lists; its compiler falls back to public global verbs
+for both unknown paths and missing route verbs. Regex precedence is unordered.
+
+== Decision
+
+Emit deterministic YAML text using a small scalar encoder (single quotes,
+doubled apostrophes, rejected control/line characters), not a new YAML library.
+Do not change the IR types, add a protocol dependency, hand-maintain parallel
+policy, or conceal gateway changes inside Marid. The ordered follow-up explicitly
+authorizes a separately delivered gateway patch, not an upstream push.
+
+Keep the legacy profile default with mandatory nonempty explicit `global_verbs`.
+Add opt-in `gateway_profile=:strict, global_verbs=String[]` and CLI
+`--deny-by-default`. Strict requires the paired gateway patch; the unpatched
+validator rejects it rather than silently broadening access. No native DSL fields
+are invented. Both CLI modes warn about their compatibility/security contract.
+
+The gateway correction allows empty globals, makes a matched path own its entire
+verb allowlist, gives exact paths precedence, and denies multiple matching regex
+patterns. A main-table handle carries its own regex companion; deleted handles
+deny rather than consulting another revision. This is not complete atomic reader
+retirement or production hot-reload acceptance.
+
+Combine verbs at identical paths; require consistent exposure/capability metadata.
+Escape literal paths, translate colon parameters and terminal wildcards, anchor
+patterns, and reject overlaps or gateway-management collisions. Unknown namespaced
+annotations fail. Application `auth` semantics are not guessed.
+
+Use explicit `gateway.exposure` and `gateway.capability` annotation names, with
+service defaults and method overrides. Capability strings are labels, not tokens.
+Keep authorization at the application and authenticated ingress boundaries.
+
+CLI input is a trusted Julia file returning a descriptor. Pass paths through ARGS,
+not code interpolation; isolate descriptor stdout from emitted YAML. Leave the
+pre-existing proto/openapi/graphql CLI stubs outside this bounded change.
+
+Compose consumes reviewed images with no fabricated registry tags; the backend
+has no published port. The real unary listener and local gateway HTTP roundtrip
+now exist; gateway image builds/container isolation and broader acceptance remain
+release blockers.
+
+== Evidence and consequences
+
+`packages/MaridIR/test/capability.jl`, `test/interop/capability_cli.sh` and
+`test/interop/capability_gateway.exs` test emission and the actual native policy
+pipeline in both profiles. `run_http_gateway.sh` additionally proves the full
+network path and backend outage. A SHA-pinned gateway CI job applies the explicit
+paired patch before testing; this is not a claim that upstream adopted the changes.
+The broader gateway suite has 15 reproducible baseline failures, and dependency
+advisories remain production blockers. See the evidence ledger.
+
+The sidecar is limited to bounded unary HTTP pending proxy/streaming/security
+validation. Existing overlapping Marid routes may require redesign or upstream
+precedence fixes. No core routing semantics or project brief requirements change.
+
+See `docs/deployment/docker-compose.adoc` for the full contract and release gate.
+
+== Update (2026-09-20): the paired patch is upstream
+
+The decision above authorized "a separately delivered gateway patch, not an upstream
+push". That premise changed: the gateway repository merged the correction as
+`hyperpolymath/http-capability-gateway#112`, commit
+`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`. Strict mode no longer depends on an
+unmerged local artifact, so `test/interop/gateway-strict.patch` is deleted (it had also
+become unapplicable: `corrupt patch at ...:270`, four hunks with line counts that did not
+match their bodies) and `capability-spec.yml` pins the merged commit and greps
+`policy_validator.ex` for the empty-globals clause instead of patching.
+
+Everything else stands: the legacy profile remains the default with mandatory explicit
+`global_verbs`, `:strict` is opt-in, and an image built before the correction still
+rejects `global_verbs: []`. No Marid-side behaviour changes.

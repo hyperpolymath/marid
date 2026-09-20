@@ -109,7 +109,18 @@ services:
       PORT: "4000"
       TRUST_LEVEL_HEADER: "x-trust-level"
     volumes:
-      - ../../fixtures/capability-policy.yaml:/app/config/policy.yaml:ro
+      # Generated, never hand-edited:
+      #   ./scripts/marid generate capability-spec fixtures/capability/service.jl \
+      #     --global-verbs GET --out fixtures/capability/policy.yaml
+      # The legacy profile is deliberate for a quickstart: its non-empty global_verbs
+      # load on any gateway image, including the mutable :latest tag named above,
+      # which cannot be pinned to a digest verified to contain the #112 correction.
+      # For deny-by-default swap in fixtures/capability/policy-strict.yaml (empty
+      # global_verbs) and run a gateway at or after http-capability-gateway#112
+      # (c67c743) - an image built before it rejects the policy and never starts.
+      # CI exercises that variant against the pinned commit; see docs/adr/0007 and
+      # docs/deployment/docker-compose.adoc.
+      - ../../fixtures/capability/policy.yaml:/app/config/policy.yaml:ro
     depends_on:
       "marid":
         condition: service_healthy

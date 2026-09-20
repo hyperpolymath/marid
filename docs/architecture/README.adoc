@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Marid architecture entry point
+
+The canonical product contract is `PROJECT_BRIEF.md`.
+The package build order and boundaries are in link:../MARID-FRAMEWORK.adoc[the charter].
+Marid's implementation lives under `packages/`, browser facades under `web/`,
+and the reference application under `examples/relationship_explorer/`.
+The retained `src/interface/` ABI/FFI spine is estate scaffolding, not an HTTP server.
+Read link:../marid-architecture.adoc[the design] and
+link:../audits/evidence-ledger.adoc[the evidence ledger] together: a design diagram
+is not proof of runtime support. The generated link:REPOSITORY-MAP.adoc[map]
+is the authoritative directory inventory.

@@ -1,0 +1,65 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Marid: ordered checkpoint delivery
+:toc: left
+:toclevels: 2
+:sectnums:
+:webfonts!:
+:source-highlighter: none
+:revdate: 2026-09-19
+
+*Evidence/CI → real IR-driven HTTP/JSON → strict gateway correction*, in the order
+requested. All changes are local, uncommitted and unpushed. No deployments,
+account-setting changes or acceptance-gate waivers were made.
+
+== Read this first
+
+[cols="1,3",options="header"]
+|===
+| Checkpoint | Outcome
+| 1. Evidence and CI | Readiness claims corrected; official offline action-lock,
+required files and local workflow checks pass. Hosted CI/settings still unverified.
+| 2. Real HTTP/JSON | HTTP.jl + JSON3 optional Core extension, driven by the same IR
+used for generated policy. 38 real-socket assertions pass; all 13 package suites
+rerun, 385 assertions pass.
+| 3. Gateway correction | Explicit strict mode and paired gateway patch. 6 properties
++ 66 targeted tests pass; actual gateway → Julia roundtrip and outage: 7 tests /
+47 assertions pass. Full gateway suite is *not green*: 15 failures reproduce on
+baseline at the same seed (baseline additionally has four other failures).
+| Later phases | Real persistence, browser and protocol acceptance remain gated.
+Security advisories, full-suite failures, hosted CI and container/identity/rollback
+acceptance must be resolved or explicitly reviewed before advancement.
+|===
+
+This is a working experimental unary slice, not a production framework or approved
+sidecar deployment. As of this checkpoint, strict support existed only in the
+delivered patch, not in the pinned upstream gateway; the section below records that
+the gateway merged those changes on 2026-09-20, which is now the CI pin. The full
+logs retain both passing and failing outcomes.
+
+== Delivery and reproduction
+
+* `marid-capability.patch`: cumulative Marid changes from
+  `96cfea4c8eac855263bcfb47ca9f53fe7a893f34`, superseding the initial delivery patch.
+* `gateway-strict.patch`: gateway changes from
+  `19b343c1e9b7c61668c60887369783d12a486f41`.
+* `marid-delivery.zip`: both patched source trees, patches, report, README,
+  initial reconnaissance evidence and ordered checkpoint logs. No dependencies,
+  build caches, credentials or Git internals are included.
+* `README.txt`: exact application/reproduction commands and blockers.
+
+The gateway patch is also recorded in Marid's `test/interop/gateway-strict.patch`
+for the pinned CI fixture. Remove this temporary pairing only after an equivalent
+upstream revision has been reviewed and substituted — *done 2026-09-20*: the gateway
+merged the correction as `#112` (`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`), so Marid's
+copy was deleted (it had become unapplicable: `corrupt patch at ...:270`) and CI now pins
+and asserts that commit instead. No full-gateway failures
+are suppressed to make the targeted interoperability job pass.
+
+The initial reconnaissance remains in `docs/audits/recon-2026-09-19.adoc`, clearly
+marked historical. The ledger below is authoritative for the changed working tree.
+
+include::evidence-ledger.adoc[leveloffset=+1]
+
+include::../deployment/docker-compose.adoc[leveloffset=+1]
+
+include::../plans/charter-recovery-and-next-steps.adoc[leveloffset=+1]

@@ -1,0 +1,313 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Marid: charter-based recovery and next-steps plan
+:toc:
+:sectnums:
+
+Prepared 2026-09-19 against Marid `96cfea4` and gateway `19b343c`.
+The initial proposal is retained as the full charter plan. The owner subsequently
+authorized its ordered execution: evidence/CI repair, real IR-driven HTTP/JSON,
+then gateway correction, before persistence/browser/protocol acceptance.
+
+Local checkpoint update: CI/evidence corrections and 38 real HTTP assertions pass;
+strict policy plus gateway-to-Julia socket tests now pass with the paired gateway
+patch. Full gateway suite remains red (15 failures), dependency advisories and
+container/hosted CI gates remain. No production or later-phase acceptance follows.
+See `docs/audits/evidence-ledger.adoc` for commands, limitations and exact counts.
+`PROJECT_BRIEF.md` governs acceptance; `docs/MARID-FRAMEWORK.adoc` governs build order.
+Neither document is amended here. In particular, no mock becomes interoperability
+and no late-phase package becomes accepted merely because its directory exists.
+
+== Executive sequencing decision
+
+Finish the native governance artifact seam, then *recover the existing gates*.
+Do not proceed directly to more Raft, a polyrepo split, package registration, or
+new protocol promises. The present source is a useful prototype estate, not a
+proven production framework. The next milestone should be a reproducible, governed,
+real HTTP relationship-explorer slice with actual persistence, then standards
+interop and browser evidence.
+
+Critical path:
+
+....
+Evidence/CI repair -> IR + Codec correctness -> real HTTP Core
+                      |                         |
+                      +-> native gateway fixes -+-> governed unary E2E
+                      |                         |
+                      +-> real storage ---------+-> relationship explorer
+                      +-> adapter interop ------+-> real browser acceptance
+                                                    |
+                                               release review
+                                                    |
+                                          optional Control/Live/CRDT
+                                                    |
+                                    conditional Raft; gated HTTP/2
+....
+
+Gateway fixes can run in parallel with the IR/Core work, but all must converge
+before an externally exposed deployment. Security implementation is not deferred
+merely because the human security-review phase is numbered later.
+
+== Work package A: accept the bounded capability change
+
+Traceability: brief §1 IR-first/optional integrations, §4 native schemas, §8
+failure-path tests; charter Phase 1 artifact generation and Phase 8 tooling.
+
+Already implemented locally:
+
+. `emit_capability_spec`, explicit global exposure, deterministic DSL v1 YAML.
+. CLI invocation safe from path-to-code interpolation, stdout/stderr separation.
+. Route/annotation validation, golden fixture and native gateway pipeline tests.
+. Private-backend Compose topology, source-pinned CI job, ADR and deployment limits.
+
+Acceptance remaining:
+
+* Reviewer accepts the explicit global-verb opt-in and conservative route grammar.
+* Run the new workflow on GitHub using its pinned Julia/Elixir/OTP matrix;
+  local policy-pipeline tests are not evidence that hosted CI has run.
+* Reconcile the estate Actions lockfile with the new workflow and existing drift.
+* Decide whether this ships as an experimental artifact emitter now, or waits for
+  strict gateway fallback fixes. Only the opt-in strict profile with the paired
+  gateway correction is deny-default for application paths; management bypasses remain.
+* No external rollout until work package D's real HTTP evaluation passes.
+
+Owner: Marid maintainer plus gateway security reviewer. Deliverable: reviewed
+bounded patch, generated fixture hash, reproducible logs, supported/unsupported list.
+Exit: emitter ready for experimental use; *deployment remains gated separately*.
+
+== Work package B: recover evidence, CI and feasibility (Gate 0 / charter Phase 0)
+
+Dependencies: none; can start immediately after review of A.
+
+. Build a requirements-to-evidence ledger for brief §8: API, version matrix, unit
+  tests, independent interop, failure/cleanup, runnable example, licensing,
+  installation, platforms, unsupported features. Use evidence states, not percentages.
+. Correct or explicitly supersede stale README/STATE/roadmap skeleton status and
+  the opposite Gate 5 “production-ready” claim. Keep past audit provenance; link
+  corrective evidence rather than deleting inconvenient results.
+. Fix CI required-file path mappings to estate-compliant locations; do not scatter
+  duplicate ARCHITECTURE/GOVERNANCE/MAINTAINERS documents around the root.
+. Regenerate Actions lockfile, fix missing permissions and mutable references,
+  triage the critical Hypatia annotation (example password) and innerHTML finding.
+  Establish whether each is a true defect before suppressing it. Investigate
+  CodeQL startup configuration, Sonar failure, and Pages enablement separately.
+. Add clean-install package testing, declared platforms, browser build/test and
+  true integration jobs. Keep mock/unit suites distinct from container/interop jobs.
+. Pin Julia, Bun, AffineScript compiler and native compiler/runtime versions;
+  prove the AffineScript-to-Wasm build actually executes. If unavailable, obtain
+  explicit owner approval of a scoped fallback before Gate 4.
+. Re-audit exact ArangoDB release/edition/deployment terms and native codec licenses;
+  current Apache-2.0/registry-availability assertions need versioned source evidence.
+  Recheck names/trademarks before registration, not from a stale audit table.
+
+Owners: CI/estate maintainer; runtime/interop maintainer; human licensing reviewer.
+Exit: clean baseline CI with scoped exceptions documented; reproducible toolchain;
+feasibility matrix cites exact versions/licenses and records approved fallback choices.
+No gate is “passed” by skipping required external tests.
+
+== Work package C: make the launch seams real (Gates 1–3 / charter Phases 1–2)
+
+Dependencies: B's toolchain decisions; use maintained HTTP/JSON libraries.
+
+=== C1: IR and schema artifacts
+
+* Complete validation for field TypeRefs, primitives, maps/optionals/lists, names,
+  duplicate semantic routes and reserved bindings; implement or unexport `from_dict`.
+* Preserve one descriptor as the source of routes and OpenAPI, GraphQL, proto,
+  capability policy and contract fingerprints. Do not extract policy from a separate
+  handwritten route table or let application routes drift from descriptors.
+* Correct OpenAPI path merging, escaping, colon-to-brace parameters and JSON Schema
+  components; validate generated specs independently. Define large integer, bytes,
+  timestamp, nullable/omitted/default semantics per brief §4.
+* Compile emitted `.proto` with a pinned standard compiler; support primitives via
+  valid message/wrapper rules and deterministic field numbering/evolution decisions.
+* Wire the existing proto/OpenAPI/GraphQL CLI stubs to actual emitters and implement
+  or remove the advertised `routes` command. Do not report comment output as codegen.
+
+Exit: descriptor freeze only after independent validators and positive/negative
+golden tests; generated artifact drift CI; explicit compatibility/versioning policy.
+
+=== C2: Codec, router and transport
+
+* Replace `codeunits(string(obj))` with JSON3-backed wire encoding and decoding;
+  implement q-values, q=0 exclusion, wildcard specificity, unsupported Accept,
+  media parameters and `Vary`. Keep MsgPack/CBOR native dependencies optional.
+* Add the HTTP.jl adapter over streaming-symmetric handlers, request-scoped context,
+  middleware and error mapping. Define route registration from IR, not parallel code.
+* Fix root routing and nested parameter capture; encapsulate mutable trie internals
+  so “immutable snapshot” is enforceable. Benchmark route allocations rather than
+  repeating the zero-allocation docstring. Never add a DB/control lookup to routing.
+* Make cancellation interrupt blocked producers/consumers, bound bodies/queues,
+  handle client disconnect, enforce monotonic deadlines and redact internal errors.
+* Implement and test startup/readiness/draining/SIGTERM behavior on a real socket.
+  Trace IDs must interoperate with W3C Trace Context rather than just use random UUIDs.
+
+Exit: real client -> IR-driven HTTP endpoint -> native JSON round trip, not direct
+Julia dispatch; negative HTTP tests; cold-start/first-response, warm p50/p95/p99,
+allocations, slow-consumer and repeated-connect memory baselines with commands/hardware.
+Owners: IR/schema maintainer and Core/Transport maintainer, reviewed together.
+
+== Work package D: strict gateway and real sidecar acceptance
+
+Dependencies: A + C2. Gateway maintainer owns upstream fixes; do not silently fork
+its security model inside MaridIR. The follow-up authorizes local paired changes;
+upstream merge, deployment and release acceptance remain separate decisions.
+
+. Define a deny-by-default DSL behavior: permit empty globals or an explicit
+  default-deny policy, and distinguish “no path matched” from “path matched but
+  verb forbidden.” Test that a global rule cannot undo a route denial.
+. Establish deterministic precedence for exact/parameter/regex routes; reject
+  ambiguous patterns at compile time. Only then consider relaxing Marid's overlap
+  rejection. Test shared-path method-specific capability semantics if added.
+. Publish policy revisions atomically as a table pair or one immutable handle;
+  preserve readers of old revisions until safe retirement. Race-test reload failures,
+  including malformed policy and concurrent requests.
+. Repair the production Containerfile/config sequencing; build a pinned non-root
+  image. Exercise real runtime policy loading, not merely `PolicyValidator.validate`.
+. Harden the proxy against Req header/body representation mismatches, oversized or
+  chunked bodies, redirects/SSRF, upstream timeouts, spoofed identity and hop-by-hop
+  header handling. Management endpoints must have an explicit external exposure policy.
+. Run the Compose stack with real Marid HTTP service and no backend host port.
+  Record allowed and denied decisions plus backend hit counters. Test unknown paths,
+  HEAD/OPTIONS/TRACE/CONNECT, encoded slash/dot paths, regex injection near-misses,
+  auth downgrade/spoofing, absent/invalid policy, backend outage and restart rollback.
+. Measure unary-path latency/memory, check request-ID propagation and sensitive log
+  redaction, and review TLS/mTLS ingress. Keep SSE/WS/gRPC outside the supported
+  matrix until separately proven across the proxy; no undocumented bypass path.
+
+Exit: reviewer-approved threat model + passing real HTTP/container failure matrix,
+no exposure bypass, measured overhead and verified rollback. Only after this may
+“wired and evaluated governance sidecar” mean production data-path acceptance.
+
+== Work package E: storage and the reference vertical slice (Gate 3 / Phase 3)
+
+Dependencies: C's JSON/HTTP seam; exact database licensing/toolchain decisions in B.
+Execution remains blocked until the preceding ordered checkpoints and their
+unresolved security/evidence gates are reviewed; local unit/socket passes alone
+do not authorize a persistence or browser acceptance claim.
+
+. Keep the in-memory engine explicitly named test storage. Replace the public
+  Arango client's hidden dictionary mock with real HTTP authentication, document/
+  edge APIs, AQL cursors, revision preconditions, transaction lifecycle and bounded
+  retries. Never silently fall back to ephemeral memory when the DB is unavailable.
+. Implement SQLite and DuckDB adapters behind `MaridStorage` capabilities; make
+  Arango an optional extension as the charter requires. Define unsupported query,
+  transaction, cursor and watch operations explicitly per backend.
+. Run against a real pinned ArangoDB container. Test cursor close/exhaustion/error,
+  revision conflict, timeout, rollback, retry/idempotency, authentication failure,
+  DB unavailability and pooling cleanup. Prove data survives application restart.
+. Bind relationship explorer's create/get/edge/bounded-neighborhood/analysis services
+  to the same IR exposed over HTTP. Replace fabricated binary export payloads with
+  independent, version-pinned codec fixtures; leave Cap'n Proto RPC out of scope.
+. Seed one deterministic graph dataset and publish expected cross-protocol results.
+  Keep depth/resource limits and request authorization explicit.
+
+Exit: real persistent graph operations and bounded analysis progress; restart proof;
+container evidence; tests fail if Arango is absent rather than quietly switching mocks.
+Owners: storage/integration maintainer plus reference-application maintainer.
+
+== Work package F: prove standard clients and actual browsers (Gates 1, 3, 4)
+
+Dependencies: C; reference dataset from E; D for any claimed sidecar support.
+
+* GraphQL: adopt maintained parsing/validation machinery, valid input/output SDL
+  and full introspection; then resolvers, variables, mutations, partial errors,
+  depth/complexity limits and a named SSE/WS subscription transport. Use independent
+  GraphQL clients; string matching `__schema` is not protocol support.
+* JSON-RPC: test notifications (no response), batches, invalid JSON/requests,
+  positional/named params, ID preservation and sanitized errors through HTTP.
+  MCP: select/pin the protocol version, initialize/negotiate, tools/resources,
+  transport/session semantics and cancellation with an independent MCP client.
+* Cap'n Proto/Bebop: bidirectional golden fixtures with independent implementations,
+  endian/boundary/malformed-input tests and pinned schema/compiler/runtime notices.
+  Require explicit approval if this turns into a new runtime/compiler project.
+* Browser: prove AffineScript compilation or approved fallback; run Chromium,
+  Firefox and WebKit against the real service. Exercise bare client, real React,
+  real Vue and the shared Custom Element—not hook or DOM shims alone.
+* Test already-aborted signals, SSR-safe import, request-scoped credentials/caches,
+  actual unmount cleanup, reconnect after clean EOF and failure, sequence gaps,
+  snapshot resynchronization, credential/CORS policy and old-client/new-server rollout.
+* Measure real analysis progress, cancellation, repeated reconnect memory and
+  cross-protocol semantic equivalence from the one application service.
+
+Exit: published exact support matrix, native client logs and real-browser reports;
+unsupported stream modes explicit. Owners: adapter and frontend maintainers.
+
+== Work package G: optional control and HTML-first security (Phases 4–5)
+
+Dependencies: Core/data path stable and earlier gates accepted. Keep optional.
+
+* Fix the reproduced `swap_snapshot!` return-type error; enforce deep snapshot
+  immutability and version monotonicity. Validate nested mutable payloads and
+  multi-writer races, not only shallow Dict copying and sequential assertions.
+* Implement a maintained etcd/Consul-backed log/watch adapter, revision recovery,
+  handler/contract capability advertisement and invalidation. Partition/restart
+  the control plane while serving real traffic from the last good local snapshot.
+  The DB remains absent from the route-lookup path.
+* Implement sessions, OIDC, CSRF, forms/views and security headers using existing
+  libraries. Review HTML escaping and trusted-markup boundaries for Live helpers.
+* Prove HTMX/Turbo/Datastar behavior with real browsers over selected SSE/WS
+  transport; document SSR/RSC as external sidecars only.
+
+Exit: concurrent snapshot/recovery/outage tests; human-reviewed security checklist;
+HTML-first reference flows and supported streaming deployment route.
+Owners: control-plane maintainer; security and HTML/frontend reviewers.
+
+== Work package H: late distributed features and Phase 8
+
+Do not let existing prototype packages bypass charter gates.
+
+* Phase 6 CRDT: property-based convergence, idempotence/commutativity/associativity,
+  causal/tombstone semantics, clock assumptions, restart persistence, presence expiry
+  and a reproducible partition simulator. No arbitrary Julia object replication.
+* Phase 7 Raft: first demonstrate that etcd is insufficient. Obtain owner approval
+  of the Jepsen-style testing budget and an explicit need for owned consensus.
+  Until then, keep MaridRaft experimental/non-production and out of default assembly.
+  If authorized: durable state, elections, conflicting logs, compaction, membership,
+  partitions, crashes and linearizability must be covered before shipping.
+* Phase 8 gRPC: choose an audited HTTP/2 binding or explicitly scope to gRPC-Web.
+  Passing frame/unframe tests is not a server. Require HTTP/2 conformance and a
+  standard gRPC client for every advertised unary/server/client/bidi mode, including
+  deadlines, trailers, flow control, cancellation and compression/error handling.
+  Gate browser translation independently and never label custom WS binary RPC gRPC.
+* Extend artifacts later with AsyncAPI 3.x, CloudEvents and client codegen from IR,
+  after standards versioning and event lifecycle contracts are proven.
+
+Exit: feature-specific evidence, not bundled assertions of “Phase 8 complete.”
+No own Raft, native DBMS, crypto, visual builder, Genie API cloning, Julia SSR or
+Cap'n Proto RPC is added by this plan.
+
+== Work package I: repeat release review (Gate 5)
+
+Dependencies: every feature in the declared release matrix has passed its gate;
+late features may be explicitly deferred rather than masquerading as supported.
+
+Release checklist:
+
+. Independently useful package installs and acyclic dependency graph from clean environments.
+. Public API docs, Documenter/build pipeline, exact versions/platforms, runnable examples,
+   failure/resource-cleanup evidence and unsupported-feature list for every package.
+. Reproducible interop/container/browser jobs, golden artifacts, schema evolution policy,
+   performance budgets and security/human review sign-off.
+. MPL-2.0/CC-BY-SA-4.0 mapping, generated-code/IDL notices, exact dependency licenses,
+   DCO, registry/name/trademark verification and SBOM/provenance as applicable.
+. Deployment, observability, migration, rollback and recovery rehearsal from a clean host.
+. Explicit owner approval for publishing/registering/deploying or splitting repositories.
+
+Stay monorepo during stabilization. If extraction is later approved, derive order
+from actual Project.toml dependency edges and preserve shared integration CI;
+refresh the old extraction proposal rather than trusting its outdated dependency list.
+
+== Management and evaluation cadence
+
+Use issue-sized tasks with one owner, dependency IDs, touched contracts, exact
+commands, expected outputs and an exit decision. The reconstruction findings in
+`docs/audits/recon-2026-09-19.adoc` are proposed issue seeds, not fabricated GitHub
+issues. Open them only with authorization.
+
+At each checkpoint report: implemented; tested with exact runtime/source versions;
+not tested/skipped; blocked; accepted by whom. Archive logs with commit and policy
+hashes. No blanket percentage or “fully verified” language without coverage of brief §8.
+
+Suggested next bounded assignment: B's CI/evidence ledger plus C1/C2's smallest
+real IR-to-HTTP JSON endpoint, in parallel with upstream D1's fallback semantics.
+Do not estimate a release date until those spikes expose the remaining runtime work.

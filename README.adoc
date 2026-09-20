@@ -21,21 +21,18 @@ Julia-first framework for web applications, APIs, and reactive scientific dashbo
 
 == What this is
 
-*Marid* is a Julia-first framework for web applications, APIs, and reactive
-scientific dashboards: a small `Marid.jl` core assembling five independently
-usable protocol integrations (ArangoDB, gRPC, GraphQL, Cap'n Proto, Bebop),
-with a framework-independent browser client and thin React/Vue integrations —
-proved by one reference application. The full product definition, scope
-boundaries, contracts, and gated execution plan are the canonical
-link:PROJECT_BRIEF.md[project brief]; start there.
+*Marid* is an experimental Julia-first framework with thirteen independently
+scoped packages, a framework-independent browser client and a relationship
+explorer. The canonical link:PROJECT_BRIEF.md[project brief] defines acceptance;
+link:docs/MARID-FRAMEWORK.adoc[the charter] defines build order.
 
-[NOTE]
+[WARNING]
 ====
-Status: Gate 0 (feasibility and licensing audit) not yet started. This
-repository currently holds the brief, the monorepo skeleton, and the RSR
-scaffolding — no Marid implementation exists yet. See
-link:docs/marid-roadmap.adoc[the roadmap] and
-link:docs/AFFIRMATION.adoc[the affirmation] for the honest state.
+Prototype implementation exists, but release gates are not accepted. In-memory
+unit tests do not prove ArangoDB, GraphQL, gRPC or browser interoperability.
+The previous Gate 5 production-ready claim is superseded by the
+link:docs/audits/evidence-ledger.adoc[evidence ledger]. See that ledger for the
+latest local results, explicit unsupported features and external CI blockers.
 ====
 
 This repository is a *Rhodium Standard Repository (RSR)* monorepo: the Marid
@@ -60,9 +57,21 @@ just validate            # structure + metadata checks
 #   docs/agent-launch.adoc # the Gate 0 kickoff assignment
 ----
 
-Julia and Bun toolchain versions are pinned at Gate 2 alongside the CI
-matrix (`PROJECT_BRIEF.md` §8–§9); until then there is nothing to
-instantiate — the repository root intentionally has no `Project.toml`.
+Julia and Bun local test versions are pinned in `mise.toml`. Julia packages
+have independent environments; there is intentionally no root `Project.toml`.
+The AffineScript toolchain/build is not yet proven and remains a Gate 0 blocker.
+
+== Local governed HTTP/JSON checkpoint
+
+The link:examples/http_json/README.adoc[unary HTTP example] now binds its actual
+listener and generated policy to one IR descriptor. It uses HTTP.jl and JSON3;
+there is no real persistence or application authentication in this demonstration.
+
+The CLI supports explicit legacy globals and opt-in `--deny-by-default`. Strict
+mode requires the separately delivered gateway patch, not unmodified upstream.
+See link:docs/deployment/docker-compose.adoc[reproduction and deployment limits]
+and the link:docs/audits/evidence-ledger.adoc[ordered evidence ledger]. Full gateway
+CI and security dependencies remain blockers; no container deployment is claimed.
 
 == AI-Assisted Installation
 
@@ -77,14 +86,14 @@ stdin instead.
 
 == What you get
 
-* *The Marid program* — link:PROJECT_BRIEF.md[brief], six-package skeleton
+* *The Marid program* — link:PROJECT_BRIEF.md[brief], thirteen-package prototype
   (`packages/`), browser-client skeleton (`web/`), contract registry
   (`contracts/`), fixtures (`fixtures/`), reference-application skeleton
   (`examples/relationship_explorer/`), and interop tests (`test/interop/`).
 * *Machine-readable metadata* (`.machine_readable/descriptiles/`) — `STATE`, `META`,
   `ECOSYSTEM`, `PLAYBOOK`, `AGENTIC`, `NEUROSYM`, `CLADE`, and `anchors/ANCHOR`,
   in deed, so tools and agents can read the project's state and boundaries.
-* *AI gatekeeper protocol* — `0-AI-MANIFEST.a2ml` is the universal entry point that
+* *AI gatekeeper protocol* — `0-AI-MANIFEST.deed` is the universal entry point that
   tells an AI agent how to work in this repo before it touches anything, with
   per-agent instructions in `AGENTS.md`.
 * *Typed ABI/FFI seam* — `src/interface/Abi/` (Idris2 type + layout proofs) over
@@ -110,7 +119,7 @@ The short version:
 | Path | What lives there
 
 | `PROJECT_BRIEF.md`, `AGENTS.md` | The Marid contract and the agent instructions — start here.
-| `packages/`, `web/` | The six Julia packages and the browser client.
+| `packages/`, `web/` | The thirteen Julia packages and the browser client.
 | `contracts/`, `fixtures/` | Contract registry and interop fixtures.
 | `examples/`, `test/` | Reference application and cross-protocol tests.
 | `README.adoc`, `CLAUDE.md` | This file; the generated agent arrival pack.

@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Real unary HTTP/JSON vertical slice
+
+Experimental scope: one IR descriptor drives HTTP route binding and emitted
+capability policy. Uses HTTP.jl for HTTP/1.1 and JSON3 for native JSON. The
+MaridCore integration is an optional package extension: loading Core alone does
+not load Codec/Transport. Domain handlers still receive CallContext + streams.
+No persistence, authentication, automatic schema validation, SSE, WS or HTTP/2
+is claimed by this example. Code samples are MPL-2.0.
+
+[source,bash]
+----
+julia --startup-file=no scripts/bootstrap.jl examples/http_json
+julia --startup-file=no --project=examples/http_json examples/http_json/test/runtests.jl
+MARID_HOST=127.0.0.1 MARID_PORT=8080 julia --startup-file=no --project=examples/http_json examples/http_json/server.jl
+curl -i -H 'Content-Type: application/json' --data '"hello"' http://127.0.0.1:8080/api/echo
+----
+
+`/api/echo` POST accepts and returns a JSON string. `/api/status` GET reports the
+in-memory mutation count; `/healthz` GET is an explicit IR health route.
+The test suite uses real sockets, HTTP.jl client, a raw chunked socket and curl.
+It verifies routing, JSON escaping, q=0 rejection, errors, bounded request body,
+error redaction, cooperative deadline, explicit draining and listener shutdown.
+
+The JSON slice rejects encoded/non-canonical paths instead of normalizing behind
+governance. No automatic HEAD or OPTIONS binding is created. Handlers must return
+one closed output stream, cooperatively meet deadlines, and validate/authorize
+inputs themselves. Arbitrary Julia computation cannot be forcibly cancelled;
+uncooperative CPU work, infinite streams and general stream cancellation remain
+a release blocker. The response size limit is checked after JSON serialization,
+not a total heap quota. Read timeout limits socket input; request-body buffers are
+bounded even for chunked input. Rejecting an incomplete chunked body can produce
+HTTP.jl's expected EOF diagnostic while closing that connection after a 413.
+
+`close(server)` invokes HTTP.jl shutdown and clears readiness; draining can be
+requested with `app.is_draining = true`. No orchestrator/SIGTERM grace-budget
+acceptance or persistent backend readiness is implied. Use 0.0.0.0 explicitly
+inside a container; do not publish the backend around the governance gateway.
+
+== Governed roundtrip
+
+`bash test/interop/run_http_gateway.sh ../http-capability-gateway` (from repository
+root) exercises this example through the paired patched gateway. See the deployment
+guide for exact tool/dependency/bootstrap requirements. It generates strict policy
+from `service.jl`; missing methods and unknown paths cannot inherit public GET.
+
+`/api/restricted-probe` is a synthetic internal-exposure route used to test forged
+trust-header rejection. Its handler returns no private data; the application alone
+is not authenticated. Do not replace that probe with real secrets or publish this
+backend as an authenticated service. The echo counter is deliberately in-memory.
