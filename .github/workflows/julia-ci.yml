@@ -1,3 +1,4 @@
+# This workflow is managed by gh actions-lock.
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 name: Julia Packages CI
@@ -40,8 +41,8 @@ jobs:
           - MaridCRDT
           - MaridRaft
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@v2.7.0
         with:
           version: ${{ matrix.version }}
       - name: Run Package Tests
@@ -53,8 +54,8 @@ jobs:
     name: Real unary HTTP/JSON (not persistence or browser acceptance)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@v2.7.0
         with:
           version: '1.10.10'
       - run: |
@@ -65,8 +66,8 @@ jobs:
     name: CLI & Emitters - Julia 1.10 - ubuntu-latest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@v2.7.0
         with:
           version: '1.10.10'
       - name: Verify CLI Capability Spec Generation
