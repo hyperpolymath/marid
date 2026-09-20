@@ -30,13 +30,20 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: hyperpolymath/http-capability-gateway
-          ref: 19b343c1e9b7c61668c60887369783d12a486f41
+          ref: c67c743c6c9f54c0482c1dd8d8dc151ff919551d
           path: gateway-under-test
           persist-credentials: false
-      - name: Apply paired gateway changes (not yet upstream)
+      # The correction this job used to patch in is upstream: it merged as
+      # hyperpolymath/http-capability-gateway#112. So the job pins that commit and
+      # asserts the behaviour is present, instead of applying a patch nobody owns.
+      # If the pin is ever moved below the correction, this step fails loudly rather
+      # than silently testing a gateway that rejects the policy under test.
+      - name: Assert the pinned gateway carries the strict-policy correction
         run: |
-          git -C gateway-under-test apply --check ../test/interop/gateway-strict.patch
-          git -C gateway-under-test apply ../test/interop/gateway-strict.patch
+          grep -q 'must be a list (empty denies unmatched routes)' \
+            gateway-under-test/lib/http_capability_gateway/policy_validator.ex
+          test -f gateway-under-test/test/strict_policy_test.exs
+          test -f gateway-under-test/test/proxy_wire_test.exs
       - name: Native gateway policy pipeline
         run: |
           mix local.hex --force
@@ -55,3 +62,5 @@ jobs:
           bash test/interop/run_http_gateway.sh gateway-under-test
       # The wider gateway suite has known failures; this targeted integration job
       # does not assert that repository is production-ready or its full CI is green.
+      # It also does not patch the gateway: the paired changes are upstream as of
+      # #112 (c67c743), which is the pinned commit.

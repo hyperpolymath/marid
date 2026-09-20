@@ -25,6 +25,18 @@ cd(environment) do
     Pkg.activate(".")
     specs = [Pkg.PackageSpec(path=relpath(projects[name], environment)) for name in sort!(collect(selected))]
     isempty(specs) || Pkg.develop(specs)
-    Pkg.resolve()
-    Pkg.instantiate()
+    # Instantiate FIRST: a committed Manifest.toml is a complete, source-pinned
+    # resolution, and `Pkg.resolve()` on top of it demands a usable General
+    # registry just to re-derive what the manifest already states. In an
+    # environment without one (a fresh CI depot) that turns into
+    # `expected package `Parsers [69de0a69]` to be registered` - a red matrix
+    # cell for every package that tracks a manifest, for no reason. Resolve is
+    # kept as the fallback, which is what a missing or stale manifest needs.
+    try
+        Pkg.instantiate()
+    catch err
+        @warn "instantiate failed, resolving from the registry" exception = (err, catch_backtrace())
+        Pkg.resolve()
+        Pkg.instantiate()
+    end
 end

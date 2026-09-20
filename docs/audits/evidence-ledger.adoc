@@ -53,7 +53,7 @@ External limitations, not green results:
 | Failure/resource cleanup | Generator/CLI rejection tests; socket tests recorded at checkpoint 2 when executed | Partial
 | Runnable example | Relationship explorer is in-memory; live unary example added at checkpoint 2 | Not a persistent reference app
 | Licensing/notices | MPL/CC mapping present; exact Arango release/edition audit not established | Pending human/exact-version audit
-| Reproducible installation | Runtime pins plus local-package bootstrap introduced with HTTP slice | Must run in clean CI
+| Reproducible installation | Runtime pins plus local-package bootstrap; `bootstrap.jl` now instantiates before resolving, and all four bootstrap consumers succeed in isolated empty depots | Offline-verified; hosted CI still decides
 | Julia/platform CI | Existing 1.10/1.11 Ubuntu unit matrix; hosted failures remain | Pending hosted verification
 | Unsupported features | Explicit in recon, this ledger and package docs | Documented, not implemented
 | Cold/warm/memory/cancellation benchmarks | Small-slice measurement may be recorded, no full release baseline | Pending
@@ -145,3 +145,42 @@ Remaining blockers:
   streaming or a heap quota; general cancellation remains a release blocker.
 * Real DB/transactions, durable audit, browser and protocol acceptance are still
   behind the ordered checkpoint review. Charter acceptance requirements are unchanged.
+
+== Follow-up: main after the #1 conflict resolution
+
+The squash of #1 (`39d250a`) kept *both* sides of every clash, so main inherited two incompatible
+assumptions about one exported name: `packages/MaridIR/test/runtests.jl` still drove main's
+`capability_spec.jl` API (`emit_capability_spec(svc_cap)` with implicit `GET`/`POST` globals) while
+`MaridIR.jl` included only `capability.jl`, whose `global_verbs` is required. Result: the MaridIR
+matrix cells fail with `UndefKeywordError` at `runtests.jl:100`. The same split explains
+`CLI & Emitters` (the job invoked a CLI form the merged parser rejects, against a service file the
+emitter cannot resolve, grepping the other emitter's shape) and the `MaridCodec`/`MaridTransport`
+cells (the new `scripts/bootstrap.jl` called `Pkg.resolve()` over a complete committed
+`Manifest.toml`, which needs a General registry that a fresh CI depot has not got).
+
+Executed with Julia 1.10.10 against the repaired tree: MaridIR 21 + 58, `examples/http_json`
+30 + 8, `MaridCodec` 4 + 12, `MaridTransport` 29 assertions pass; each bootstrap consumer also
+succeeds in its own empty `JULIA_DEPOT_PATH` (two of them failed there before the change, which is
+the evidence this fix rests on rather than on a passing local run). `benches/marid_bench.sh json`,
+`test/interop/capability_cli.sh`, the repository-map determinism test, the root-shape, invisible
+character, placeholder, anti-pattern and adoc render gates pass, and both golden capability policies
+reproduce byte-identically from the emitter. Zero `.a2ml` files remain, so `35aff92`'s purge is not
+undone by the repair.
+
+The gateway side moved too. `test/interop/gateway-strict.patch` could not be applied
+by any git: `error: corrupt patch at ../test/interop/gateway-strict.patch:270`, and four of
+its hunks (`webhook_hardener.ex`, `proxy.ex`, `proxy_wire_test.exs`, `strict_policy_test.exs`)
+declared line counts that did not match their bodies. The hosted failure was reported at the
+"Apply paired gateway changes" step, so every step after it had never actually run. Those
+changes are now upstream — the gateway merged them as `#112` (`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`),
+whose per-file diff matches the patch's intent (the only residual difference, a local
+`parse_cidr/3` rewrite for `:inet.parse_cidr_address/1` in an inactive plugin, is the gateway
+repository's own concern and is left to it). The patch is therefore deleted rather than
+repaired, CI pins the merged commit, and a grep assertion fails the job if that pin is ever
+moved below the correction. Whether the gateway's targeted `mix test` files pass at that pin
+is *not* verified here (no BEAM toolchain in this environment); the CI job is the first real run.
+
+Not verified here, and claimed as not verified: Julia 1.11 (only 1.10.10 was available), the Elixir
+`policy-pipeline` step (no `mix`/`elixir` in the environment), and anything that needs the hosted
+runners - `build`, Sonar/SonarQube, `Canon lockstep`, `call-estate-audit` were already red on the
+parent commit `67c81f0` and are not addressed by this change.

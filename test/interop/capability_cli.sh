@@ -28,11 +28,20 @@ reject generate capability-spec "$fixture" --global-verbs GET,
 reject generate capability-spec "$fixture" --global-verbs GET extra
 printf '42\n' > wrong.jl
 reject generate capability-spec wrong.jl --global-verbs GET
+# A failed generation must never truncate a live policy: --out writes aside and
+# renames only on success, so the file and its contents survive the failure.
+printf 'live\n' > expected.yaml
+printf 'live\n' > policy-under-test.yaml
+reject generate capability-spec wrong.jl --global-verbs GET --out policy-under-test.yaml
+cmp policy-under-test.yaml expected.yaml
+if ls policy-under-test.yaml.tmp.* >/dev/null 2>&1; then
+    echo "--out left a temporary file behind" >&2; exit 1
+fi
 { printf 'println("descriptor diagnostic")\n'; cat "$fixture"; } > noisy.jl
 "$cli" generate capability-spec noisy.jl --global-verbs GET > noisy.yaml 2> noisy.err
 cmp noisy.yaml actual.yaml
 grep -q 'descriptor diagnostic' noisy.err
 "$cli" generate capability-spec "$fixture" --deny-by-default > strict.yaml 2> strict.err
 cmp strict.yaml "$root/fixtures/capability/policy-strict.yaml"
-grep -q 'paired gateway' strict.err
-echo 'Capability CLI checks passed (external cwd, quoting, deterministic YAML, diagnostics, six rejection cases).'
+grep -q '#112' strict.err
+echo 'Capability CLI checks passed (external cwd, quoting, deterministic YAML, diagnostics, seven rejection cases).'

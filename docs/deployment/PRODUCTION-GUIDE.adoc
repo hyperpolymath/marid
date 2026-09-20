@@ -123,11 +123,18 @@ For deployments requiring perimeter verb governance, declarative DSL v1 exposure
 and deceptive 404 stealthing on ungranted methods, place `http-capability-gateway` directly
 in front of the Marid service.
 
-Policies are generated automatically from `MaridIR.ServiceDescriptor` with zero contract drift:
+Policies are generated automatically from `MaridIR.ServiceDescriptor` with zero contract drift.
+Run it from the Marid root, name a file whose final expression returns the descriptor, and pick
+a profile explicitly:
 [source,bash]
 ----
-marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl config/policy.yaml
+scripts/marid generate capability-spec examples/http_json/service.jl \
+  --global-verbs GET --out docs/deployment/policy.yaml
 ----
+
+A service file is evaluated as trusted Julia. `--deny-by-default` emits the strict
+profile instead; that policy needs a gateway at or after
+`http-capability-gateway#112` (`c67c743`), so CI pins that commit for it.
 
 For complete container deployment manifests utilizing **Podman** pods and compose stacks,
 see link:docker-compose.adoc[Marid Container Deployment: Podman & Compose Architecture].

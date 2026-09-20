@@ -18,7 +18,8 @@ try
     if profile == :legacy
         println(stderr, "Warning: public global fallback is enabled; this is not a deny-by-default policy.")
     else
-        println(stderr, "Strict deny-default spec: requires the paired gateway validator/compiler fix.")
+        println(stderr, "Strict deny-default spec: needs http-capability-gateway #112 (c67c743) "
+                * "or later; an older gateway rejects empty global_verbs.")
     end
     print(spec)
 catch exception

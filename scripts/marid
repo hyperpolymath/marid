@@ -23,7 +23,10 @@ Commands:
                                         Emit native gateway DSL v1 YAML (explicit global exposure)
   generate capability-spec <path> --deny-by-default
                                         Emit strict YAML for the paired patched gateway
-  generate capability-spec <path> [out] Emit http-capability-gateway Verb Governance Spec (DSL v1 YAML)
+  generate capability-spec <path> --global-verbs GET [--out FILE]
+                           Emit native gateway DSL v1 YAML (explicit global exposure)
+  generate capability-spec <path> --deny-by-default [--out FILE]
+                           Emit strict YAML for the paired patched gateway
   routes <path>                         Inspect and display route table of a MaridApp
   check                                 Run full estate verification suite across Julia and Bun
   version, --version, -v                Display Marid framework version
@@ -49,24 +52,59 @@ case "${1:-help}" in
             exit 1
         fi
         if [[ "$TARGET" == "capability-spec" ]]; then
-            if [[ $# -eq 4 && "${4:-}" == "--deny-by-default" ]]; then
-                exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
-                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "" strict
+            # Flags are order-independent and never reach Julia as source text.
+            global_verbs=""
+            profile=""
+            out_file=""
+            shift 3
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --global-verbs)
+                        [[ -n "$profile" ]] && { echo "Error: --global-verbs and --deny-by-default are exclusive" >&2; exit 1; }
+                        [[ $# -ge 2 && -n "${2:-}" ]] || { echo "Error: --global-verbs needs a comma-separated verb list" >&2; exit 1; }
+                        profile="legacy"; global_verbs="$2"; shift 2 ;;
+                    --deny-by-default)
+                        [[ -z "$profile" ]] || { echo "Error: --global-verbs and --deny-by-default are exclusive" >&2; exit 1; }
+                        profile="strict"; shift ;;
+                    --out)
+                        [[ $# -ge 2 && -n "${2:-}" ]] || { echo "Error: --out needs a path" >&2; exit 1; }
+                        out_file="$2"; shift 2 ;;
+                    *)
+                        echo "Error: unexpected capability-spec argument: $1" >&2
+                        echo "Usage: marid generate capability-spec <path> (--global-verbs GET[,POST] | --deny-by-default) [--out FILE]" >&2
+                        exit 1 ;;
+                esac
+            done
+            [[ -n "$profile" ]] || {
+                echo "Error: name the exposure policy explicitly: --global-verbs GET or --deny-by-default" >&2
+                echo "Global verbs are public on ALL paths; no implicit default is emitted." >&2
+                exit 1
+            }
+            if [[ "$profile" == "strict" && -n "$global_verbs" ]]; then
+                echo "Error: --deny-by-default takes no global verbs" >&2
+                exit 1
             fi
-            if [[ $# -eq 5 && "${4:-}" == "--global-verbs" ]]; then
-                exec julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
-                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$5" legacy
-            fi
-            # Fallback to generic emitter if no explicit flag and OUT handling needed
-            # For backward compatibility, allow --global-verbs check to be bypassed when OUT is provided via main's logic
-            if [[ $# -ne 5 || "${4:-}" != "--global-verbs" || -z "${5:-}" ]]; then
-                # If called with explicit flags, error was already handled above; otherwise continue to generic path
-                if [[ "${4:-}" == "--global-verbs" || "${4:-}" == "--deny-by-default" ]]; then
-                    echo "Error: use generate capability-spec service.jl --global-verbs GET" >&2
-                    echo "Global verbs are public on ALL paths; no deny-by-default support upstream." >&2
-                    exit 1
+            if [[ -n "$out_file" ]]; then
+                # Never open the live policy for writing before the emitter has
+                # succeeded: piping through tee truncates the target first, so one
+                # bad service file would leave an empty file where a working gateway
+                # policy was. Write aside, echo it, rename only on success.
+                tmp_file="$(mktemp "${out_file}.tmp.XXXXXX")"
+                if julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$global_verbs" "$profile" > "$tmp_file"; then
+                    cat "$tmp_file"
+                    mv -f "$tmp_file" "$out_file"
+                else
+                    rc=$?
+                    rm -f "$tmp_file"
+                    echo "marid: capability-spec generation failed; ${out_file} left untouched" >&2
+                    exit "$rc"
                 fi
+            else
+                julia --startup-file=no --project="$MARID_ROOT/packages/MaridIR" \
+                    "$MARID_ROOT/scripts/emit-capability-spec.jl" "$FILE" "$global_verbs" "$profile"
             fi
+            exit 0
         fi
 
         cd "$MARID_ROOT"
@@ -141,9 +179,7 @@ case "${1:-help}" in
 
             svc = resolve_service(filepath)
 
-            if target in ["capability-spec", "capability_spec", "capability"]
-                print(emit_capability_spec(svc))
-            elseif target == "proto"
+            if target == "proto"
                 print(emit_proto(svc))
             elseif target == "openapi"
                 print(emit_openapi_json(svc))
