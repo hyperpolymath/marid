@@ -31,8 +31,10 @@ acceptance must be resolved or explicitly reviewed before advancement.
 |===
 
 This is a working experimental unary slice, not a production framework or approved
-sidecar deployment. Strict support exists only in the delivered patch, not in the
-pinned upstream gateway. The full logs retain both passing and failing outcomes.
+sidecar deployment. As of this checkpoint, strict support existed only in the
+delivered patch, not in the pinned upstream gateway; the section below records that
+the gateway merged those changes on 2026-09-20, which is now the CI pin. The full
+logs retain both passing and failing outcomes.
 
 == Delivery and reproduction
 
@@ -47,7 +49,10 @@ pinned upstream gateway. The full logs retain both passing and failing outcomes.
 
 The gateway patch is also recorded in Marid's `test/interop/gateway-strict.patch`
 for the pinned CI fixture. Remove this temporary pairing only after an equivalent
-upstream revision has been reviewed and substituted. No full-gateway failures
+upstream revision has been reviewed and substituted — *done 2026-09-20*: the gateway
+merged the correction as `#112` (`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`), so Marid's
+copy was deleted (it had become unapplicable: `corrupt patch at ...:270`) and CI now pins
+and asserts that commit instead. No full-gateway failures
 are suppressed to make the targeted interoperability job pass.
 
 The initial reconnaissance remains in `docs/audits/recon-2026-09-19.adoc`, clearly
