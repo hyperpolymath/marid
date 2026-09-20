@@ -8,13 +8,13 @@
 # The browser language is AffineScript (JaffaScript face), consumed as
 # `@hyperpolymath/affinescript` under Bun — no OCaml toolchain needed
 # (the CLI downloads a pinned, SHA-256-verified native binary).
-# Julia + Bun + affinescript-cli pins land at Gate 2, pinned to the same
-# versions the CI matrix uses (PROJECT_BRIEF.md §8-§9). Until the Gate 0
-# audit selects versions, `latest` is a placeholder, not a Marid decision.
+# Julia/Bun local test baseline pinned 2026-09-19; CI also covers Julia 1.11.
+# AffineScript compiler selection/build remains unverified; no fabricated pin.
 
 [tools]
 # Language runtimes (Bun only for JS; AffineScript arrives via its CLI package)
-bun = "latest"
+bun = "1.4.2"
+julia = "1.10.10"
 python = "latest"
 rust = "latest"
 go = "latest"

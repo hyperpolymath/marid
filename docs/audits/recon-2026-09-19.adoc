@@ -1,0 +1,385 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Marid reconnaissance, capability integration and next steps
+:toc: left
+:toclevels: 2
+:sectnums:
+:source-highlighter: none
+:webfonts!:
+:revdate: 2026-09-19
+
+[IMPORTANT]
+====
+This is the *initial reconnaissance snapshot*, retained for provenance. Its local
+failure counts and missing HTTP/strict-mode observations predate the ordered
+follow-up. The authoritative current status is
+link:ordered-checkpoints-2026-09-19.adoc[ordered checkpoints] and
+link:evidence-ledger.adoc[evidence ledger]. No historical result below is a claim
+about the corrected working tree or upstream adoption.
+====
+
+*Assessment:* promising prototype, *not yet demonstrated production-ready*.
+*Authorized change:* native capability-spec emitter, CLI and governance-sidecar recipe.
+Code samples in this report are MPL-2.0.
+
+*Delivery:* local changes and tests; no push, PR, issue creation, package publication or deployment.
+
+== Scope and evidence baseline
+
+Inspected the live default branch, not the stale search-index excerpt:
+
+* Marid: https://github.com/hyperpolymath/marid/tree/96cfea4c8eac855263bcfb47ca9f53fe7a893f34[`96cfea4c8eac855263bcfb47ca9f53fe7a893f34`].
+* Gateway: https://github.com/hyperpolymath/http-capability-gateway/tree/19b343c1e9b7c61668c60887369783d12a486f41[`19b343c1e9b7c61668c60887369783d12a486f41`].
+* Requirements: `PROJECT_BRIEF.md`, `docs/MARID-FRAMEWORK.adoc`,
+  `docs/FRAMEWORK-ALIGNMENT.adoc`, `AGENTS.md` and the arrival manifest.
+* Evidence: package source/tests/manifests, browser source/tests, reference app,
+  spikes, contracts, audit/ADR/deployment documents, metadata, CI source and live
+  GitHub API run/job/check annotations. Raw public API responses and local logs
+  accompany the delivery in `recon-data/`.
+
+This is a repository-wide architecture/readiness reconnaissance with targeted
+execution and code review, not an exhaustive security audit, legal opinion or
+formal verification of every retained RSR file. Findings distinguish observed
+source behavior, reproduced failures, upstream limitations and untested claims.
+
+== Executive findings
+
+. The repo has all thirteen charter package directories and real prototype source.
+  The indexed “no implementation exists” summary is stale. The converse assertion
+  in `gate5-release-review.adoc` that all gates are complete and production-ready
+  is also unsupported by the present code and tests.
+. There are *zero open issues, zero open PRs and zero GitHub releases* at inspection.
+  The all-state issues endpoint also returned an empty list. Outstanding engineering
+  work is therefore an inferred backlog, not a set of existing numbered issues.
+. Unit tests are green but several “integration” tests run only in memory.
+  The Arango client itself is a mock; the storage adapter silently delegates to
+  memory. Transport has no HTTP listener; GraphQL execution is a stub; binary
+  export endpoints contain placeholder strings.
+. The requested emitter/CLI seam is now implemented and evaluated against the
+  *actual native gateway policy pipeline*. The Compose topology is documented
+  and structurally checked, but no end-to-end deployment is claimed.
+. A native gateway security limitation prevents strict route allowlisting:
+  nonempty global verbs are mandatory and remain public fallback permissions.
+  The API/CLI require explicit opt-in instead of silently exposing GET.
+. Next: reconcile evidence/CI, prove IR/Codec/Core on a real HTTP path, correct
+  upstream gateway semantics, implement real persistence, then prove independent
+  adapters and real browsers. Defer registration, polyrepo extraction and own Raft.
+
+== Full product scope and repository map
+
+The charter defines a Julia-first, clean-room framework with one service IR,
+independent protocol bindings, a local routing data plane, optional control plane,
+pluggable persistence, HTML-first support and framework-independent browser access.
+It explicitly excludes Genie API cloning, Cap'n Proto RPC, Julia SSR/RSC,
+hand-rolled crypto, a Julia DBMS and premature owned Raft.
+
+[cols="1,2,3",options="header"]
+|===
+| Area | Intended scope | Observed implementation / missing acceptance
+| MaridIR | Descriptors, TypeRefs, annotations, validation; no dependencies
+| Data model, `to_dict`, basic name/signature collisions and proto text emitter.
+`from_dict` is exported but not implemented; field-reference validation incomplete.
+This patch adds tested native Verb Governance Spec generation without dependencies.
+| MaridCodec | Negotiation, JSON3, optional binary codecs
+| Negotiation returns first matching media type without respecting q-values.
+Encoding uses Julia `string(obj)`, not JSON. No JSON3 or native codec extensions.
+| MaridOpenAPI | OpenAPI 3.1 / JSON Schema 2020-12
+| String interpolation emits a minimal document; escaping, merged same-path verbs,
+parameter conversion and schema components need independent validation/fixes.
+| MaridRPC | JSON-RPC 2.0 / MCP and SSE hook
+| In-process request/response dispatch. No MCP lifecycle/transport implementation;
+no independent network-client proof. Internal error text includes raw exceptions.
+| MaridGraphQL | SDL, standard introspection, then resolver runtime
+| SDL emitter plus substring-based `__schema` response; other queries return empty
+`data`. This is not a conformant executor or full introspection implementation.
+| MaridTransport | HTTP/1.1, SSE, WS, chunks/trailers; later HTTP/2
+| SSE/status-line and gRPC/gRPC-Web framing utilities. No HTTP.jl listener,
+WebSocket server or production HTTP/2/gRPC transport.
+| MaridCore | Local trie, immutable routing, context, middleware, lifecycle
+| In-process routing/dispatch, contexts, error mapping and channels. Router internals
+are mutable; root registration fails. Real listener/lifecycle and allocation claims
+need evidence; a structural `struct` is not deep immutability.
+| ArangoDB | Auth/pooling, documents/edges, cursors, AQL, transactions/retries
+| Public operations use `_get_mock_db`; AQL is simulated and transaction functions
+are stubs. A configured endpoint is not contacted by the current CRUD tests.
+| MaridStorage | Memory, SQLite, DuckDB; optional Arango extension
+| Memory engine and Arango-named adapter backed by `in_memory_fallback`.
+No SQLite/DuckDB implementation or true optional Arango extension.
+| MaridControl | Atomic snapshots, log, etcd/Consul, invalidation
+| Atomic reference, shallow Dict snapshots, memory log/backend. No etcd/Consul
+adapter. `swap_snapshot!` has a reproduced return-type failure; deep immutability
+and multi-reader/multi-writer correctness need evaluation.
+| MaridLive | HTMX/Turbo/Datastar over live transport
+| String/header helpers with local tests, not real-browser/transport evidence.
+Session/CSRF/OIDC/views/forms security gate remains open.
+| MaridCRDT | LWW, OR-Set, counters, presence
+| Small implementations and finite examples. No demonstrated partition/property
+campaign sufficient for charter Phase 6 acceptance.
+| MaridRaft | Conditional late consensus implementation
+| In-process election/log simulation. Presence does not satisfy the charter's
+etcd-insufficiency justification, durable distributed operation or approved Jepsen budget.
+|===
+
+Other major surfaces:
+
+* `web/client`, `web/react`, `web/vue`, `web/elements`: working JavaScript prototype
+  facades and unit tests; AffineScript records exist but package entrypoint is JS
+  and no AffineScript build script/compiler dependency is declared there. React/Vue
+  tests use shims; browser compatibility is not proven by those tests.
+* `examples/relationship_explorer`: shared Julia service for taxonomy, edges,
+  neighborhood and analysis; an in-memory dispatch demonstration, not a running
+  Arango-backed cross-protocol/browser system. Binary “payload_base64” values such
+  as `BOP001_TAXA_STREAM_PAYLOAD` are not native codec interoperability evidence.
+* `contracts/`, `fixtures/`, `test/spikes`, `test/interop`: registry/event scaffolding,
+  schemas/fixtures and isolated tests. GraphQL spike explicitly calls
+  `execute_mock_query`; codec self-roundtrips do not establish foreign-runtime interop.
+* `scripts/marid`: existing proto/OpenAPI/GraphQL `generate` path prints a comment
+  rather than invoking emitters; advertised `routes` has no command branch. New
+  `capability-spec` path is functional; unrelated CLI stubs remain identified work.
+* `docs/`: charter, brief alignment, six existing ADRs, gate claims, deployment
+  recipes and large RSR documentation tree. `README.adoc`, several package READMEs
+  and alignment status describe older skeleton states, while later audits overclaim.
+* `.machine_readable/`, `.github/`, `build/`, `Justfile`, `ci/`, `tests/`,
+  `verification/`, `src/interface/`: RSR metadata, policies, CI, shape checks,
+  Idris2/Zig ABI/FFI scaffold. This retained estate spine is not Marid application
+  implementation and must not be counted as protocol completion.
+* `benches/`, `features/`, `www/`, `session/`: supporting declared estate structure,
+  web/governance material and coordination; no benchmark evidence was found that
+  satisfies the brief's complete cold/warm/memory/cancellation release matrix.
+
+All thirteen Julia package versions are `0.1.0`; the CLI reports `1.0.0` and the
+browser client `0.3.0`. Independently versioned packages are permitted, but these
+numbers are not release evidence. `mise.toml` still uses `latest` and omits a Julia
+pin despite audit claims of reproducible pins.
+
+== Recent activity and GitHub state
+
+Public repository metadata says created `2026-09-18T23:31:04Z` (00:31 BST on
+19 September); latest push `2026-09-19T08:54:59Z` (09:54 BST).
+Only `main` was listed, with `protected: false` in the branch API. That field does
+not establish whether separate organization rulesets exist or apply.
+
+Selected recent commits, UTC (BST is UTC+1):
+
+[cols="1,1,3",options="header"]
+|===
+| Time, 19 Sep | Commit | Activity
+| 01:23 | `a3f5200` | Charter integration, Bun migration, TypeScript-to-AffineScript direction
+| 01:47 | `74ea9a6` | `marid_chora.deed` campaign metadata
+| 08:06 | `9a5b31f` | Gate 0 feasibility/licensing audit declared complete
+| 08:16 | `348827d` | Gate 1 spikes declared complete
+| 08:29 | `63867ea` | Gate 2 foundation, packages and shared contracts
+| 08:34 | `56ce47a` | Gate 3 independent packages implementation
+| 08:42 | `8d56cb6` | Gate 4 assembly and browser integrations
+| 08:43 | `a99d4e0` | Gate 5 release review / “100% MVP” claim
+| 08:50 | `c3d5f36` | Distributed control and HTML-first packages
+| 08:54 | `96cfea4` | Phase 8 framing, proto generator, CLI and deployment guide
+|===
+
+The concentrated implementation history is context, not proof of quality either
+way. Readiness must follow the acceptance evidence, not commit titles.
+
+Tracker checks:
+https://api.github.com/repos/hyperpolymath/marid/issues?state=open&per_page=100[open issues],
+https://api.github.com/repos/hyperpolymath/marid/pulls?state=open&per_page=100[open PRs],
+https://api.github.com/repos/hyperpolymath/marid/releases[releases],
+https://api.github.com/repos/hyperpolymath/marid/branches[branches].
+All-state issues also returned `[]`. Nothing was filed or closed during this task.
+
+== CI: green Julia tests do not mean a green release
+
+At inspected HEAD, Julia Packages CI passed its thirteen-package Julia 1.10/1.11
+Ubuntu matrix. That workflow runs test files directly; it does not prove native
+interop, a database container, real browsers, platforms beyond Ubuntu, or deployment.
+
+Failures and startup failures observed at the same SHA:
+
+[cols="2,3",options="header"]
+|===
+| Run | Observed evidence
+| https://github.com/hyperpolymath/marid/actions/runs/35433280343[Central Estate CI/CD Audit]
+| Required Files Gate: annotation expects MAINTAINERS, ARCHITECTURE and GOVERNANCE
+in accepted paths that do not match the current relocated documentation.
+| https://github.com/hyperpolymath/marid/actions/runs/35433280259[Governance]
+| Actions lockfile verification and SPDX/permissions workflow-security check fail.
+Local action-pinning script reproduces uncovered `julia-actions/setup-julia@v2`
+in existing `julia-ci.yml`. New workflow uses full SHAs; lockfile regeneration
+still needs estate tooling/review before merge.
+| https://github.com/hyperpolymath/marid/actions/runs/35433279958[Static Analysis Gate]
+| Hypatia reports one critical finding; annotations include a password example in
+ArangoDB README, innerHTML risk in Web Component, missing permissions and mutable
+refs. These are scanner findings to triage, not independently confirmed exploits.
+| https://github.com/hyperpolymath/marid/actions/runs/35433279977[GitHub Pages]
+| Setup Pages fails: Pages API Not Found / site enablement or configuration guidance.
+| https://github.com/hyperpolymath/marid/actions/runs/35433279995[SonarQube]
+| Scanner exits 1; retrieved annotation does not establish the underlying cause.
+| https://github.com/hyperpolymath/marid/actions/runs/35433280923[CodeQL]
+| `startup_failure`; jobs endpoint returned no jobs. Cause not established.
+|===
+
+Secret Scanner, standalone Hypatia, Rust CI, Code Quality and several estate checks
+were successful; mirrors/notifications/build triggers include skips. Preserve those
+individual results without collapsing them into “all CI green.”
+
+== Outstanding engineering findings (not GitHub issue numbers)
+
+Priorities below are recommendations. P0 blocks security/readiness claims; P1 blocks
+core acceptance; P2 blocks later features or maintainability. They are local finding
+IDs and should become issues only after owner approval.
+
+[cols="1,1,3,2",options="header"]
+|===
+| ID | Priority | Finding / evidence | Required disposition
+| R01 | P0 | Release audit claims all gates passed despite mocks and missing listeners
+| Supersede unsupported claims; requirements/evidence ledger; repeat Gate 5
+| R02 | P0 | ArangoDB CRUD uses memory; ArangoStorageEngine silently falls back
+| Real HTTP client/extension; no silent volatile fallback; actual container tests
+| R03 | P0 | Gateway global verbs mandated and publicly fall back on missing route verbs
+| Explicit opt-in now; upstream deny-default semantics + E2E before strict governance
+| R04 | P0 | Gateway proxy/management/trust surface not evaluated for whole-site use
+| Unary-only scope; external management restrictions; hardened identity/proxy tests
+| R05 | P1 | No actual Marid HTTP listener, readiness endpoints or container entrypoint
+| HTTP.jl adapter and lifecycle, then real governed socket tests
+| R06 | P1 | Codec not JSON; negotiation ignores q-values
+| Maintained JSON codec, negotiation matrix and wire interop
+| R07 | P1 | OpenAPI/proto/IR validation incomplete; generated schemas not independently proven
+| Native validators/compilers, evolution semantics and golden artifacts
+| R08 | P1 | GraphQL is introspection stub; JSON-RPC lacks full wire semantics; MCP absent
+| Maintained runtime seams and independent client acceptance
+| R09 | P1 | Router root registration throws; nested parameter and snapshot semantics need repair
+| Regression tests, corrected trie behavior and enforced immutability
+| R10 | P1 | `swap_snapshot!` promises Snapshot but atomic replace returns a NamedTuple
+| Reproduced MethodError; fix contract, CAS semantics and race tests
+| R11 | P1 | AffineScript build unproved; React/Vue tests are shims; SSE clean EOF does not reconnect
+| Real compiler/build, real browsers, lifecycle/SSR/cancellation/resync matrix
+| R12 | P1 | CI red, tool pins absent and audit licensing/version assertions need evidence
+| Restore estate gate compatibility; reproducibility and exact licensing audit
+| R13 | P1 | gRPC framing and fake binary exports are overinterpreted as protocol completion
+| HTTP/2/gRPC client evidence; independent Cap'n Proto/Bebop fixtures
+| R14 | P2 | SQLite/DuckDB, etcd/Consul, human security review and partition tests absent
+| Implement in charter order; explicitly defer unsupported features
+| R15 | P2 | Own Raft already prototyped without recorded prerequisite/budget evidence
+| Experimental only until owner-approved need and Jepsen-style gate
+| R16 | P2 | Legacy generator commands are stubs; status docs/ADRs/version claims drift
+| Real emitters/CLI checks and authoritative documentation reconciliation
+|===
+
+Reproduced pre-existing failures (not changed by this patch):
+
+[source,julia]
+----
+# --project=packages/MaridControl
+using MaridControl
+swap_snapshot!(AtomicConfig(), Snapshot(1))
+# MethodError: cannot convert @NamedTuple{old::Snapshot, success::Bool} to Snapshot
+
+# --project=packages/MaridCore
+using MaridCore
+add_route(RouteTable{Function}(), "GET", "/", identity)
+# Internal trie error: terminal segment reached prematurely
+----
+
+Source paths above are anchored to the baseline SHA; they are not findings about
+unseen private branches or unreleased implementations elsewhere in the organization.
+
+== Implemented in this change
+
+=== Native emitter and CLI
+
+`packages/MaridIR/src/capability.jl` adds `emit_capability_spec` with no dependencies
+or IR type changes. It emits gateway DSL v1 YAML, merges same-path verbs, normalizes
+methods, escapes/anchors path patterns, translates colon parameters and terminal
+wildcards, handles explicit exposure/capability annotations and deterministically
+sorts output. Invalid/ambiguous routes, unsupported verbs, conflicting annotations,
+empty policies and management endpoint collisions are rejected.
+
+No implicit HEAD/OPTIONS, inferred role mappings or generated cryptographic tokens.
+Methods without HTTP bindings are omitted. Global exposure has no silent default:
+
+[source,bash]
+----
+./scripts/marid generate capability-spec fixtures/capability/service.jl \
+  --global-verbs GET > policy.yaml
+----
+
+The new helper passes filenames as ARGS, works outside the repo cwd, executes only
+explicit trusted descriptor input and keeps diagnostics off machine-readable stdout.
+Existing unrelated generator stubs are documented, not silently represented as fixed.
+
+=== Sidecar topology and documentation
+
+Created the requested `docs/deployment/docker-compose.adoc` (it did not exist at
+baseline), plus an included `compose.yaml`. The front-facing gateway mounts generated
+policy read-only, targets `http://marid:8080`, publishes only loopback port 8088,
+and shares a private backend network with an application that has no host ports.
+Image digests are explicit prerequisites; no imaginary published image or executable
+Marid server is claimed. The existing production guide links to this bounded recipe.
+
+ADR-0007 records native v1, explicit globals, conservative overlap rejection,
+annotation semantics, pure MaridIR and scope limits. The project brief is untouched.
+
+=== Tests and future CI wiring
+
+Added 55 emitter assertions, a golden fixture, CLI boundary tests and an Elixir
+interop test that loads the *real upstream* loader/validator/compiler at the inspected
+source revision. Added a SHA-pinned `Native Capability Spec` workflow for these tests.
+It has not run on GitHub; Actions lockfile integration remains a merge prerequisite.
+No full gateway Mix application was started or proxied to Marid.
+
+== Evaluation results and limits
+
+Local runtime: Julia 1.10.10; Bun 1.4.2; Elixir 1.18.3 / OTP 27;
+YamlElixir 2.11.0, yamerl 0.10.0, Jason 1.4.4 for the isolated policy test.
+The gateway declares Elixir ~>1.19. The local isolated-module result does not certify
+its full supported-runtime application; the proposed CI job selects Elixir 1.19.4 /
+OTP 28.2.2. No toolchain pin in the original brief was silently changed.
+
+[cols="2,1,3",options="header"]
+|===
+| Evaluation | Result | Meaning / limitation
+| All 13 Julia package test files | PASS, 370 assertions after change
+| Includes 76 MaridIR assertions (21 existing + 55 new). Other package tests are
+prototype/unit coverage, even when named “integration.”
+| Relationship explorer Julia tests | PASS, 28 assertions
+| In-process/in-memory behavior, not real database or network deployment.
+| Bun web/reference tests | PASS, 13 tests / 29 expectations
+| Includes React/Vue shims, mocked client/network and element tests; not real browsers.
+| Capability CLI test script | PASS
+| External cwd, spaces/quotes/dollar signs, deterministic output, stderr diagnostics,
+six failure cases with nonzero exit and empty stdout, trusted-input return contract.
+| Native gateway policy pipeline | PASS, 1 ExUnit test
+| Real YAML load, validation, ETS compile and lookups. Demonstrates allowed/denied
+verbs, capability labels, regex near-misses and the unsafe-for-strict-allowlisting
+public GET fallback. Empty globals rejected as expected.
+| Compose configuration + topology invariants | PASS
+| Docker Compose v5.5.1 `config --quiet` passed with evaluation-only image references;
+private backend/no bypass port/read-only mount/loopback binding checked. No image
+build/pull or container runtime was exercised.
+| Root shape, no Markdown under docs, shell syntax, diff whitespace | PASS
+| Repo-map regenerated with `just repo-map`. No charter edits or root-shape expansion.
+| New deployment guide and plan AsciiDoc rendering | PASS
+| Local Asciidoctor rendering, not full Documenter/Pages CI.
+| Local action-pinning script | FAIL (pre-existing uncovered setup-julia ref)
+| Not suppressed. Hosted CI failures and lockfile work remain documented.
+| Root router / snapshot swap probes | FAIL as reproduced
+| Existing bugs recorded as R09/R10, deliberately not folded into the bounded patch.
+| Full estate validation / formal ABI proofs | NOT RUN in full
+| Only the named structural checks above were executed; no broad compliance claim.
+| Containers, real HTTP proxy, DB, browsers, HTTP/2 conformance | NOT RUN
+| No container daemon, runnable Marid HTTP listener or full gateway setup used.
+These remain acceptance blockers, not passed/skipped successes.
+|===
+
+The native policy test logs an expected validation error for empty globals;
+ExUnit still succeeds because rejection is the assertion. No mock gateway compiler
+was substituted. Conversely, these lookups must not be described as actual proxied
+HTTP traffic, authenticated request enforcement or production sidecar acceptance.
+
+== Recommended decision
+
+Review and accept the experimental artifact-generation seam, subject to CI/lockfile
+reconciliation. Treat the deployment recipe as *wiring with explicit prerequisites*,
+not an approved production launch. Next authorize a bounded real-HTTP/JSON vertical
+slice and the upstream fallback correction; use the following charter-based plan
+for sequencing and measurable exit gates.
+
+include::../plans/charter-recovery-and-next-steps.adoc[leveloffset=+1]

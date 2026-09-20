@@ -5,7 +5,8 @@
     MaridCore.Router
 
 Pure radix/trie request routing engine over immutable snapshots.
-Zero memory allocations on path matches; zero network calls; thread-safe.
+No network calls during lookup. Routes are copy-on-write; callers must not
+mutate the exposed trie. Deep immutability/allocation guarantees are not claimed.
 """
 
 export RouteMatch, RouteTable, TrieNode, add_route, match_route
@@ -65,7 +66,8 @@ function _insert_segments!(node::TrieNode{H}, segments::Vector{<:AbstractString}
     if idx > length(segments)
         # Terminal node: store handler
         # Note: in an immutable clone, we reconstruct the node
-        error("Internal trie error: terminal segment reached prematurely")
+        node.handler = handler
+        return
     end
     
     seg = segments[idx]
@@ -75,6 +77,10 @@ function _insert_segments!(node::TrieNode{H}, segments::Vector{<:AbstractString}
         # Parameter segment (e.g. :id)
         pname = seg[2:end]
         child = node.param_child !== nothing ? _clone_trie(node.param_child) : TrieNode{H}(seg)
+        if !isempty(child.param_name) && child.param_name != pname
+            throw(ArgumentError("Conflicting parameter names on the same route branch"))
+        end
+        child.param_name = pname
         if is_last
             node.param_child = TrieNode{H}(seg, handler, child.children, child.param_child, pname, false)
         else

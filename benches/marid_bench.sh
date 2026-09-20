@@ -54,7 +54,7 @@ JULIA_BENCH_OUT=$(julia --project=packages/MaridIR -e '
 
     # Warmup
     for _ in 1:200
-        emit_capability_spec(svc)
+        emit_capability_spec(svc; global_verbs=["GET", "POST"])
         emit_proto(svc)
         validate_service(svc)
     end
@@ -64,7 +64,7 @@ JULIA_BENCH_OUT=$(julia --project=packages/MaridIR -e '
     # 1. Capability Spec Emitter
     t0 = time_ns()
     for _ in 1:N
-        emit_capability_spec(svc)
+        emit_capability_spec(svc; global_verbs=["GET", "POST"])
     end
     t1 = time_ns()
     cap_ms = (t1 - t0) / 1e6
@@ -108,7 +108,8 @@ echo -e "${GREEN}✓${NC} ServiceDescriptor Validation:          ${VAL_US} µs/o
 # CLI Emitter Benchmark
 echo -e "${BLUE}→${NC} Benchmarking CLI 'marid generate capability-spec' latency..."
 START_CLI=$(date +%s%N)
-./scripts/marid generate capability-spec /tmp/sample_service.jl > /dev/null
+./scripts/marid generate capability-spec fixtures/capability/service.jl \
+    --deny-by-default > /dev/null
 END_CLI=$(date +%s%N)
 CLI_LATENCY_MS=$(( (END_CLI - START_CLI) / 1000000 ))
 echo -e "${GREEN}✓${NC} CLI Cold Invocation Latency:           ${CLI_LATENCY_MS} ms"

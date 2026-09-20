@@ -1,254 +1,179 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= Marid Container Deployment: Podman & Compose Architecture
+= Marid with an HTTP capability governance sidecar
 :toc:
-:sectnums:
 
-[abstract]
-Production container deployment specification for Marid applications (`PROJECT_BRIEF.md` §2 Phase 8).
-Features the `http-capability-gateway` sidecar for perimeter verb governance, declarative DSL v1 exposure
-policies, and deceptive stealthing (404/403), with **Podman** as the preferred rootless container runtime.
+Code samples and companion `compose.yaml` are MPL-2.0.
 
-== Overview & Architectural Topology
+== Status and trust boundary
 
-In high-assurance deployments, exposed HTTP methods must be governed deterministically rather than
-trusted to reverse-proxy defaults. Marid pairs natively with `http-capability-gateway`—an Elixir/BEAM
-policy-driven governance layer enforcing declarative verb exposure control, stealth mode, and trust-level
-matching before requests ever reach application endpoints.
+*Experimental bounded unary HTTP*, not production acceptance. Ordered local work
+now provides a real IR-driven Julia HTTP/JSON service and a gateway correction that
+*is* upstream: it merged as `hyperpolymath/http-capability-gateway#112`, commit
+`c67c743c6c9f54c0482c1dd8d8dc151ff919551d`, which is the CI pin and the baseline
+this guide assumes. A gateway or image built before that commit still rejects empty
+`global_verbs` — that is a version statement, not a missing patch. Nothing here is
+a deployment, TLS, persistence or load acceptance claim.
 
-Because Marid is Intermediate Representation (IR) first, governance policies are never maintained by hand.
-Running `marid generate capability-spec <service.jl>` emits the exact Verb Governance Spec (DSL v1 YAML)
-consumed by the gateway sidecar, ensuring **zero contract drift** between what Julia exposes and what
-the gateway permits.
+....
+client -> evaluated TLS ingress -> gateway:4000 -> marid:8080
+                                    YAML          private backend network
+....
 
-[source,text]
-----
-                       [ Incoming Client Request ]
-                                   │
-                                   ▼
-             ┌──────────────────────────────────────────┐
-             │      http-capability-gateway (BEAM)      │  <── Reverse Proxy / Sidecar
-             │   - Declarative Verb Governance DSL v1   │      - Enforces allowed verbs per route
-             │   - Stealth Mode (404/403 ungranted)     │      - Header/Trust-level evaluation
-             │   - Structured Audit Log & Provenance    │      - Line-rate O(1) ETS policy rules
-             └─────────────────────┬────────────────────┘
-                                   │ Verified HTTP / SSE (Safe, governed traffic)
-                                   ▼
-             ┌──────────────────────────────────────────┐
-             │            Marid Server (Julia)          │
-             │   - MaridCore.Router (Radix Trie)        │
-             │   - CallContext (Principal, Tenant, TTL) │
-             │   - Service Methods & Symmetric Streams  │
-             └─────────────────────┬────────────────────┘
-                                   │
-                                   ▼
-             ┌──────────────────────────────────────────┐
-             │         ArangoDB 3.12 Backend            │
-             │   - Document & Graph Collections         │
-             │   - AQL Streaming Cursors                │
-             └──────────────────────────────────────────┘
-----
+Only the gateway publishes a host port. Ingress must block gateway-owned management
+URLs; the application still owns authentication and object-level authorization.
+A verb/exposure/capability spec does not implement those responsibilities.
 
-== Why Podman is Preferred
+== Generate a native policy from the actual IR
 
-The hyperpolymath estate standardizes on **Podman** as the default container engine:
-
-1. **Rootless & Daemonless**: Runs without root privileges or a persistent daemon socket, drastically reducing attack surface.
-2. **First-Class Pod Semantics**: Podman supports Kubernetes-style Pods (`podman pod`). Containers in the same pod share `localhost` networking, allowing `http-capability-gateway` to front Marid over `127.0.0.1` with zero virtual bridge latency.
-3. **OCI & Compose-Spec Compliance**: Podman supports standard OCI `Containerfile`s and executes standard `compose.yaml` files seamlessly via `podman compose`.
-4. **Systemd Integration**: Supports native generation of systemd unit files and Quadlets (`.container`, `.pod`) for production process supervision.
-
-== Deployment Pattern 1: Podman Compose (Multi-Container Stack)
-
-This pattern orchestrates the gateway sidecar, Marid backend, and ArangoDB database via OCI `compose.yaml`.
-
-=== Spec Generation Pre-Step
-
-Generate the gateway policy directly from the service intermediate representation:
+A descriptor is executable trusted Julia; never run an untrusted descriptor file.
+The final expression must return `MaridIR.ServiceDescriptor`. Only explicit HTTP
+bindings are emitted; protocol adapters are not invented by policy generation.
 
 [source,bash]
 ----
-# Generate policy.yaml from your service descriptor
-marid generate capability-spec examples/relationship_explorer/src/RelationshipExplorer.jl config/policy.yaml
+# From Marid root, to stdout or to a file, legacy profile (any gateway accepts it):
+scripts/marid generate capability-spec examples/http_json/service.jl \
+  --global-verbs GET --out docs/deployment/policy.yaml
 ----
 
-=== `compose.yaml` Definition
+`build/container/compose.yaml` mounts the legacy golden
+`fixtures/capability/policy.yaml`, because `:latest` is a mutable tag that cannot be
+verified to contain `#112`. To mount the deny-by-default policy instead, generate it
+against a gateway at or after `#112`:
+
+[source,bash]
+----
+scripts/marid generate capability-spec fixtures/capability/service.jl \
+  --deny-by-default --out fixtures/capability/policy-strict.yaml
+----
+
+`--out` is opened only after the emitter succeeds, so a failing generation cannot
+truncate a live policy; diagnostics go to stderr.
+Strict native DSL v1 has `global_verbs: []`; unknown application paths deny.
+A matched path owns its verb allowlist; omitted verbs cannot inherit globals.
+Exact paths take precedence, while multiple distinct matching regex patterns deny.
+
+Equivalent API:
+
+[source,julia]
+----
+using MaridIR
+svc = include("examples/http_json/service.jl")
+yaml = emit_capability_spec(svc; gateway_profile=:strict, global_verbs=String[])
+----
+
+Legacy compatibility remains explicit: `--global-verbs GET` or
+`emit_capability_spec(svc; global_verbs=["GET"])`. On old upstream that is a public
+fallback even on matched paths with missing verbs. On the patched gateway it is
+public only on unmatched paths. Neither legacy behavior is deny-by-default. The
+CLI warns and never silently opts callers into either security model.
+
+=== Mapping and limits
+
+* Allowed methods: GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS. HEAD/OPTIONS are not inferred.
+* Identical paths merge verbs, require identical governance metadata and sort deterministically.
+* Literal characters are escaped; `:id` is one segment; terminal `/*` is one or more
+  segments. Patterns use `\A` / `\z` anchors.
+* Canonical paths only: no repeated/trailing slash, percent encoding, query, fragment
+  or `{id}`. Real unary routing also rejects noncanonical paths rather than widening
+  access through normalization behind governance.
+* Overlapping IR routes are rejected. The gateway patch denies regex ambiguity at
+  lookup; it is not a general regex intersection prover or a reason to relax emission.
+* Service annotations default and method annotations override `gateway.exposure`
+  (`public`, `authenticated`, `internal`) and `gateway.capability` (nonempty label).
+  Unknown `gateway.*` keys and malformed values reject. Exposure defaults to public.
+* Capability strings are metadata, not signed tokens. Application `auth` annotations
+  are not guessed or converted into authenticated identities.
+* Gateway-owned GET `/health`, `/ready`, `/metrics`, `/api/v1/minikaran` bypass
+  application policy. Generator collision checks do not secure those management URLs.
+
+== Reproduce the local socket acceptance
+
+Use Julia 1.10.10, Bun 1.4.2, Elixir 1.19.4 and OTP 27 with development headers.
+Check out the gateway at the pinned commit `c67c743c6c9f54c0482c1dd8d8dc151ff919551d`
+(the merged `#112` correction); no patch is applied on top of it. Install Hex/Rebar
+and run `mix deps.get` in that checkout. To confirm the pin actually carries the
+correction, `grep 'must be a list (empty denies unmatched routes)'
+lib/http_capability_gateway/policy_validator.ex` — the CI job asserts the same.
+
+[source,bash]
+----
+julia --startup-file=no scripts/bootstrap.jl examples/http_json
+julia --startup-file=no --project=examples/http_json examples/http_json/test/runtests.jl
+bash test/interop/capability_cli.sh
+elixir test/interop/capability_gateway.exs ../http-capability-gateway
+bash test/interop/run_http_gateway.sh ../http-capability-gateway
+----
+
+The one-shot runner starts the actual gateway application and Julia service,
+generates policy from the same IR, exercises real HTTP, stops the backend, checks
+502 and local denials, then cleans up. Ports 18080/18088 must be free. The launcher
+sets no trusted proxies and strips forged trust headers; increased test rate limits
+avoid conflating policy tests with quotas. Audit traffic goes to an isolated unused
+loopback port, not the Julia service. This is not persistent-audit acceptance.
+
+Local result: seven Bun tests / 47 assertions pass across the two processes, in
+addition to 38 direct HTTP/JSON assertions and native policy/compiler tests. The
+separate gateway `ProxyWireTest` verifies upstream query/header/body bytes, repeated
+Set-Cookie, no redirect following, no automatic retries, 503 preservation, and no
+forwarding of an oversized request. See the evidence ledger for counts and failures.
+
+== Compose wiring (configuration validated; engine not run)
+
+Set `MARID_APP_IMAGE` and `HTTP_CAPABILITY_GATEWAY_IMAGE` to reviewed immutable image
+digests. There are deliberately no invented registry defaults. The app image must
+load the real listener on `0.0.0.0:8080`; the gateway image must include the paired
+patch, evaluated trust configuration and `wget` for this health check.
 
 [source,yaml]
 ----
-# SPDX-License-Identifier: MPL-2.0
-# Marid + http-capability-gateway Compose Stack
-
-services:
-  # ────────────────────────────────────────────────────────────────────
-  # Perimeter Capability Gateway (Front-Facing Sidecar)
-  # ────────────────────────────────────────────────────────────────────
-  gateway:
-    image: "ghcr.io/hyperpolymath/http-capability-gateway:latest"
-    container_name: "marid-capability-gateway"
-    ports:
-      - "8080:4000" # Public gateway ingress
-    environment:
-      POLICY_PATH: "/app/config/policy.yaml"
-      BACKEND_URL: "http://marid:8080"
-      PORT: "4000"
-      TRUST_LEVEL_HEADER: "x-trust-level"
-    volumes:
-      - "./config/policy.yaml:/app/config/policy.yaml:ro"
-    depends_on:
-      marid:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
-      interval: 15s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    networks:
-      - marid-tier
-
-  # ────────────────────────────────────────────────────────────────────
-  # Marid Application Backend (Internal Network Only)
-  # ────────────────────────────────────────────────────────────────────
-  marid:
-    build:
-      context: .
-      dockerfile: build/container/Containerfile
-    image: "ghcr.io/hyperpolymath/marid:latest"
-    container_name: "marid-backend"
-    expose:
-      - "8080" # Exposed to gateway on internal bridge; not published to host
-    environment:
-      APP_HOST: "[::]"
-      APP_PORT: "8080"
-      APP_LOG_FORMAT: "json"
-      ARANGODB_URL: "http://arangodb:8529"
-      ARANGODB_USER: "root"
-      ARANGODB_PASSWORD: "${ARANGODB_PASSWORD:-marid_dev_secret}"
-    depends_on:
-      arangodb:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
-      interval: 15s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
-    networks:
-      - marid-tier
-      - data-tier
-
-  # ────────────────────────────────────────────────────────────────────
-  # ArangoDB 3.12 Database Backend
-  # ────────────────────────────────────────────────────────────────────
-  arangodb:
-    image: "docker.io/arangodb:3.12"
-    container_name: "marid-arangodb"
-    environment:
-      ARANGO_ROOT_PASSWORD: "${ARANGODB_PASSWORD:-marid_dev_secret}"
-    volumes:
-      - "arangodb-data:/var/lib/arangodb3"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8529/_api/version"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    networks:
-      - data-tier
-
-networks:
-  marid-tier:
-    driver: bridge
-  data-tier:
-    driver: bridge
-
-volumes:
-  arangodb-data:
+include::compose.yaml[]
 ----
-
-=== Lifecycle Commands with Podman
 
 [source,bash]
 ----
-# 1. Start the stack in background
-podman compose -f compose.yaml up -d
-
-# 2. Check running services & health statuses
-podman compose -f compose.yaml ps
-
-# 3. Stream structured governance audit logs from gateway
-podman compose -f compose.yaml logs -f gateway
-
-# 4. Stop the stack
-podman compose -f compose.yaml down
+: "${MARID_APP_IMAGE:?Set a tested application image digest}"
+: "${HTTP_CAPABILITY_GATEWAY_IMAGE:?Set a reviewed patched gateway image digest}"
+docker compose -f docs/deployment/compose.yaml config --quiet
+# Only after image/runtime review and the release gates below:
+# docker compose -f docs/deployment/compose.yaml up -d
 ----
 
-== Deployment Pattern 2: Native Podman Pod (True Sidecar Topology)
+Runtime variables are `POLICY_PATH`, `BACKEND_URL`, `PORT`, `TRUST_LEVEL_SOURCE`.
+Header mode is not authentication: configure `strip_trust_header: true` and
+`trusted_proxies: []` in the reviewed gateway image, or explicitly authorize only
+an independently evaluated ingress. These are Elixir application settings, not
+invented Compose environment switches. Upstream otherwise trusts loopback headers.
+Do not route untrusted traffic through a header-trusted ingress without stripping
+and independently replacing identity. mTLS has not been accepted in this exercise.
 
-For zero-overhead production environments, deploying as a single **Podman Pod** allows the gateway
-and Marid to share a common network namespace (`localhost`). This eliminates bridge NAT routing
-and enforces that Marid only listens on `127.0.0.1`.
+The read-only policy mount rejects absent host files. The backend network is
+`internal: true`; no database/app host ports, host networking or container socket.
+`depends_on` is ordering, not readiness. Gateway `/ready` reports policy readiness,
+not backend/database health. Provide a real application readiness probe separately.
 
-[source,bash]
-----
-# 1. Create a pod exposing only the gateway port (8080)
-podman pod create \
-  --name marid-service-pod \
-  -p 8080:4000
+The upstream Containerfile/config sequencing still requires repair: production
+configuration reads POLICY_PATH at compile time and the initial dependency step
+loads config before its tree is copied. Consuming an image reference is not proof
+that its build works. No Docker/Podman daemon is available in this evaluation.
 
-# 2. Run Marid inside the pod listening strictly on localhost
-podman run -d \
-  --pod marid-service-pod \
-  --name marid-node \
-  -e APP_HOST=127.0.0.1 \
-  -e APP_PORT=8081 \
-  ghcr.io/hyperpolymath/marid:latest
+== Remaining blockers — do not deploy on these results alone
 
-# 3. Run http-capability-gateway fronting Marid over 127.0.0.1:8081
-podman run -d \
-  --pod marid-service-pod \
-  --name capability-gateway \
-  -v $(pwd)/config/policy.yaml:/app/config/policy.yaml:ro \
-  -e POLICY_PATH=/app/config/policy.yaml \
-  -e BACKEND_URL=http://127.0.0.1:8081 \
-  -e PORT=4000 \
-  ghcr.io/hyperpolymath/http-capability-gateway:latest
-----
+* Full gateway suite remains red: 12 properties / 263 tests, 15 failures at seed 1.
+  All 15 reproduce on the same baseline with only two necessary plugin compilation
+  repairs. Baseline has 19 failures; fewer failures is not a green release gate.
+* Resolver reports existing Cowboy, Cowlib and Mint security advisories. Upgrade
+  and re-evaluate before deployment. Inactive WebhookHardener/XmlRpcShield plugins
+  still warn about unsupported APIs; syntax repairs do not validate their security.
+* Proxy buffers responses without a general memory quota. Dynamic Connection
+  header tokens, general streaming, cancellation, TLS and backend request-ID
+  continuity still need dedicated review. SSE/WS/gRPC/trailers are not supported claims.
+* Real containers, management isolation, direct-port bypass, image provenance,
+  absent/malformed policy readiness, certificate/ingress identity, resource benchmarks,
+  graceful termination and restart/rollback need a passing acceptance matrix.
+* Main policy handles now bind their regex companions and retired handles deny,
+  but safe reader retirement, reload races, dynamic table atom lifetime and production
+  hot reload remain unaccepted. Deploy immutable app/gateway/policy revisions together.
 
-== Verification & Testing Governance Enforcement
-
-Once deployed, verify that the gateway enforces declarative HTTP verb policies:
-
-[source,bash]
-----
-# 1. Valid route & allowed verb (GET /api/v1/taxa) -> 200 OK
-curl -i -X GET http://localhost:8080/api/v1/taxa
-
-# 2. Valid route & ungranted verb (DELETE /api/v1/taxa) -> 404 Not Found (Stealth Mode)
-curl -i -X DELETE http://localhost:8080/api/v1/taxa
-
-# 3. Attenuated mutation with trust header (POST /api/v1/analysis)
-curl -i -X POST http://localhost:8080/api/v1/analysis \
-  -H "X-Trust-Level: internal" \
-  -H "Content-Type: application/json" \
-  -d '{"taxa": ["t1", "t2"]}'
-----
-
-Notice test (2) returns `404 Not Found` rather than `405 Method Not Allowed` or `403 Forbidden`.
-This is `http-capability-gateway`'s stealth mode in action, preventing reconnaissance scanning
-from discovering unauthorized capabilities.
-
-== Docker Compose Compatibility
-
-While Podman is the primary recommendation, the identical `compose.yaml` specification is 100%
-compatible with standard Docker or Nerdctl:
-
-[source,bash]
-----
-docker compose -f compose.yaml up -d
-nerdctl compose -f compose.yaml up -d
-----
+Persistence and browser/protocol acceptance stay behind these gates. No charter
+requirement is waived by the successful local unary slice.

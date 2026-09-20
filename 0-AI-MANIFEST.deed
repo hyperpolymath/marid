@@ -5,7 +5,7 @@
 #
 [metadata]
 version = "0.1.0"
-last-updated = "2026-09-18"
+last-updated = "2026-09-19"
 
 [project]
 name = "Marid"
@@ -32,3 +32,8 @@ items = [
   { agent = "GEMINI", task = "estate audits, cross-repo sweeps, long-context triage, pattern detection" },
   { agent = "VIBE", task = "UI/frontend, PanLL panels,  components, theming, rapid prototyping" },
 ]
+
+# Owner-requested local session, 2026-09-19: native capability-spec emitter,
+# CLI and governance-sidecar recipe implemented for review; report and charter
+# recovery plan in docs/audits/recon-2026-09-19.adoc and docs/plans/.
+# No push, publication, external issue creation or deployment performed.

@@ -12,6 +12,7 @@ module MaridTransport
 using Sockets
 
 include("grpc.jl")
+include("http.jl")
 
 export format_sse_event, parse_http_status_line,
        frame_grpc_message, unframe_grpc_messages, format_grpc_web_trailers,
