@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Check for DEED files
         id: detect
@@ -36,7 +36,7 @@ jobs:
 
       - name: "🟡 CHECK: Validate DEED manifests"
         if: steps.detect.outputs.count > 0
-        uses: hyperpolymath/deed-ecosystem/validate-action@main
+        uses: hyperpolymath/deed-ecosystem/validate-action@ed83d6927e8fb21431e403dbf6d7a4af96772746  # main
         with:
           path: '.'
           strict: 'false'
