@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Check for K9 files
         id: detect
@@ -40,7 +40,7 @@ jobs:
 
       - name: "🟡 CHECK: Validate K9 contracts"
         if: steps.detect.outputs.k9_count > 0
-        uses: hyperpolymath/k9-ecosystem/validate-action@c1a34884054fabf0e9de81dbf68f4ba7874e85f1  # main
+        uses: hyperpolymath/k9-ecosystem/validate-action@main
         with:
           path: '.'
           strict: 'false'
