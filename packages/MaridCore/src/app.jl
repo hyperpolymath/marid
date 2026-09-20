@@ -49,6 +49,15 @@ Return `app` after replacing its route table. Invalid descriptors, non-unary HTT
 bindings, missing or non-function handlers, and conflicting route parameters raise
 an exception before the app's route table is replaced.
 """
+"""
+    _validate_canonical_route_path(path) -> String
+
+Validate that `path` is in canonical form for both policy emission and route
+installation. Rejects paths that do not start with `/` or that contain empty
+segments such as repeated slashes `//` or a trailing slash (except for root `/`).
+
+Returns the unchanged canonical path on success, throws `ArgumentError` otherwise.
+"""
 function _validate_canonical_route_path(path::String)
     startswith(path, "/") || throw(ArgumentError("Route must start with /: $path"))
     (occursin("//", path) || (path != "/" && endswith(path, "/"))) &&
