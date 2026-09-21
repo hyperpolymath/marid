@@ -531,10 +531,11 @@ release-tag version:
         exit 1
     fi
     just changelog
-    git add CHANGELOG.md
+    git add CHANGELOG.adoc
     git commit -m "chore(release): prepare $TAG"
-    git tag -a "$TAG" -m "Release $TAG"
-    echo "Created tag $TAG — push with: git push origin main --tags"
+    git tag -s "$TAG" -m "Release $TAG"
+    echo "Created tag $TAG — push the tag only: git push origin $TAG"
+    echo "The release commit must go through a PR; direct pushes to main are rejected."
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # UTILITIES
