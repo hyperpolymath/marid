@@ -39,7 +39,7 @@ jobs:
           COUNT=$(find . -name '*.deed' -not -path './.git/*' | wc -l)
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -eq 0 ]; then
-            echo "::warning::No .deed manifest files found. Every RSR repo should have 0-AI-MANIFEST.deed"
+            echo "::warning::No .a2ml/.deed manifest files found. Every RSR repo should have a repo deed (<reponame>_chora.deed); legacy 0-AI-MANIFEST.a2ml accepted mid-migration — standards #837"
           fi
 
       - name: Validate DEED manifests
@@ -56,7 +56,7 @@ jobs:
             cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           ## DEED Manifest Validation
 
-          :warning: **No .deed manifest files found.** Every RSR-compliant repo should have at least `0-AI-MANIFEST.deed`.
+          :warning: **No .a2ml/.deed manifest files found.** Every RSR-compliant repo should have a repo deed (`<reponame>_chora.deed`) at its root.
 
           Copy it from [marid](https://github.com/hyperpolymath/marid). Manifests are validated against the DEED grammar.
           EOF
@@ -106,7 +106,7 @@ jobs:
             cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           ## K9 Contract Validation
 
-          :warning: **No K9 contract files found.** Repos with configuration files should have K9 contracts.
+          :warning: **No .a2ml/.deed manifest files found.** Every RSR-compliant repo should have a repo deed (`<reponame>_chora.deed`) at its root.
 
           Generate contracts with: `k9iser generate .`
           EOF
@@ -570,7 +570,7 @@ jobs:
 
           | Tool/Format | Status | Notes |
           |-------------|--------|-------|
-          | DEED manifest (0-AI-MANIFEST.deed) | ${DEED_STATUS} | Required for all RSR repos |
+          | DEED repo deed (`<reponame>_chora.deed`) | ${DEED_STATUS} | Required for all RSR repos |
           | K9 contracts | ${K9_STATUS} | Required for repos with config files |
           | .editorconfig | ${EC_STATUS} | Required for all repos |
           | Groove endpoint | ${GROOVE_STATUS} | Required for service repos |
