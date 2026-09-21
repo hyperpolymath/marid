@@ -399,12 +399,13 @@ jobs:
           # ephemeral MERGE commit, which is not on the remote and would 404.
           # The event's head sha is the commit that actually exists there.
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           PROFILE="$RUNNER_TEMP/rsr-profile.a2ml"
           fetched=""
           for p in ".machine_readable/rsr-profile.a2ml" "machine-readable/rsr-profile.a2ml"; do
-            URL="https://raw.githubusercontent.com/hyperpolymath/marid/${HEAD_SHA}/${p}"
+            URL="https://raw.githubusercontent.com/${REPO}/${HEAD_SHA}/${p}"
             if curl -fsSL --retry 3 --max-time 30 "$URL" -o "$PROFILE" 2>/dev/null; then
               fetched="$p"; break
             fi
