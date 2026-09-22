@@ -5,6 +5,7 @@
 
 This is the single maintainer roster for this repository. It supersedes the
 earlier duplicates at `.github/MAINTAINERS` and `docs/attribution/MAINTAINERS.adoc`.
+The repository's GitHub owner is link:https://github.com/metadatastician[metadatastician].
 
 == Current maintainers
 
