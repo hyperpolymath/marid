@@ -586,7 +586,7 @@ help-me:
     @echo "Shell: $SHELL"
     @echo ""
     @echo "To report an issue:"
-    @echo "  https://github.com/hyperpolymath/marid/issues/new"
+    @echo "  https://github.com/metadatastician/marid/issues/new"
     @echo ""
     @echo "Include the output of 'just doctor' in your report."
 

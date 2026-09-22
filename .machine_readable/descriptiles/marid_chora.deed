@@ -7,7 +7,7 @@
   :repo-uuid       #u5"github.com/hyperpolymath/marid"
 
   (identity :primary-forge github
-            :owner          "hyperpolymath"
+            :owner          "metadatastician"
             :prefixed-name  "dx-marid")
 
   (clade    :primary       dx
@@ -16,7 +16,7 @@
             :assigned      "2026-09-18"
             :rationale     "Marid is a framework developers build web applications, APIs, and reactive dashboards with; its core value is developer-facing application infrastructure in Julia, not an end-user app, a language, or a proof project.")
 
-  (forges   :github    "hyperpolymath/marid"
+  (forges   :github    "metadatastician/marid"
             :gitlab    ""
             :bitbucket "")
 

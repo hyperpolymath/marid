@@ -16,11 +16,11 @@ cerro-torre .ctp bundle with Ed25519 signing and full provenance
 tracking.
 """
 license = "MPL-2.0"
-homepage = "https://github.com/hyperpolymath/marid"
+homepage = "https://github.com/metadatastician/marid"
 maintainer = "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 
 [provenance]
-upstream = "https://github.com/hyperpolymath/marid"
+upstream = "https://github.com/metadatastician/marid"
 import_date = 2026-09-18T00:00:00Z
 
 [dependencies]

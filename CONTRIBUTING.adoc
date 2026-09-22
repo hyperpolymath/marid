@@ -12,6 +12,6 @@ language policy in `CLAUDE.md`. Run the checks relevant to your change before
 opening a pull request.
 
 Report security vulnerabilities privately through
-link:https://github.com/hyperpolymath/marid/security/advisories/new[GitHub Security Advisories],
+link:https://github.com/metadatastician/marid/security/advisories/new[GitHub Security Advisories],
 as described in link:.github/SECURITY.md[the security policy], not through a
 public issue.

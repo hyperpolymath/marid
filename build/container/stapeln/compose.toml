@@ -26,7 +26,7 @@ version = "1.0"
 
 # Primary application service
 [services.marid]
-image = "ghcr.io/hyperpolymath/marid:latest.ctp"
+image = "ghcr.io/metadatastician/marid:latest.ctp"
 ports = ["8080:8080"]
 environment = {
   APP_HOST = "[::]",
@@ -42,7 +42,7 @@ healthcheck = { test = "curl -sf http://localhost:8080/health", interval = "30s"
 # declared secrets are present; emits a structured audit log of every access.
 # Sits between svalinn and the application. Remove if you do not gate secrets.
 [services.rokur]
-image = "ghcr.io/hyperpolymath/rokur:latest.ctp"
+image = "ghcr.io/metadatastician/rokur:latest.ctp"
 ports = ["8081:8081"]
 environment = {
   ROKUR_BACKEND = "http://marid:8080",
@@ -59,7 +59,7 @@ healthcheck = { test = "curl -sf http://localhost:8081/health", interval = "30s"
 # Svalinn edge gateway: validates requests, enforces policies, TLS termination.
 # Proxies to rokur, which in turn fronts the application.
 [services.svalinn]
-image = "ghcr.io/hyperpolymath/svalinn:latest.ctp"
+image = "ghcr.io/metadatastician/svalinn:latest.ctp"
 ports = ["443:443", "80:80"]
 environment = {
   SVALINN_BACKEND = "http://rokur:8081",

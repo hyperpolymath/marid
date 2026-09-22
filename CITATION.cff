@@ -7,8 +7,8 @@ authors:
 title: "Marid"
 version: 0.1.0
 date-released: "2026-09-18"
-url: "https://github.com/hyperpolymath/marid"
-repository-code: "https://github.com/hyperpolymath/marid"
+url: "https://github.com/metadatastician/marid"
+repository-code: "https://github.com/metadatastician/marid"
 license: MPL-2.0
 keywords:
   - "julia"

@@ -215,7 +215,7 @@ Recommendations:
 
 Ship the above patterns in a single reusable workflow under
 `marid/.github/workflows/rsr-ci-defaults.yml`, and adopt
-it estate-wide via `uses: hyperpolymath/marid/.github/workflows/rsr-ci-defaults.yml@main`
+it estate-wide via `uses: metadatastician/marid/.github/workflows/rsr-ci-defaults.yml@main`
 in downstream repos. Single PR propagates improvements.
 
 === 8. Self-hosted runner for heavy work (long-term)
