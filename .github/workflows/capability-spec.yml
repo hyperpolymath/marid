@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4.4.0
-      - uses: julia-actions/setup-julia@v2.7.0
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@v3.0.2
         with:
           version: '1.10.10'
       - uses: erlef/setup-beam@v1.24.1
@@ -28,7 +28,7 @@ jobs:
         run: |
           julia --startup-file=no --project=packages/MaridIR packages/MaridIR/test/runtests.jl
           bash test/interop/capability_cli.sh
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           repository: hyperpolymath/http-capability-gateway
           ref: c67c743c6c9f54c0482c1dd8d8dc151ff919551d
