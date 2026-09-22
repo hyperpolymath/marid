@@ -7,6 +7,7 @@ version = "0.1.0"
 MaridIR = "0aa8228c-ae90-54ec-b99f-6e73e9362e55"
 
 [compat]
+MaridIR = "0.1"
 julia = "1.10"
 
 [extras]
