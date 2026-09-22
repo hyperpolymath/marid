@@ -2,9 +2,9 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 using Test
-using ArangoDB
+using MaridArango
 
-@testset "ArangoDB Full Integration Suite" begin
+@testset "MaridArango Full Integration Suite" begin
     client = ArangoClient("http://127.0.0.1:8529", "biomodel_test", username="root", password="dev")
     
     # 1. Document Creation & Retrieval

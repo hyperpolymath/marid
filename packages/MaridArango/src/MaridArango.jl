@@ -2,13 +2,13 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 """
-    ArangoDB
+    MaridArango
 
 Standalone native Julia HTTP client for ArangoDB 3.12.
 Supports documents, edge collections, bound AQL queries, cursors, revision-aware updates,
 and Stream Transactions. Zero dependencies on MaridCore.
 """
-module ArangoDB
+module MaridArango
 
 using Base64
 using Dates
@@ -248,4 +248,4 @@ function abort_transaction(client::ArangoClient, tx_id::String)::Bool
     return true
 end
 
-end # module ArangoDB
+end # module MaridArango

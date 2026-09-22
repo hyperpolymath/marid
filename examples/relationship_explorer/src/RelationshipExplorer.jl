@@ -15,7 +15,7 @@ using UUIDs
 using MaridCore
 using MaridIR
 using MaridStorage
-using ArangoDB
+using MaridArango
 using MaridGraphQL
 using MaridOpenAPI
 using MaridTransport

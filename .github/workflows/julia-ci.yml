@@ -34,7 +34,7 @@ jobs:
           - MaridGraphQL
           - MaridTransport
           - MaridCore
-          - ArangoDB
+          - MaridArango
           - MaridStorage
           - MaridControl
           - MaridLive
