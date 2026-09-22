@@ -65,8 +65,8 @@ container-init:
     read -rp "Primary port [8080]: " _PORT
     PORT="${_PORT:-8080}"
 
-    read -rp "Container registry [ghcr.io/${OWNER:-hyperpolymath}]: " _REGISTRY
-    REGISTRY="${_REGISTRY:-ghcr.io/${OWNER:-hyperpolymath}}"
+    read -rp "Container registry [ghcr.io/${OWNER:-metadatastician}]: " _REGISTRY
+    REGISTRY="${_REGISTRY:-ghcr.io/${OWNER:-metadatastician}}"
 
     echo ""
     echo "  Service:  $SERVICE_NAME"
@@ -190,7 +190,7 @@ container-run *args:
     "$ENGINE" run --rm -it marid:latest {{args}}
 
 # Container matrix: [build|run|push|shell|scan] x [registry] x [tag]
-container-matrix action="build" registry="ghcr.io/hyperpolymath" tag="latest":
+container-matrix action="build" registry="ghcr.io/metadatastician" tag="latest":
     @echo "Container matrix: action={{action}} registry={{registry}} tag={{tag}}"
 
 # ── Narrowing / opt-out ──────────────────────────────────────────────────────

@@ -50,7 +50,7 @@ jobs:
 
           :warning: **No .deed manifest files found.** Every RSR-compliant repo should have at least `0-AI-MANIFEST.deed`.
 
-          Copy it from [marid](https://github.com/hyperpolymath/marid). Manifests are validated against the DEED grammar.
+          Copy it from [marid](https://github.com/metadatastician/marid). Manifests are validated against the DEED grammar.
           EOF
           else
             echo "## DEED Manifest Validation" >> "$GITHUB_STEP_SUMMARY"

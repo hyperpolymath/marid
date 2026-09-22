@@ -60,7 +60,7 @@ Use plain JavaScript when this tooling is needed. The "use ReScript" rule is ret
 
 # This repo: `marid`  ·  clade `dx-marid`
 
-- **Identity** — uuid `4401e361-daea-5220-8003-5e0e8dab248f`; clade `dx` (secondary `pt`); born 2026-09-18; forge `hyperpolymath/marid`.
+- **Identity** — uuid `4401e361-daea-5220-8003-5e0e8dab248f`; clade `dx` (secondary `pt`); born 2026-09-18; forge `metadatastician/marid`.
 - **IS** — Julia-first framework for web applications, APIs, and reactive scientific dashboards: thirteen charter packages (launch set, core, storage, later) and a framework-independent AffineScript browser client under Bun, proved by one reference application.
 - **IS-NOT** — a database engine (ArangoDB is the database; ArangoDB.jl is a client) · a replacement universal IDL (MaridIR emits native artifacts but is never a wire format; contracts/ records them) · a frontend framework (React/Vue are supported through standard APIs, never replaced) · a Genie clone built in one task (package-first program with gated acceptance tests)
 - **Where it sits** — pipeline position **application-framework**; chain `standards → rsr-template-repo → marid → (Marid.jl applications)`; coordination = `standards`.

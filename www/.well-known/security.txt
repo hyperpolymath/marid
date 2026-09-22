@@ -10,5 +10,5 @@
 Contact: mailto:j.d.a.jewell@open.ac.uk
 Expires: 2026-12-31T23:59:59.000Z
 Preferred-Languages: en
-Canonical: https://github.com/hyperpolymath/marid/.well-known/security.txt
-Policy: https://github.com/hyperpolymath/marid/blob/main/.github/SECURITY.md
+Canonical: https://github.com/metadatastician/marid/.well-known/security.txt
+Policy: https://github.com/metadatastician/marid/blob/main/.github/SECURITY.md

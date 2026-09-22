@@ -18,7 +18,7 @@ services:
     build:
       context: ..
       dockerfile: build/container/Containerfile
-    image: ghcr.io/hyperpolymath/myproject-api:latest
+    image: ghcr.io/metadatastician/myproject-api:latest
     ports:
       - "8080:8080"
     environment:
@@ -38,7 +38,7 @@ services:
 
   # Elixir worker — background processing, talks to the API over the network.
   elixir-worker:
-    image: ghcr.io/hyperpolymath/myproject-worker:latest
+    image: ghcr.io/metadatastician/myproject-worker:latest
     ports:
       - "4000:4000"
     environment:
@@ -58,7 +58,7 @@ services:
 
   # rokur — secrets gate. Refuses to come up unless required secrets are present.
   rokur:
-    image: ghcr.io/hyperpolymath/rokur:latest
+    image: ghcr.io/metadatastician/rokur:latest
     ports:
       - "8081:8081"
     environment:
@@ -82,7 +82,7 @@ services:
   # svalinn — edge gateway. TLS, auth, rate limiting, audit. The only
   # externally exposed service.
   svalinn:
-    image: ghcr.io/hyperpolymath/svalinn:latest
+    image: ghcr.io/metadatastician/svalinn:latest
     ports:
       - "443:443"
       - "80:80"

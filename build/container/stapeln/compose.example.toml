@@ -20,7 +20,7 @@ version = "1.0"
 # Rust API service — the primary HTTP/gRPC backend.
 # Handles incoming requests, data storage, and core business logic.
 [services.rust-api]
-image = "ghcr.io/hyperpolymath/myproject-api:latest.ctp"
+image = "ghcr.io/metadatastician/myproject-api:latest.ctp"
 
 # Map host port 8080 to container port 8080.
 # Use ["[::]:8080:8080"] for explicit IPv6 binding.
@@ -53,7 +53,7 @@ healthcheck = { test = "curl -sf http://localhost:8080/health", interval = "30s"
 # Elixir worker service — background processing, event handling, coordination.
 # Runs as an OTP release with supervision trees for fault tolerance.
 [services.elixir-worker]
-image = "ghcr.io/hyperpolymath/myproject-worker:latest.ctp"
+image = "ghcr.io/metadatastician/myproject-worker:latest.ctp"
 
 # Separate port for the worker's admin/metrics endpoint.
 ports = ["4000:4000"]
@@ -85,7 +85,7 @@ healthcheck = { test = "curl -sf http://localhost:4000/health", interval = "30s"
 #   4. Routes requests to the appropriate backend service
 #   5. Logs all write operations for audit
 [services.svalinn]
-image = "ghcr.io/hyperpolymath/svalinn:latest.ctp"
+image = "ghcr.io/metadatastician/svalinn:latest.ctp"
 
 # External-facing ports: HTTPS (443) and HTTP->HTTPS redirect (80).
 ports = ["443:443", "80:80"]

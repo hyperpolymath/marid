@@ -10,7 +10,7 @@ version = "0.1.0"
 description = "marid container service"
 author = "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 license = "MPL-2.0"
-registry = "ghcr.io/hyperpolymath"
+registry = "ghcr.io/metadatastician"
 
 [build]
 containerfile = "Containerfile"

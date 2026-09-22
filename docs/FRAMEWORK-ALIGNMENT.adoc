@@ -121,7 +121,7 @@ gate covers a fallback decision
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/marid
+git clone https://github.com/metadatastician/marid
 cd marid
 git checkout 6d2ca9161de587da925b5fb986ec059d75d8c3b
 just validate

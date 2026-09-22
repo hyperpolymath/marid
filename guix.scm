@@ -16,5 +16,5 @@
   (inputs (list coreutils bash))
   (synopsis "marid")
   (description "marid — part of the hyperpolymath ecosystem.")
-  (home-page "https://github.com/hyperpolymath/marid")
+  (home-page "https://github.com/metadatastician/marid")
   (license (@ (guix licenses) mpl2.0)))
