@@ -4,9 +4,9 @@
 julia_version = "1.10.5"
 manifest_format = "2.0"
 
-[[deps.ArangoDB]]
+[[deps.MaridArango]]
 deps = ["Base64", "Dates", "Sockets"]
-path = "../../packages/ArangoDB"
+path = "../../packages/MaridArango"
 uuid = "719c9fe8-89eb-588d-a237-0159f38ee2e4"
 version = "0.1.0"
 

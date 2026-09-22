@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= ArangoDB.jl — Native ArangoDB HTTP Client
+= MaridArango.jl — Native ArangoDB HTTP Client
 :toc:
 :sectnums:
 
@@ -60,7 +60,7 @@ These variables are read via `ENV[\"ARANGO_USER\"]` and `ENV[\"ARANGO_PASSWORD\"
 
 [source,julia]
 ----
-using ArangoDB
+using MaridArango
 
 client = ArangoClient("http://127.0.0.1:8529", "biomodel_test", username=ENV["ARANGO_USER"], password=ENV["ARANGO_PASSWORD"])
 
