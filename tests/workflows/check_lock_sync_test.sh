@@ -13,11 +13,13 @@ FIXTURE="$(mktemp -d)"
 WORKFLOWS="$FIXTURE/.github/workflows"
 trap 'rm -rf "$FIXTURE"' EXIT
 
+# reset_fixture clears and recreates the isolated workflow directory.
 reset_fixture() {
     rm -rf "$WORKFLOWS"
     mkdir -p "$WORKFLOWS"
 }
 
+# write_workflow creates a zero-uses fixture with the given filename.
 write_workflow() {
     local name="$1"
     cat > "$WORKFLOWS/$name" <<'YAML'
@@ -27,6 +29,7 @@ jobs: {}
 YAML
 }
 
+# expect_pass runs the checker and prints its output, failing if it rejects the fixture.
 expect_pass() {
     local label="$1"
     local output
@@ -37,6 +40,7 @@ expect_pass() {
     printf '%s\n' "$output"
 }
 
+# expect_fail runs the checker and saves its output, failing if it accepts the fixture.
 expect_fail() {
     local label="$1"
     local output_file="$2"
@@ -46,6 +50,7 @@ expect_fail() {
     fi
 }
 
+# assert_contains fails unless the named file includes the expected literal text.
 assert_contains() {
     local file="$1"
     local expected="$2"
