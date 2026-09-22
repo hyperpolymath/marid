@@ -149,6 +149,10 @@ assert_contains "$action_output" ".github/workflows/action-user.yml"
 # the gate itself has an explicit empty-list lock entry and can be dispatched
 # manually after a startup failure prevents GitHub's normal rerun operation.
 assert_contains "$ROOT/.github/workflows/actions.lock" "'.github/workflows/lock-sync-gate.yml': []"
+if ! "$CHECKER" "$ROOT/.github/workflows"; then
+    echo "FAIL: repository workflows are not accepted by check-lock-sync" >&2
+    exit 1
+fi
 if ! grep -Fqx "  workflow_dispatch:" "$ROOT/.github/workflows/lock-sync-gate.yml"; then
     echo "FAIL: lock-sync-gate.yml has no workflow_dispatch trigger" >&2
     exit 1
