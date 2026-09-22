@@ -1,4 +1,4 @@
-name = "ArangoDB"
+name = "MaridArango"
 uuid = "719c9fe8-89eb-588d-a237-0159f38ee2e4"
 authors = ["Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>"]
 version = "0.1.0"
