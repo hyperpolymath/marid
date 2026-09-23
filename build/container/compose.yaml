@@ -24,7 +24,7 @@ services:
     build:
       context: ..
       dockerfile: build/container/Containerfile
-    image: "ghcr.io/hyperpolymath/marid:latest"
+    image: "ghcr.io/metadatastician/marid:latest"
     ports:
       - "8080:8080"
     environment:
@@ -48,7 +48,7 @@ services:
   # Remove this service if you do not use secret gating.
   # ──────────────────────────────────────────────────────────────────────
   rokur:
-    image: ghcr.io/hyperpolymath/rokur:latest
+    image: ghcr.io/metadatastician/rokur:latest
     environment:
       ROKUR_BACKEND: "http://marid:8080"
       ROKUR_LISTEN: "[::]:8081"
@@ -75,7 +75,7 @@ services:
   # Remove this service for a bare app with no gateway.
   # ──────────────────────────────────────────────────────────────────────
   svalinn:
-    image: ghcr.io/hyperpolymath/svalinn:latest
+    image: ghcr.io/metadatastician/svalinn:latest
     ports:
       - "443:443"
       - "80:80"

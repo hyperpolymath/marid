@@ -6,8 +6,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/hyperpolymath/marid/security/advisories/new
+    url: https://github.com/metadatastician/marid/security/advisories/new
     about: Report privately via a security advisory. Do NOT open a public issue.
   - name: Question or support request
-    url: https://github.com/hyperpolymath/marid/discussions
+    url: https://github.com/metadatastician/marid/discussions
     about: Ask a question. See .github/SUPPORT.md for what to expect.

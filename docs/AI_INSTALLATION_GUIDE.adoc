@@ -39,7 +39,7 @@ local checkouts across this estate are routinely stale or carry sweep debris.
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/marid.git my-project
+git clone https://github.com/metadatastician/marid.git my-project
 cd my-project
 rm -rf .git && git init
 ----

@@ -11,9 +11,9 @@ image:https://img.shields.io/badge/Docs-CC--BY--SA--4.0-blue.svg?logo=creativeco
 
 // ── Standard & quality gates ────────────────────────────────────────────────
 image:https://img.shields.io/badge/RSR-Rhodium_Standard-9C27B0[Rhodium Standard Repository,link="https://github.com/hyperpolymath/rhodium-standard-repositories"]
-image:https://api.scorecard.dev/projects/github.com/hyperpolymath/marid/badge[OpenSSF Scorecard,link="https://scorecard.dev/viewer/?uri=github.com/hyperpolymath/marid"]
+image:https://api.scorecard.dev/projects/github.com/metadatastician/marid/badge[OpenSSF Scorecard,link="https://scorecard.dev/viewer/?uri=github.com/metadatastician/marid"]
 image:https://sonarcloud.io/api/project_badges/measure?project=hyperpolymath_marid&metric=alert_status[SonarQube Quality Gate,link="https://sonarcloud.io/summary/new_code?id=hyperpolymath_marid"]
-image:https://archive.softwareheritage.org/badge/origin/https://github.com/hyperpolymath/marid/[Archived in Software Heritage,link="https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/hyperpolymath/marid"]
+image:https://archive.softwareheritage.org/badge/origin/https://github.com/metadatastician/marid/[Archived in Software Heritage,link="https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/metadatastician/marid"]
 
 // ── Provenance & ecosystem ──────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ infrastructure.
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/marid.git
+git clone https://github.com/metadatastician/marid.git
 cd marid
 
 # Check the repo satisfies the RSR shape:

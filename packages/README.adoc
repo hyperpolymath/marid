@@ -34,7 +34,7 @@ The thirteen Julia packages of the Marid framework, in architectural order
 |===
 | Package | Role | Status
 
-| `ArangoDB/` | Standalone HTTP ArangoDB client: auth, cursors, AQL, transactions, revision conflicts. | Implemented & Passing
+| `MaridArango/` | Standalone HTTP ArangoDB client: auth, cursors, AQL, transactions, revision conflicts. | Implemented & Passing
 | `MaridStorage/` | Storage seam with in-memory engine and ArangoDB storage adapter. | Implemented & Passing
 |===
 
